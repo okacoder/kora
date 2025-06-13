@@ -2,10 +2,8 @@
 
 import * as React from "react";
 import {
-  IconCamera,
+  IconCards,
   IconDashboard,
-  IconFileAi,
-  IconFileDescription,
   IconHome,
   IconInnerShadowTop,
   IconSettings,
@@ -26,6 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Session } from "@/lib/auth";
 
+
 const data = {
   navMain: [
     {
@@ -34,62 +33,19 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Account",
+      title: "Jouer à Garame",
+      url: "/dashboard/garame",
+      icon: IconCards,
+    },
+    {
+      title: "Mon compte",
       url: "/dashboard/account",
       icon: IconUserCircle,
     },
     {
-      title: "Setting",
+      title: "Paramètres",
       url: "/dashboard/setting",
       icon: IconSettings,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
