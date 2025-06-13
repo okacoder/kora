@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Auth System",
-  description: "Auth System",
+  title: "LaMap241",
+  description: "Le jeu consiste en une bataille pour conserver la main, le joueur joue une carte d'une famille et l'adversaire doit pour gagner la main aligner une carte de la même famille",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
