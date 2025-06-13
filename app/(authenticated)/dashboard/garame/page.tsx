@@ -24,7 +24,7 @@ import { useRouter } from "next/navigation";
 import { useGameService, usePaymentService } from "@/lib/garame/infrastructure/garame-provider";
 import { IGameRoom } from "@/lib/garame/domain/interfaces";
 
-const predefinedStakes = [100, 500, 1000, 2000, 5000, 10000];
+const predefinedStakes = [10, 50, 100, 200, 500, 1000];
 
 export default function GaramePage() {
   const router = useRouter();
@@ -35,13 +35,24 @@ export default function GaramePage() {
   const [selectedStake, setSelectedStake] = useState<string>("");
   const [customStake, setCustomStake] = useState("");
   const [userBalance, setUserBalance] = useState<number>(0);
+  const [userKoras, setUserKoras] = useState<number>(0);
   const [availableGames, setAvailableGames] = useState<IGameRoom[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingGames, setLoadingGames] = useState(true);
 
   // Charger le solde de l'utilisateur
   useEffect(() => {
-    loadUserBalance();
+     const loadUserBalance = async () => {
+    try {
+      const balance = await paymentService.getBalance();
+      setUserBalance(balance);
+      // Calculer les koras (10 FCFA = 1 kora)
+      setUserKoras(Math.floor(balance / 10));
+    } catch (error) {
+      console.error("Erreur lors du chargement du solde:", error);
+      toast.error("Impossible de charger votre solde");
+    }
+  };
   }, []);
 
   // Charger les parties disponibles
@@ -76,20 +87,20 @@ export default function GaramePage() {
   const handleCreateGame = async () => {
     const stake = selectedStake === "custom" ? parseInt(customStake) : parseInt(selectedStake);
     
-    if (!stake || stake < 100) {
-      toast.error("La mise minimum est de 100 FCFA");
+    if (!stake || stake < 10) {
+      toast.error("La mise minimum est de 10 koras");
       return;
     }
     
-    if (stake > userBalance) {
-      toast.error("Solde insuffisant pour cette mise");
+    if (stake > userKoras) {
+      toast.error("Solde de koras insuffisant");
       return;
     }
     
     setLoading(true);
     try {
       const room = await gameService.createGame(stake);
-      toast.success(`Partie créée avec une mise de ${stake} FCFA`);
+      toast.success(`Partie créée avec une mise de ${stake} koras`);
       
       // Rediriger vers la salle d'attente
       router.push(`/dashboard/garame/room/${room.id}`);
@@ -105,8 +116,8 @@ export default function GaramePage() {
     
     if (!game) return;
     
-    if (game.stake > userBalance) {
-      toast.error("Solde insuffisant pour rejoindre cette partie");
+    if (game.stake > userKoras) {
+      toast.error("Solde de koras insuffisant pour rejoindre cette partie");
       return;
     }
     
@@ -148,8 +159,9 @@ export default function GaramePage() {
           <CardContent className="flex items-center gap-4 p-4">
             <IconCoin className="size-8 text-primary" />
             <div>
-              <p className="text-sm text-muted-foreground">Votre solde</p>
-              <p className="text-2xl font-bold">{userBalance.toLocaleString()} FCFA</p>
+              <p className="text-sm text-muted-foreground">Vos koras</p>
+              <p className="text-2xl font-bold">{userKoras.toLocaleString()} koras</p>
+              <p className="text-xs text-muted-foreground">≈ {userBalance.toLocaleString()} FCFA</p>
             </div>
           </CardContent>
         </Card>
@@ -203,7 +215,7 @@ export default function GaramePage() {
                               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <IconCoin className="size-4" />
-                                  Mise: {game.stake} FCFA
+                                  Mise: {game.stake} koras
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <IconClock className="size-4" />
@@ -272,7 +284,7 @@ export default function GaramePage() {
                     >
                       <CardContent className="p-4 text-center">
                         <p className="text-2xl font-bold">{stake.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">FCFA</p>
+                        <p className="text-sm text-muted-foreground">koras</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -295,14 +307,14 @@ export default function GaramePage() {
                 
                 {selectedStake === 'custom' && (
                   <div className="mt-4">
-                    <Label htmlFor="custom-stake">Montant personnalisé (min. 100 FCFA)</Label>
+                    <Label htmlFor="custom-stake">Montant personnalisé (min. 10 koras)</Label>
                     <Input
                       id="custom-stake"
                       type="number"
-                      min="100"
+                      min="10"
                       value={customStake}
                       onChange={(e) => setCustomStake(e.target.value)}
-                      placeholder="Entrez votre mise"
+                      placeholder="Entrez votre mise en koras"
                       className="mt-2"
                     />
                   </div>
@@ -319,8 +331,8 @@ export default function GaramePage() {
                     <span className="text-muted-foreground">Votre mise</span>
                     <span className="font-semibold">
                       {selectedStake === 'custom' 
-                        ? (customStake ? `${parseInt(customStake).toLocaleString()} FCFA` : '—')
-                        : `${parseInt(selectedStake || '0').toLocaleString()} FCFA`
+                        ? (customStake ? `${parseInt(customStake).toLocaleString()} koras` : '—')
+                        : `${parseInt(selectedStake || '0').toLocaleString()} koras`
                       }
                     </span>
                   </div>
@@ -328,8 +340,8 @@ export default function GaramePage() {
                     <span className="text-muted-foreground">Gain potentiel (90%)</span>
                     <span className="font-semibold text-green-600">
                       {selectedStake === 'custom' 
-                        ? (customStake ? `${Math.floor(parseInt(customStake) * 1.8).toLocaleString()} FCFA` : '—')
-                        : selectedStake ? `${Math.floor(parseInt(selectedStake) * 1.8).toLocaleString()} FCFA` : '—'
+                        ? (customStake ? `${Math.floor(parseInt(customStake) * 1.8).toLocaleString()} koras` : '—')
+                        : selectedStake ? `${Math.floor(parseInt(selectedStake) * 1.8).toLocaleString()} koras` : '—'
                       }
                     </span>
                   </div>
@@ -337,8 +349,8 @@ export default function GaramePage() {
                     <span className="text-muted-foreground">Commission (10%)</span>
                     <span className="text-sm">
                       {selectedStake === 'custom' 
-                        ? (customStake ? `${Math.floor(parseInt(customStake) * 0.2).toLocaleString()} FCFA` : '—')
-                        : selectedStake ? `${Math.floor(parseInt(selectedStake) * 0.2).toLocaleString()} FCFA` : '—'
+                        ? (customStake ? `${Math.floor(parseInt(customStake) * 0.2).toLocaleString()} koras` : '—')
+                        : selectedStake ? `${Math.floor(parseInt(selectedStake) * 0.2).toLocaleString()} koras` : '—'
                       }
                     </span>
                   </div>

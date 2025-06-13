@@ -60,28 +60,28 @@ class FakeDataStore {
       balance: 30000,
     });
     
-    // Parties disponibles
+    // Parties disponibles (en koras)
     this.gameRooms.set("room1", {
       id: "room1",
-      stake: 500,
+      stake: 50,
       creatorId: "player2",
       creatorName: "Jean241",
       status: "waiting",
       players: 1,
       maxPlayers: 2,
-      totalPot: 500,
+      totalPot: 50,
       createdAt: new Date(Date.now() - 5 * 60000), // il y a 5 minutes
     });
     
     this.gameRooms.set("room2", {
       id: "room2",
-      stake: 1000,
+      stake: 100,
       creatorId: "player3",
       creatorName: "MariePro",
       status: "waiting",
       players: 1,
       maxPlayers: 2,
-      totalPot: 1000,
+      totalPot: 100,
       createdAt: new Date(Date.now() - 2 * 60000), // il y a 2 minutes
     });
   }
@@ -135,7 +135,9 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
     const creator = this.store.players.get(creatorId);
     if (!creator) throw new Error("Joueur introuvable");
     
-    if (creator.balance < stake) {
+    // Vérifier le solde en koras
+    const creatorKoras = Math.floor(creator.balance / 10);
+    if (creatorKoras < stake) {
       throw new InsufficientBalanceError();
     }
     
@@ -154,8 +156,8 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
     
     this.store.gameRooms.set(roomId, room);
     
-    // Déduire la mise du solde
-    creator.balance -= stake;
+    // Déduire la mise du solde (en FCFA)
+    creator.balance -= stake * 10;
     
     return room;
   }
@@ -169,6 +171,12 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
     const player = this.store.players.get(playerId);
     if (!player) throw new Error("Joueur introuvable");
     
+    // Vérifier le solde en koras
+    const playerKoras = Math.floor(player.balance / 10);
+    if (playerKoras < room.stake) {
+      throw new InsufficientBalanceError();
+    }
+    
     if (player.balance < room.stake) {
       throw new InsufficientBalanceError();
     }
@@ -180,9 +188,9 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
     room.totalPot = room.stake * 2;
     room.status = "starting";
     
-    // Déduire la mise du solde
-    player.balance -= room.stake;
-    
+    // Déduire la mise du solde (en FCFA)
+    player.balance -= room.stake * 10;
+
     // Simuler le début de partie après 3 secondes
     setTimeout(() => {
       room.status = "in_progress";
@@ -201,7 +209,7 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
       // Rembourser la mise et supprimer la room
       const player = this.store.players.get(playerId);
       if (player) {
-        player.balance += room.stake;
+        player.balance += room.stake * 10;
       }
       this.store.gameRooms.delete(roomId);
     }
@@ -305,10 +313,11 @@ export class FakeGameStateRepository implements IGameStateRepository {
       gameState.winnerId = playerId;
       gameState.endedAt = new Date();
       
-      // Distribuer les gains
+      // Distribuer les gains (en FCFA)
       const winner = this.store.players.get(playerId);
       if (winner) {
-        winner.balance += Math.floor(gameState.pot * 0.9); // 90% des gains
+        const korasWon = Math.floor(gameState.pot * 0.9);
+        winner.balance += korasWon * 10; // Convertir en FCFA
       }
     }
     

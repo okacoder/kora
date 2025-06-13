@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { TYPES } from "../infrastructure/ioc-container";
-import {
+import type {
   IGameService,
   IPaymentService,
   IPlayerRepository,
