@@ -29,12 +29,28 @@ const options = {
         required: true,
         unique: true,
       },
+      koras: {
+        type: 'number',
+        required: false,
+        defaultValue: 0,
+      },
+      totalWins: {
+        type: 'number',
+        required: false,
+        defaultValue: 0,
+      },
+      totalGames: {
+        type: 'number',
+        required: false,
+        defaultValue: 0,
+      },
     },
   },
   plugins: [
     nextCookies(),
      username({
-      minUsernameLength: 4
+      minUsernameLength: 3,
+      maxUsernameLength: 20,
      }) 
   ],
 } satisfies BetterAuthOptions;
@@ -44,4 +60,3 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
-
