@@ -1,4 +1,3 @@
-// app/(authenticated)/(dashboard)/dashboard/garame/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -82,7 +81,7 @@ export default function GaramePage() {
     toast.success("Vous avez rejoint la partie");
     
     // Rediriger vers la partie
-    router.push(`/dashboard/garame/room/${gameId}`);
+    router.push(`/garame/room/${gameId}`);
   };
 
   return (

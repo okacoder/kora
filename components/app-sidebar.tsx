@@ -34,7 +34,7 @@ const data = {
     },
     {
       title: "Jouer à Garame",
-      url: "/dashboard/garame",
+      url: "/garame",
       icon: IconCards,
     },
     {
