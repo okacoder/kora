@@ -76,10 +76,12 @@ export function SignupForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Créer un compte</CardTitle>
-          <CardDescription>Créer un compte pour commencer</CardDescription>
+      <Card className="border-primary/20 shadow-2xl backdrop-blur-sm bg-card/95">
+        <CardHeader className="space-y-3">
+          <CardTitle className="text-2xl font-bold text-center">Rejoignez LaMap241</CardTitle>
+          <CardDescription className="text-center">
+            Créez votre compte et recevez 500 FCFA de bonus pour commencer
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -116,15 +118,7 @@ export function SignupForm({
                 />
               </div>
               <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Mot de passe oublié?
-                  </a>
-                </div>
+                <Label htmlFor="password">Mot de passe</Label>
                 <Input
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
@@ -134,7 +128,7 @@ export function SignupForm({
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button disabled={loading} type="submit" className="w-full">
+                <Button disabled={loading} type="submit" className="w-full btn-chip">
                   {loading ? (
                     <IconLoader className="animate-spin" stroke={2} />
                   ) : (

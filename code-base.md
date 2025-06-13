@@ -89,6 +89,7 @@ components/
   app-sidebar.tsx
   chart-area-interactive.tsx
   data-table.tsx
+  game-card.tsx
   mode-toggle.tsx
   nav-documents.tsx
   nav-main.tsx
@@ -952,115 +953,6 @@ export default async function layout({
       </SidebarInset>
     </SidebarProvider>
   );
-}
-````
-
-## File: .repomixignore
-````
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-certificates
-````
-
-## File: docker-compose.yml
-````yaml
-version: '3.8'
-
-services:
-  db:
-    image: postgres:latest
-    container_name: kora-db
-    environment:
-      POSTGRES_USER: okafrancois
-      POSTGRES_PASSWORD: ok@code2024
-      POSTGRES_DB: kora-db
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
-volumes:
-  db_data:
-````
-
-## File: repomix.config.json
-````json
-{
-  "$schema": "https://repomix.com/schemas/latest/schema.json",
-  "input": {
-    "maxFileSize": 52428800
-  },
-  "output": {
-    "filePath": "code-base.md",
-    "style": "markdown",
-    "parsableStyle": false,
-    "fileSummary": true,
-    "directoryStructure": true,
-    "files": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
-    "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "copyToClipboard": false,
-    "git": {
-      "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
-      "includeDiffs": false
-    }
-  },
-  "include": [],
-  "ignore": {
-    "useGitignore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": []
-  },
-  "security": {
-    "enableSecurityCheck": true
-  },
-  "tokenCount": {
-    "encoding": "o200k_base"
-  }
 }
 ````
 
@@ -5276,6 +5168,1126 @@ export function useIsMobile() {
 }
 ````
 
+## File: lib/utils.ts
+````typescript
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+````
+
+## File: public/file.svg
+````
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+````
+
+## File: public/globe.svg
+````
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+````
+
+## File: public/next.svg
+````
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+````
+
+## File: public/vercel.svg
+````
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+````
+
+## File: public/window.svg
+````
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+````
+
+## File: .repomixignore
+````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+certificates
+````
+
+## File: components.json
+````json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+````
+
+## File: docker-compose.yml
+````yaml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: kora-db
+    environment:
+      POSTGRES_USER: okafrancois
+      POSTGRES_PASSWORD: ok@code2024
+      POSTGRES_DB: kora-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+````
+
+## File: next.config.ts
+````typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+````
+
+## File: postcss.config.mjs
+````
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
+````
+
+## File: repomix.config.json
+````json
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "code-base.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
+````
+
+## File: tsconfig.json
+````json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+````
+
+## File: app/layout.tsx
+````typescript
+import type { Metadata } from "next";
+import { ThemeProvider } from "@/components/theme-provider";
+
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Auth System",
+  description: "Auth System",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+````
+
+## File: components/game-card.tsx
+````typescript
+import React from 'react';
+import { cn } from '@/lib/utils';
+
+// Types de cartes
+type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades';
+type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
+
+interface CardProps {
+  suit: Suit;
+  rank: Rank;
+  width?: number;
+  height?: number;
+  className?: string;
+}
+
+// Composant pour une carte individuelle
+const PlayingCard: React.FC<CardProps> = ({ suit, rank, width = 100, height = 140, className }) => {
+  const isRed = suit === 'hearts' || suit === 'diamonds';
+  
+  // Symboles des suites
+  const suitSymbols = {
+    hearts: '♥',
+    diamonds: '♦',
+    clubs: '♣',
+    spades: '♠'
+  };
+  
+  // Dessins complexes pour les figures
+  const renderFaceCard = () => {
+    if (rank === 'J' || rank === 'Q' || rank === 'K') {
+      return (
+        <g transform="translate(50, 70)">
+          {/* Fond décoratif avec pattern */}
+          <rect 
+            x="-35" 
+            y="-50" 
+            width="70" 
+            height="100" 
+            className={cn(
+              "fill-current opacity-10",
+              isRed ? "text-primary" : "text-accent"
+            )}
+            rx="5" 
+          />
+          
+          {/* Cadre ornementé */}
+          <rect 
+            x="-32" 
+            y="-47" 
+            width="64" 
+            height="94" 
+            fill="none"
+            className={cn(
+              "stroke-current opacity-20",
+              isRed ? "text-primary" : "text-accent"
+            )}
+            strokeWidth="1.5"
+            rx="3" 
+          />
+          
+          {/* Motifs décoratifs élaborés */}
+          <g className="opacity-30">
+            {/* Lignes horizontales décoratives */}
+            <path
+              d="M-30,-45 L30,-45 M-30,-40 L30,-40 M-30,40 L30,40 M-30,45 L30,45"
+              className={cn(
+                "stroke-current",
+                isRed ? "text-primary" : "text-accent"
+              )}
+              strokeWidth="1"
+              fill="none"
+            />
+            
+            {/* Cercles ornementaux */}
+            <circle 
+              cx="-25" 
+              cy="0" 
+              r="15" 
+              fill="none" 
+              className={cn(
+                "stroke-current",
+                isRed ? "text-primary" : "text-accent"
+              )}
+              strokeWidth="1" 
+            />
+            <circle 
+              cx="25" 
+              cy="0" 
+              r="15" 
+              fill="none" 
+              className={cn(
+                "stroke-current",
+                isRed ? "text-primary" : "text-accent"
+              )}
+              strokeWidth="1" 
+            />
+            
+            {/* Motifs en losange */}
+            <path
+              d="M0,-35 L10,-25 L0,-15 L-10,-25 Z M0,15 L10,25 L0,35 L-10,25 Z"
+              fill="none"
+              className={cn(
+                "stroke-current",
+                isRed ? "text-primary" : "text-accent"
+              )}
+              strokeWidth="0.5"
+            />
+          </g>
+          
+          {/* Figure stylisée */}
+          {rank === 'K' && (
+            <g>
+              {/* Couronne du roi */}
+              <path 
+                d="M-15,-25 L-10,-20 L-5,-25 L0,-20 L5,-25 L10,-20 L15,-25 L15,-15 L-15,-15 Z" 
+                className={cn(
+                  "fill-current opacity-30",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              />
+              <circle cx="-10" cy="-25" r="2" className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+              <circle cx="0" cy="-25" r="2" className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+              <circle cx="10" cy="-25" r="2" className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+              
+              {/* Visage stylisé */}
+              <circle 
+                cx="0" 
+                cy="-5" 
+                r="8" 
+                className={cn(
+                  "fill-current opacity-15",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              />
+              
+              {/* Corps avec détails royaux */}
+              <path
+                d="M-20,5 L-15,0 L-10,5 L-10,35 L10,35 L10,5 L15,0 L20,5"
+                fill="none"
+                className={cn(
+                  "stroke-current opacity-40",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+                strokeWidth="1.5"
+              />
+              
+              {/* Symbole du pouvoir */}
+              <circle cx="0" cy="20" r="5" fill="none" 
+                className={cn("stroke-current opacity-30", isRed ? "text-primary" : "text-accent")} 
+                strokeWidth="1" />
+              <text 
+                x="0" 
+                y="23" 
+                textAnchor="middle" 
+                fontSize="8" 
+                className={cn(
+                  "fill-current opacity-50",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              >
+                {suitSymbols[suit]}
+              </text>
+              
+              <text 
+                x="0" 
+                y="50" 
+                textAnchor="middle" 
+                fontSize="24" 
+                className={cn(
+                  "fill-current font-bold",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              >
+                K
+              </text>
+            </g>
+          )}
+          
+          {rank === 'Q' && (
+            <g>
+              {/* Coiffe de la reine */}
+              <path 
+                d="M-12,-22 Q0,-28 12,-22 L12,-15 Q0,-20 -12,-15 Z" 
+                className={cn(
+                  "fill-current opacity-30",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              />
+              <circle cx="0" cy="-25" r="3" className={cn("fill-current opacity-50", isRed ? "text-primary" : "text-accent")} />
+              
+              {/* Visage avec élégance */}
+              <circle 
+                cx="0" 
+                cy="-5" 
+                r="8" 
+                className={cn(
+                  "fill-current opacity-15",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              />
+              
+              {/* Robe élaborée */}
+              <path
+                d="M-15,5 Q-10,0 -5,5 L-8,35 L8,35 L5,5 Q10,0 15,5"
+                fill="none"
+                className={cn(
+                  "stroke-current opacity-40",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+                strokeWidth="1.5"
+              />
+              
+              {/* Collier */}
+              <ellipse cx="0" cy="10" rx="8" ry="3" fill="none" 
+                className={cn("stroke-current opacity-30", isRed ? "text-primary" : "text-accent")} 
+                strokeWidth="1" />
+              
+              {/* Fleur décorative */}
+              <g transform="translate(0, 20)">
+                <circle cx="0" cy="0" r="2" className={cn("fill-current opacity-20", isRed ? "text-primary" : "text-accent")} />
+                <circle cx="-4" cy="-2" r="2" className={cn("fill-current opacity-15", isRed ? "text-primary" : "text-accent")} />
+                <circle cx="4" cy="-2" r="2" className={cn("fill-current opacity-15", isRed ? "text-primary" : "text-accent")} />
+                <circle cx="-4" cy="2" r="2" className={cn("fill-current opacity-15", isRed ? "text-primary" : "text-accent")} />
+                <circle cx="4" cy="2" r="2" className={cn("fill-current opacity-15", isRed ? "text-primary" : "text-accent")} />
+              </g>
+              
+              <text 
+                x="0" 
+                y="50" 
+                textAnchor="middle" 
+                fontSize="24" 
+                className={cn(
+                  "fill-current font-bold",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              >
+                Q
+              </text>
+            </g>
+          )}
+          
+          {rank === 'J' && (
+            <g>
+              {/* Chapeau du valet */}
+              <path 
+                d="M-10,-20 L-8,-25 Q0,-28 8,-25 L10,-20 L5,-15 L-5,-15 Z" 
+                className={cn(
+                  "fill-current opacity-30",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              />
+              <circle cx="7" cy="-22" r="2" className={cn("fill-current opacity-40", isRed ? "text-primary" : "text-accent")} />
+              
+              {/* Visage jeune */}
+              <circle 
+                cx="0" 
+                cy="-5" 
+                r="8" 
+                className={cn(
+                  "fill-current opacity-15",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              />
+              
+              {/* Tunique avec détails */}
+              <path
+                d="M-12,5 L-10,0 L-8,5 L-10,35 L10,35 L8,5 L10,0 L12,5"
+                fill="none"
+                className={cn(
+                  "stroke-current opacity-40",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+                strokeWidth="1.5"
+              />
+              
+              {/* Ceinture */}
+              <rect x="-10" y="15" width="20" height="3" 
+                className={cn("fill-current opacity-20", isRed ? "text-primary" : "text-accent")} />
+              
+              {/* Épée stylisée */}
+              <g transform="translate(15, 10) rotate(45)">
+                <rect x="-1" y="0" width="2" height="15" className={cn("fill-current opacity-30", isRed ? "text-primary" : "text-accent")} />
+                <rect x="-3" y="-2" width="6" height="3" className={cn("fill-current opacity-40", isRed ? "text-primary" : "text-accent")} />
+              </g>
+              
+              <text 
+                x="0" 
+                y="50" 
+                textAnchor="middle" 
+                fontSize="24" 
+                className={cn(
+                  "fill-current font-bold",
+                  isRed ? "text-primary" : "text-accent"
+                )}
+              >
+                J
+              </text>
+            </g>
+          )}
+        </g>
+      );
+    }
+    return null;
+  };
+  
+  // Disposition des symboles pour les cartes numériques
+  const renderPips = () => {
+    const positions: Record<string, Array<{x: number, y: number}>> = {
+      'A': [{x: 50, y: 70}],
+      '2': [{x: 50, y: 30}, {x: 50, y: 110}],
+      '3': [{x: 50, y: 30}, {x: 50, y: 70}, {x: 50, y: 110}],
+      '4': [{x: 30, y: 30}, {x: 70, y: 30}, {x: 30, y: 110}, {x: 70, y: 110}],
+      '5': [{x: 30, y: 30}, {x: 70, y: 30}, {x: 50, y: 70}, {x: 30, y: 110}, {x: 70, y: 110}],
+      '6': [{x: 30, y: 30}, {x: 70, y: 30}, {x: 30, y: 70}, {x: 70, y: 70}, {x: 30, y: 110}, {x: 70, y: 110}],
+      '7': [{x: 30, y: 30}, {x: 70, y: 30}, {x: 50, y: 50}, {x: 30, y: 70}, {x: 70, y: 70}, {x: 30, y: 110}, {x: 70, y: 110}],
+      '8': [{x: 30, y: 30}, {x: 70, y: 30}, {x: 50, y: 50}, {x: 30, y: 70}, {x: 70, y: 70}, {x: 50, y: 90}, {x: 30, y: 110}, {x: 70, y: 110}],
+      '9': [{x: 30, y: 25}, {x: 70, y: 25}, {x: 30, y: 50}, {x: 70, y: 50}, {x: 50, y: 70}, {x: 30, y: 90}, {x: 70, y: 90}, {x: 30, y: 115}, {x: 70, y: 115}],
+      '10': [{x: 30, y: 25}, {x: 70, y: 25}, {x: 50, y: 40}, {x: 30, y: 55}, {x: 70, y: 55}, {x: 30, y: 85}, {x: 70, y: 85}, {x: 50, y: 100}, {x: 30, y: 115}, {x: 70, y: 115}],
+    };
+    
+    const pips = positions[rank] || [];
+    
+    return pips.map((pos, index) => (
+      <text
+        key={index}
+        x={pos.x}
+        y={pos.y}
+        fontSize={rank === 'A' ? 40 : 20}
+        className={cn(
+          "fill-current",
+          isRed ? "text-primary" : "text-accent"
+        )}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {suitSymbols[suit]}
+      </text>
+    ));
+  };
+  
+  return (
+    <div className={cn("playing-card", className)}>
+      <svg width={width} height={height} viewBox="0 0 100 140" className="w-full h-full">
+        {/* Fond de carte avec texture et patterns */}
+        <defs>
+          {/* Pattern de texture */}
+          <pattern id={`cardTexture-${suit}-${rank}`} x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+            <rect width="4" height="4" className="fill-card" />
+            <rect width="2" height="2" className="fill-card/95" />
+          </pattern>
+          
+          {/* Gradient pour profondeur */}
+          <linearGradient id={`cardGradient-${suit}-${rank}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" className="text-card/90" stopColor="currentColor" />
+            <stop offset="50%" className="text-card" stopColor="currentColor" />
+            <stop offset="100%" className="text-card/80" stopColor="currentColor" />
+          </linearGradient>
+          
+          {/* Pattern décoratif pour les bordures */}
+          <pattern id={`borderPattern-${suit}-${rank}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1" className={cn("fill-current opacity-20", isRed ? "text-primary" : "text-accent")} />
+            <circle cx="8" cy="8" r="1" className={cn("fill-current opacity-20", isRed ? "text-primary" : "text-accent")} />
+          </pattern>
+          
+          {/* Ombre portée */}
+          <filter id={`cardShadow-${suit}-${rank}`}>
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+            <feOffset dx="1" dy="2" result="offsetblur"/>
+            <feFlood floodColor="#000000" floodOpacity="0.15"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        
+        {/* Ombre de carte */}
+        <rect
+          x="1"
+          y="2"
+          width="98"
+          height="138"
+          rx="8"
+          className="fill-black/10"
+        />
+        
+        {/* Carte principale avec gradient */}
+        <rect
+          x="0"
+          y="0"
+          width="100"
+          height="140"
+          rx="8"
+          fill={`url(#cardGradient-${suit}-${rank})`}
+          className="stroke-border"
+          strokeWidth="1"
+          filter={`url(#cardShadow-${suit}-${rank})`}
+        />
+        
+        {/* Bordure décorative extérieure */}
+        <rect
+          x="2"
+          y="2"
+          width="96"
+          height="136"
+          rx="7"
+          fill="none"
+          className={cn(
+            "stroke-current opacity-40",
+            isRed ? "text-primary" : "text-accent"
+          )}
+          strokeWidth="0.5"
+          strokeDasharray="2 2"
+        />
+        
+        {/* Bordure intérieure avec pattern */}
+        <rect
+          x="4"
+          y="4"
+          width="92"
+          height="132"
+          rx="6"
+          fill={`url(#borderPattern-${suit}-${rank})`}
+          className={cn(
+            "stroke-current opacity-30",
+            isRed ? "text-primary" : "text-accent"
+          )}
+          strokeWidth="0.5"
+        />
+        
+        {/* Motifs décoratifs aux coins */}
+        <g className="opacity-10">
+          <path d="M10,10 L25,10 L25,8 L10,8 Z M10,10 L10,25 L8,25 L8,10 Z" 
+            className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+          <path d="M75,10 L90,10 L90,8 L75,8 Z M90,10 L90,25 L92,25 L92,10 Z" 
+            className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+          <path d="M10,130 L25,130 L25,132 L10,132 Z M10,130 L10,115 L8,115 L8,130 Z" 
+            className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+          <path d="M75,130 L90,130 L90,132 L75,132 Z M90,130 L90,115 L92,115 L92,130 Z" 
+            className={cn("fill-current", isRed ? "text-primary" : "text-accent")} />
+        </g>
+
+        {/* Coins supérieur gauche et inférieur droit */}
+        <g>
+          {/* Coin supérieur gauche avec fond décoratif */}
+          <g>
+            <rect x="5" y="12" width="20" height="25" rx="3" 
+              className={cn("fill-current opacity-5", isRed ? "text-primary" : "text-accent")} />
+            <text 
+              x="10" 
+              y="20" 
+              fontSize="16" 
+              className={cn(
+                "fill-current font-bold",
+                isRed ? "text-primary" : "text-accent"
+              )}
+            >
+              {rank}
+            </text>
+            <text 
+              x="10" 
+              y="32" 
+              fontSize="14" 
+              className={cn(
+                "fill-current",
+                isRed ? "text-primary" : "text-accent"
+              )}
+            >
+              {suitSymbols[suit]}
+            </text>
+          </g>
+          
+          {/* Coin inférieur droit (inversé) avec fond décoratif */}
+          <g transform="rotate(180, 50, 70)">
+            <rect x="5" y="12" width="20" height="25" rx="3" 
+              className={cn("fill-current opacity-5", isRed ? "text-primary" : "text-accent")} />
+            <text 
+              x="10" 
+              y="20" 
+              fontSize="16" 
+              className={cn(
+                "fill-current font-bold",
+                isRed ? "text-primary" : "text-accent"
+              )}
+            >
+              {rank}
+            </text>
+            <text 
+              x="10" 
+              y="32" 
+              fontSize="14" 
+              className={cn(
+                "fill-current",
+                isRed ? "text-primary" : "text-accent"
+              )}
+            >
+              {suitSymbols[suit]}
+            </text>
+          </g>
+        </g>
+        
+        {/* Contenu central */}
+        {rank === 'J' || rank === 'Q' || rank === 'K' ? renderFaceCard() : renderPips()}
+      </svg>
+    </div>
+  );
+};
+
+// Composant pour le dos de carte
+const CardBack: React.FC<{ width?: number; height?: number; className?: string }> = ({ 
+  width = 100, 
+  height = 140,
+  className 
+}) => {
+  return (
+    <div className={cn("playing-card", className)}>
+      <svg width={width} height={height} viewBox="0 0 100 140" className="w-full h-full">
+        <defs>
+          {/* Pattern répétitif pour le fond */}
+          <pattern id="cardBackPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <rect width="20" height="20" className="fill-primary" />
+            <circle cx="10" cy="10" r="8" className="fill-primary/90" />
+            <circle cx="10" cy="10" r="6" className="fill-primary/80" />
+            <circle cx="10" cy="10" r="4" className="fill-secondary/20" />
+            <rect x="9" y="2" width="2" height="16" className="fill-secondary/30" />
+            <rect x="2" y="9" width="16" height="2" className="fill-secondary/30" />
+          </pattern>
+          
+          {/* Gradient pour bordure */}
+          <linearGradient id="backBorderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" className="text-secondary" stopColor="currentColor" />
+            <stop offset="50%" className="text-secondary/80" stopColor="currentColor" />
+            <stop offset="100%" className="text-secondary" stopColor="currentColor" />
+          </linearGradient>
+        </defs>
+        
+        {/* Bordure extérieure */}
+        <rect x="0" y="0" width="100" height="140" rx="8" fill="url(#backBorderGradient)" />
+        
+        {/* Fond avec pattern */}
+        <rect x="4" y="4" width="92" height="132" rx="6" fill="url(#cardBackPattern)" />
+        
+        {/* Cadre intérieur décoratif */}
+        <rect x="8" y="8" width="84" height="124" rx="5" fill="none" 
+          className="stroke-secondary/50" strokeWidth="1" strokeDasharray="2 1" />
+        
+        {/* Motif central élaboré */}
+        <g transform="translate(50, 70)">
+          {/* Étoile à 8 branches */}
+          {[0, 45, 90, 135, 180, 225, 270, 315].map(angle => (
+            <g key={angle} transform={`rotate(${angle})`}>
+              <path d="M0,0 L0,-30 L2,-25 L0,-20 L-2,-25 Z" className="fill-secondary/60" />
+            </g>
+          ))}
+          
+          {/* Cercles concentriques */}
+          <circle r="30" fill="none" className="stroke-secondary" strokeWidth="2" />
+          <circle r="25" fill="none" className="stroke-secondary/80" strokeWidth="1" />
+          <circle r="20" fill="none" className="stroke-secondary/60" strokeWidth="1" />
+          <circle r="15" fill="none" className="stroke-secondary/40" strokeWidth="0.5" />
+          
+          {/* Médaillon central */}
+          <circle r="12" className="fill-primary" />
+          <circle r="10" className="fill-secondary/20" />
+          
+          <text 
+            x="0" 
+            y="5" 
+            textAnchor="middle" 
+            fontSize="14" 
+            className="fill-secondary font-bold"
+          >
+            241
+          </text>
+        </g>
+        
+        {/* Ornements aux coins */}
+        {[[10, 10], [90, 10], [10, 130], [90, 130]].map(([x, y], i) => (
+          <g key={i} transform={`translate(${x}, ${y})`}>
+            <circle r="6" className="fill-secondary" />
+            <circle r="4" className="fill-primary" />
+            <circle r="2" className="fill-secondary/50" />
+          </g>
+        ))}
+        
+        {/* Fioritures décoratives sur les bords */}
+        <g className="opacity-30">
+          <path d="M20,5 Q30,10 40,5 M60,5 Q70,10 80,5" className="stroke-secondary" strokeWidth="0.5" fill="none" />
+          <path d="M20,135 Q30,130 40,135 M60,135 Q70,130 80,135" className="stroke-secondary" strokeWidth="0.5" fill="none" />
+          <path d="M5,30 Q10,40 5,50 M5,90 Q10,100 5,110" className="stroke-secondary" strokeWidth="0.5" fill="none" />
+          <path d="M95,30 Q90,40 95,50 M95,90 Q90,100 95,110" className="stroke-secondary" strokeWidth="0.5" fill="none" />
+        </g>
+      </svg>
+    </div>
+  );
+};
+
+// Composant principal affichant tout le jeu
+const FullDeck: React.FC = () => {
+  const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
+  const ranks: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  
+  return (
+    <div className="p-5 bg-background">
+      <h2 className="text-center mb-5 text-2xl font-bold text-foreground">
+        Jeu de cartes complet - 52 cartes
+      </h2>
+      
+      {suits.map(suit => (
+        <div key={suit} className="mb-8">
+          <h3 className={cn(
+            "mb-4 text-xl font-semibold capitalize",
+            suit === 'hearts' || suit === 'diamonds' ? "text-primary" : "text-accent"
+          )}>
+            {suit === 'hearts' ? '♥ Cœurs' : 
+             suit === 'diamonds' ? '♦ Carreaux' :
+             suit === 'clubs' ? '♣ Trèfles' :
+             '♠ Piques'}
+          </h3>
+          
+          <div className="game-grid">
+            {ranks.map(rank => (
+              <div key={`${suit}-${rank}`} className="flex justify-center card-shadow">
+                <PlayingCard suit={suit} rank={rank} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      
+      {/* Dos de carte bonus */}
+      <div className="mt-10 text-center">
+        <h3 className="mb-4 text-xl font-semibold text-secondary">Dos de carte</h3>
+        <div className="inline-block card-shadow-lg">
+          <CardBack />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export { PlayingCard, CardBack, FullDeck };
+export default FullDeck;
+````
+
+## File: components/nav-main.tsx
+````typescript
+"use client";
+
+import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+
+export function NavMain({
+  items,
+}: {
+  items: {
+    title: string;
+    url: string;
+    icon?: Icon;
+  }[];
+}) {
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent className="flex flex-col gap-2">
+        <SidebarMenu>
+          <SidebarMenuItem className="flex items-center gap-2">
+            <SidebarMenuButton
+              tooltip="Quick Create"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+            >
+              <IconCirclePlusFilled />
+              <span>Quick Create</span>
+            </SidebarMenuButton>
+            <Button
+              size="icon"
+              className="size-8 group-data-[collapsible=icon]:opacity-0"
+              variant="outline"
+            >
+              <IconMail />
+              <span className="sr-only">Inbox</span>
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <Link href={item.url}>
+                <SidebarMenuButton tooltip={item.title}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+````
+
+## File: components/section-cards.tsx
+````typescript
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+export function SectionCards() {
+  return (
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <Card className="@container/card ">
+        <CardHeader>
+          <CardDescription>Total Revenue</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            $1,250.00
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <IconTrendingUp />
+              +12.5%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Trending up this month <IconTrendingUp className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            Visitors for the last 6 months
+          </div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>New Customers</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            1,234
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <IconTrendingDown />
+              -20%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Down 20% this period <IconTrendingDown className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            Acquisition needs attention
+          </div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Active Accounts</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            45,678
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <IconTrendingUp />
+              +12.5%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Strong user retention <IconTrendingUp className="size-4" />
+          </div>
+          <div className="text-muted-foreground">Engagement exceed targets</div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Growth Rate</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            4.5%
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <IconTrendingUp />
+              +4.5%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Steady performance increase <IconTrendingUp className="size-4" />
+          </div>
+          <div className="text-muted-foreground">Meets growth projections</div>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+````
+
+## File: components/site-header.tsx
+````typescript
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+
+export function SiteHeader() {
+  return (
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mx-2 data-[orientation=vertical]:h-4"
+        />
+        <h1 className="text-base font-medium">Dashboard</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="https://github.com/Achour/nextjs-better-auth"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
+            >
+              GitHub
+            </a>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+````
+
 ## File: lib/auth.ts
 ````typescript
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -5326,14 +6338,21 @@ export const auth = betterAuth({
 export type Session = typeof auth.$Infer.Session;
 ````
 
-## File: lib/utils.ts
+## File: lib/prisma.ts
 ````typescript
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { PrismaClient } from "@prisma/client";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+declare global {
+  var prisma: PrismaClient | undefined;
 }
+
+const prisma = global.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = prisma;
+}
+
+export default prisma;
 ````
 
 ## File: prisma/schema.prisma
@@ -5413,331 +6432,12 @@ model verification {
 }
 ````
 
-## File: public/file.svg
-````
-<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
-````
-
-## File: public/globe.svg
-````
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
-````
-
-## File: public/next.svg
-````
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
-````
-
-## File: public/vercel.svg
-````
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
-````
-
-## File: public/window.svg
-````
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
-````
-
-## File: .gitignore
-````
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-certificates
-````
-
-## File: components.json
-````json
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "",
-    "css": "app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
-  },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
-  },
-  "iconLibrary": "lucide"
-}
-````
-
-## File: next.config.ts
+## File: app/api/auth/[...all]/route.ts
 ````typescript
-import type { NextConfig } from "next";
+import { auth } from "@/lib/auth";
+import { toNextJsHandler } from "better-auth/next-js";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
-````
-
-## File: postcss.config.mjs
-````
-const config = {
-  plugins: ["@tailwindcss/postcss"],
-};
-
-export default config;
-````
-
-## File: tsconfig.json
-````json
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-````
-
-## File: app/globals.css
-````css
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-}
-
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer components {
-  .container {
-    @apply mx-auto px-4 lg:px-0;
-  }
-}
-````
-
-## File: app/layout.tsx
-````typescript
-import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/theme-provider";
-
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "Auth System",
-  description: "Auth System",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
+export const { GET, POST } = toNextJsHandler(auth.handler);
 ````
 
 ## File: components/auth/login-form.tsx
@@ -6039,71 +6739,6 @@ export function SignupForm({
 }
 ````
 
-## File: components/nav-main.tsx
-````typescript
-"use client";
-
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import Link from "next/link";
-
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon?: Icon;
-  }[];
-}) {
-  return (
-    <SidebarGroup>
-      <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton
-              tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-            >
-              <IconCirclePlusFilled />
-              <span>Quick Create</span>
-            </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <IconMail />
-              <span className="sr-only">Inbox</span>
-            </Button>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <Link href={item.url}>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-}
-````
-
 ## File: components/nav-user.tsx
 ````typescript
 "use client";
@@ -6202,146 +6837,6 @@ export function NavUser({ user }: { user: Session["user"] }) {
 }
 ````
 
-## File: components/section-cards.tsx
-````typescript
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
-
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-export function SectionCards() {
-  return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Card className="@container/card ">
-        <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <IconTrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Visitors for the last 6 months
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>New Customers</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingDown />
-              -20%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period <IconTrendingDown className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Acquisition needs attention
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention <IconTrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +4.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase <IconTrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
-        </CardFooter>
-      </Card>
-    </div>
-  );
-}
-````
-
-## File: components/site-header.tsx
-````typescript
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-
-export function SiteHeader() {
-  return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
-        />
-        <h1 className="text-base font-medium">Dashboard</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
-            <a
-              href="https://github.com/Achour/nextjs-better-auth"
-              rel="noopener noreferrer"
-              target="_blank"
-              className="dark:text-foreground"
-            >
-              GitHub
-            </a>
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-}
-````
-
 ## File: lib/auth-client.ts
 ````typescript
 import { createAuthClient } from "better-auth/react";
@@ -6356,21 +6851,52 @@ export const authClient = createAuthClient({
 });
 ````
 
-## File: lib/prisma.ts
-````typescript
-import { PrismaClient } from "@prisma/client";
+## File: .gitignore
+````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-declare global {
-  var prisma: PrismaClient | undefined;
-}
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-const prisma = global.prisma || new PrismaClient();
+# testing
+/coverage
 
-if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
-}
+# next.js
+/.next/
+/out/
 
-export default prisma;
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+certificates
+code-base.md
 ````
 
 ## File: package.json
@@ -6437,12 +6963,15 @@ export default prisma;
 }
 ````
 
-## File: app/api/auth/[...all]/route.ts
+## File: app/api/route.ts
 ````typescript
-import { auth } from "@/lib/auth";
-import { toNextJsHandler } from "better-auth/next-js";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
-export const { GET, POST } = toNextJsHandler(auth.handler);
+export async function GET() {
+  const users = await prisma.user.findMany();
+  return NextResponse.json("ok");
+}
 ````
 
 ## File: components/app-sidebar.tsx
@@ -6617,17 +7146,6 @@ export const config = {
 };
 ````
 
-## File: app/api/route.ts
-````typescript
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-
-export async function GET() {
-  const users = await prisma.user.findMany();
-  return NextResponse.json("ok");
-}
-````
-
 ## File: README.md
 ````markdown
 # Next.js + Better Auth + Prisma Starter Kit
@@ -6694,128 +7212,1046 @@ export async function GET() {
 Made with ❤️ by [Achour Meguenni](https://github.com/Achour)
 ````
 
+## File: app/globals.css
+````css
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.5rem;
+  /* Fond crème inspiré des cartes de jeu traditionnelles */
+  --background: oklch(0.98 0.01 70);
+  --foreground: oklch(0.15 0.02 40);
+  /* Cartes avec texture papier */
+  --card: oklch(0.99 0.005 60);
+  --card-foreground: oklch(0.2 0.02 40);
+  --popover: oklch(0.99 0.005 60);
+  --popover-foreground: oklch(0.2 0.02 40);
+  /* Rouge des cartes #B4443E */
+  --primary: oklch(0.52 0.18 25);
+  --primary-foreground: oklch(0.99 0 0);
+  /* Marron #A68258 */
+  --secondary: oklch(0.62 0.08 65);
+  --secondary-foreground: oklch(0.15 0.02 40);
+  /* Tons neutres avec une touche chaude */
+  --muted: oklch(0.92 0.02 70);
+  --muted-foreground: oklch(0.45 0.02 40);
+  /* Accent marron clair pour les hovers et sélections */
+  --accent: oklch(0.88 0.04 65);
+  --accent-foreground: oklch(0.15 0.02 40);
+  /* Rouge vif pour les alertes */
+  --destructive: oklch(0.5 0.3 25);
+  /* Bordures marron clair */
+  --border: oklch(0.85 0.03 65);
+  --input: oklch(0.94 0.01 70);
+  --ring: oklch(0.52 0.18 25);
+  /* Couleurs pour graphiques inspirées des couleurs choisies */
+  --chart-1: oklch(0.52 0.18 25);  /* Rouge #B4443E */
+  --chart-2: oklch(0.62 0.08 65);  /* Marron #A68258 */
+  --chart-3: oklch(0.45 0.05 230); /* Bleu #465D74 */
+  --chart-4: oklch(0.65 0.18 160); /* Vert émeraude */
+  --chart-5: oklch(0.6 0.15 45);   /* Orange terre */
+  /* Sidebar avec style carte de jeu */
+  --sidebar: oklch(0.97 0.01 70);
+  --sidebar-foreground: oklch(0.15 0.02 40);
+  --sidebar-primary: oklch(0.52 0.18 25);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0.02 70);
+  --sidebar-accent-foreground: oklch(0.15 0.02 40);
+  --sidebar-border: oklch(0.85 0.03 65);
+  --sidebar-ring: oklch(0.52 0.18 25);
+}
+
+.dark {
+  /* Fond sombre bleu nuit avec texture */
+  --background: oklch(0.12 0.02 230);
+  --foreground: oklch(0.95 0.01 70);
+  /* Cartes avec effet velours sombre */
+  --card: oklch(0.16 0.03 230);
+  --card-foreground: oklch(0.95 0.01 70);
+  --popover: oklch(0.16 0.03 230);
+  --popover-foreground: oklch(0.95 0.01 70);
+  /* Rouge des cartes lumineux #B4443E */
+  --primary: oklch(0.58 0.22 25);
+  --primary-foreground: oklch(0.98 0.01 70);
+  /* Marron doré #A68258 */
+  --secondary: oklch(0.68 0.10 65);
+  --secondary-foreground: oklch(0.12 0.02 230);
+  /* Tons neutres sombres */
+  --muted: oklch(0.25 0.02 230);
+  --muted-foreground: oklch(0.65 0.02 70);
+  /* Accent marron sombre pour les hovers */
+  --accent: oklch(0.35 0.05 65);
+  --accent-foreground: oklch(0.95 0.01 70);
+  /* Rouge alerte lumineux */
+  --destructive: oklch(0.6 0.35 20);
+  /* Bordures bleu profond */
+  --border: oklch(0.3 0.03 230);
+  --input: oklch(0.2 0.02 230);
+  --ring: oklch(0.58 0.22 25);
+  /* Graphiques aux couleurs vives */
+  --chart-1: oklch(0.58 0.22 25);  /* Rouge #B4443E */
+  --chart-2: oklch(0.68 0.10 65);  /* Marron #A68258 */
+  --chart-3: oklch(0.55 0.08 230); /* Bleu #465D74 */
+  --chart-4: oklch(0.5 0.15 165);  /* Vert jade */
+  --chart-5: oklch(0.65 0.18 45);  /* Orange ambré */
+  /* Sidebar style velours */
+  --sidebar: oklch(0.14 0.02 230);
+  --sidebar-foreground: oklch(0.95 0.01 70);
+  --sidebar-primary: oklch(0.58 0.22 25);
+  --sidebar-primary-foreground: oklch(0.98 0.01 70);
+  --sidebar-accent: oklch(0.2 0.02 230);
+  --sidebar-accent-foreground: oklch(0.95 0.01 70);
+  --sidebar-border: oklch(0.3 0.03 230);
+  --sidebar-ring: oklch(0.58 0.22 25);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  /* Configuration mobile-first */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    font-size: 16px; /* Évite le zoom sur iOS */
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    /* Ajout d'une texture subtile inspirée des cartes */
+    background-image: 
+      radial-gradient(circle at 25% 25%, oklch(0.52 0.18 25 / 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, oklch(0.62 0.08 65 / 0.02) 0%, transparent 50%);
+    /* Optimisations mobile */
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  .dark body {
+    background-image: 
+      radial-gradient(circle at 25% 25%, oklch(0.58 0.22 25 / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, oklch(0.68 0.10 65 / 0.03) 0%, transparent 50%);
+  }
+  
+  /* Typography mobile-first */
+  h1 { @apply text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl; }
+  h2 { @apply text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl; }
+  h3 { @apply text-lg font-semibold sm:text-xl lg:text-2xl; }
+  h4 { @apply text-base font-semibold sm:text-lg; }
+  p { @apply text-sm sm:text-base leading-relaxed; }
+  
+  /* Focus styles pour mobile */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+  
+  /* Désactiver les effets de sélection sur mobile */
+  @media (max-width: 768px) {
+    * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    input, textarea {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+  }
+}
+
+@layer components {
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+  }
+  
+  /* Composants UI personnalisés pour mobile */
+  
+  /* Boutons optimisés pour le tactile */
+  [data-slot="button"] {
+    @apply min-h-[44px] min-w-[44px];
+    touch-action: manipulation;
+  }
+  
+  [data-slot="button"]:active {
+    @apply scale-[0.98] transition-transform duration-75;
+  }
+  
+  /* Cards avec padding mobile-first */
+  [data-slot="card"] {
+    @apply rounded-lg sm:rounded-xl;
+  }
+  
+  [data-slot="card-header"],
+  [data-slot="card-content"],
+  [data-slot="card-footer"] {
+    @apply px-4 sm:px-6;
+  }
+  
+  /* Inputs optimisés mobile */
+  [data-slot="input"],
+  [data-slot="select-trigger"],
+  [data-slot="textarea"] {
+    @apply min-h-[44px] text-base; /* 16px empêche le zoom sur iOS */
+  }
+  
+  /* Dialogs/Sheets mobile-first */
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"] {
+    @apply max-h-[90vh] overflow-y-auto;
+  }
+  
+  /* Drawer pour mobile (plein écran) */
+  @media (max-width: 640px) {
+    [data-slot="drawer-content"] {
+      @apply h-[95vh] rounded-t-2xl;
+    }
+  }
+  
+  /* Tables responsive */
+  [data-slot="table-container"] {
+    @apply -mx-4 sm:mx-0;
+  }
+  
+  [data-slot="table"] {
+    @apply text-xs sm:text-sm;
+  }
+  
+  /* Badges et pills */
+  [data-slot="badge"] {
+    @apply text-xs px-2 py-0.5 sm:px-2.5 sm:py-1;
+  }
+  
+  /* Dropdown menus avec taille minimale pour mobile */
+  [data-slot="dropdown-menu-content"] {
+    @apply min-w-[200px] sm:min-w-[220px];
+  }
+  
+  [data-slot="dropdown-menu-item"] {
+    @apply min-h-[40px] text-sm sm:text-base;
+  }
+  
+  /* Tabs mobile-friendly */
+  [data-slot="tabs-list"] {
+    @apply w-full justify-start overflow-x-auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  [data-slot="tabs-list"]::-webkit-scrollbar {
+    display: none;
+  }
+  
+  [data-slot="tabs-trigger"] {
+    @apply min-w-[100px] flex-shrink-0;
+  }
+  
+  /* Toast/Sonner position mobile */
+  .toaster {
+    @apply !bottom-16 sm:!bottom-4;
+  }
+  
+  /* Sidebar mobile (plein écran) */
+  @media (max-width: 768px) {
+    [data-slot="sidebar"] {
+      @apply w-full;
+    }
+  }
+  
+  /* Effets spéciaux pour les cartes de jeu */
+  .card-game-effect {
+    @apply relative overflow-hidden rounded-lg sm:rounded-xl;
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--card) calc(l - 0.02) c h) 100%);
+    box-shadow: 
+      0 1px 3px 0 oklch(0 0 0 / 0.1),
+      0 1px 2px -1px oklch(0 0 0 / 0.1),
+      inset 0 1px 1px 0 oklch(1 0 0 / 0.1);
+  }
+  
+  .dark .card-game-effect {
+    background: linear-gradient(135deg, var(--card) 0%, oklch(from var(--card) calc(l + 0.02) c h) 100%);
+    box-shadow: 
+      0 1px 3px 0 oklch(0 0 0 / 0.3),
+      0 1px 2px -1px oklch(0 0 0 / 0.2),
+      inset 0 1px 1px 0 oklch(1 0 0 / 0.05);
+  }
+  
+  /* Boutons style jetons de casino */
+  .btn-chip {
+    @apply relative min-h-[48px] px-6;
+    background: radial-gradient(circle at 30% 30%, oklch(from var(--primary) calc(l + 0.1) c h) 0%, var(--primary) 60%);
+    box-shadow: 
+      inset 0 2px 4px 0 oklch(1 0 0 / 0.2),
+      0 2px 4px 0 oklch(0 0 0 / 0.2);
+  }
+  
+  /* Zone de mise mobile */
+  .betting-zone {
+    @apply bg-card/80 backdrop-blur-sm rounded-xl p-4 border-2 border-dashed border-secondary/50;
+  }
+  
+  /* Cartes de jeu */
+  .playing-card {
+    @apply relative aspect-[2/3] w-16 sm:w-20 lg:w-24 rounded-lg shadow-lg transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
+  }
+  
+  /* Animation pour les gains */
+  @keyframes coin-flip {
+    0%, 100% { transform: rotateY(0deg); }
+    50% { transform: rotateY(180deg); }
+  }
+  
+  .win-animation {
+    animation: coin-flip 0.6s ease-in-out;
+  }
+  
+  /* Effet de brillance marron */
+  .gold-shine {
+    @apply relative overflow-hidden;
+  }
+  
+  .gold-shine::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(0.62 0.08 65 / 0.3),
+      transparent
+    );
+    animation: shine 3s infinite;
+  }
+  
+  @keyframes shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+  
+  /* Safe area pour iOS */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Utilitaires pour mobile */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Touch manipulation pour les éléments interactifs */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Grille de jeu responsive */
+  .game-grid {
+    @apply grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 lg:gap-4;
+  }
+  
+  /* Espacements mobiles */
+  .space-y-mobile {
+    @apply space-y-3 sm:space-y-4 lg:space-y-6;
+  }
+  
+  .gap-mobile {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
+  
+  /* Animations performantes (GPU) */
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* État de chargement */
+  .skeleton-pulse {
+    @apply animate-pulse bg-muted;
+  }
+  
+  /* Overlay pour modals mobile */
+  .modal-overlay {
+    @apply fixed inset-0 bg-background/80 backdrop-blur-sm z-50;
+  }
+  
+  /* Bottom sheet mobile */
+  .bottom-sheet {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-4 right-4 z-40 size-14 rounded-full bg-primary text-primary-foreground shadow-lg;
+    @apply flex items-center justify-center;
+    @apply active:scale-95 transition-transform;
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* État désactivé personnalisé */
+  .disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+  
+  /* Texte tronqué */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Ombres personnalisées pour les cartes */
+  .card-shadow {
+    box-shadow: 
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+  
+  .card-shadow-lg {
+    box-shadow: 
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  
+  /* Animation de défilement infini */
+  @keyframes slide-infinite {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-slide-infinite {
+    animation: slide-infinite 20s linear infinite;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  @keyframes slide-infinite-reverse {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  .animate-slide-infinite-reverse {
+    animation: slide-infinite-reverse 25s linear infinite;
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  /* Dupliquer le contenu pour l'effet infini */
+  .animate-slide-infinite::after {
+    content: '';
+    display: flex;
+    gap: 1rem;
+  }
+  
+  /* Animations flottantes pour les particules */
+  @keyframes float-slow {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    33% {
+      transform: translateY(-10px) translateX(5px);
+    }
+    66% {
+      transform: translateY(5px) translateX(-5px);
+    }
+  }
+  
+  @keyframes float-medium {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    50% {
+      transform: translateY(-15px) translateX(-10px);
+    }
+  }
+  
+  @keyframes float-fast {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-5px) translateX(5px);
+    }
+    50% {
+      transform: translateY(-10px) translateX(-5px);
+    }
+    75% {
+      transform: translateY(-5px) translateX(5px);
+    }
+  }
+  
+  .animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+  }
+  
+  .animate-float-medium {
+    animation: float-medium 4s ease-in-out infinite;
+  }
+  
+  .animate-float-fast {
+    animation: float-fast 3s ease-in-out infinite;
+  }
+}
+````
+
 ## File: app/page.tsx
 ````typescript
-import { auth } from "@/lib/auth"; // path to your Better Auth server instance
-import { headers } from "next/headers";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { PlayingCard, CardBack } from "@/components/game-card";
 import {
+  IconCards,
+  IconCoin,
+  IconTrophy,
+  IconDeviceMobile,
+  IconShieldCheck,
+  IconUsersGroup,
+  IconSparkles,
   IconChevronRight,
-  IconLockSquareRoundedFilled,
-  IconShieldCheckFilled,
+  IconMenu2,
 } from "@tabler/icons-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-export default async function page() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
+export default async function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Navigation */}
-      <header className="border-b">
-        <div className="container  flex h-16 items-center justify-between">
-          <div className="flex items-center ">
-            {/* <Lock size={24} className="text-primary" /> */}
-            <span className="font-bold text-xl">Better-Auth</span>
-          </div>
-          <nav className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <ModeToggle />
-              {session?.user ? (
-                <a href="/dashboard">
-                  <Button variant="outline" size="sm">
-                    Dashboard
-                  </Button>
-                </a>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="outline" size="sm">
-                      Log in
-                    </Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button size="sm">Sign up</Button>
-                  </Link>
-                </>
-              )}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary">
+              <IconCards className="size-6 text-primary-foreground" />
             </div>
+            <span className="text-xl font-bold">LaMap241</span>
+          </div>
+          
+          {/* Mobile menu */}
+          <Sheet>
+            <SheetTrigger asChild className="sm:hidden">
+              <Button variant="ghost" size="icon">
+                <IconMenu2 className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[80%] sm:w-[350px]">
+              <nav className="flex flex-col gap-4 mt-8">
+                <Link href="/login">
+                  <Button variant="outline" className="w-full">Se connecter</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="w-full">Commencer à jouer</Button>
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          {/* Desktop menu */}
+          <nav className="hidden sm:flex items-center gap-4">
+            <Link href="/login">
+              <Button variant="outline">Se connecter</Button>
+            </Link>
+            <Link href="/signup">
+              <Button>Commencer à jouer</Button>
+            </Link>
           </nav>
         </div>
       </header>
 
-      {/* Hero section */}
-      <section className="py-20">
-        <div className="container flex flex-col items-center text-center gap-6">
-          <IconShieldCheckFilled size={64} className="text-primary" />
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight max-w-3xl">
-            {/* //Modern Authentication for Next.js Applications */}
-            Next.js + Better Auth + Prisma Starter Kit
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Better-Auth is a complete authentication solution for your Next.js
-            projects, powered by Prisma and styled with Shadcn UI components.
-          </p>
-          <div className="flex gap-4 mt-4">
-            <a
-              target="_blank"
-              href="https://github.com/Achour/nextjs-better-auth"
-            >
-              <Button size="lg" className="gap-2">
-                Clone Repository <IconChevronRight size={18} />
+      {/* Hero Section */}
+      <section className="container px-4 py-12 lg:py-24 overflow-x-hidden lg:overflow-visible">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Content côté gauche */}
+          <div className="text-center lg:text-left space-y-6">
+            {/* Badge */}
+            <Badge variant="outline" className="px-4 py-1.5 mx-auto lg:mx-0">
+              <IconSparkles className="mr-1 size-3" />
+              Jeu de cartes en ligne
+            </Badge>
+
+            {/* Titre principal */}
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
+              Le duel de cartes <span className="text-primary">épique</span> vous attend !
+            </h1>
+
+            {/* Description */}
+            <p className="text-lg text-muted-foreground sm:text-xl lg:text-2xl max-w-xl mx-auto lg:mx-0">
+              Devenez maître du Garame ! Affrontez des joueurs, misez de l'argent réel
+              et remportez des gains instantanés dans ce jeu de cartes stratégique.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link href="/signup">
+                <Button size="lg" className="btn-chip w-full sm:w-auto gap-2 lg:text-lg lg:px-8 lg:py-6">
+                  Jouer maintenant
+                  <IconChevronRight className="size-4 lg:size-5" />
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" className="w-full sm:w-auto lg:text-lg lg:px-8 lg:py-6">
+                Voir les règles
               </Button>
-            </a>
-            <Link href="/login">
-              <Button size="lg" variant="outline">
-                Try Demo
-              </Button>
-            </Link>
+            </div>
+
+            {/* Stats rapides */}
+            <div className="flex gap-6 justify-center lg:justify-start pt-6">
+              <div>
+                <p className="text-2xl font-bold text-primary">10K+</p>
+                <p className="text-sm text-muted-foreground">Joueurs actifs</p>
+              </div>
+              <Separator orientation="vertical" className="h-12" />
+              <div>
+                <p className="text-2xl font-bold text-primary">4.8/5</p>
+                <p className="text-sm text-muted-foreground">Note moyenne</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Cartes preview côté droit - grandes sur tous les appareils */}
+          <div className="relative h-[350px]  lg:h-[600px] overflow-visible">
+            {/* Cartes en éventail */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* Carte arrière gauche */}
+              <div className="absolute transform -rotate-[25deg] -translate-x-24 sm:-translate-x-32 hover:rotate-[-20deg] hover:-translate-y-4 transition-all duration-300 z-10">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="diamonds" rank="Q" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
+              </div>
+              
+              {/* Carte gauche */}
+              <div className="absolute transform -rotate-12 -translate-x-12 sm:-translate-x-16 hover:rotate-[-8deg] hover:-translate-y-4 transition-all duration-300 z-20">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="hearts" rank="K" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
+              </div>
+              
+              {/* Carte centrale (dos) */}
+              <div className="absolute transform rotate-0 scale-110 hover:scale-125 hover:-translate-y-4 transition-all duration-300 z-30">
+                <div className="w-[198px] h-[277px]">
+                  <CardBack width={198} height={277} className="w-full h-full shadow-2xl" />
+                </div>
+              </div>
+              
+              {/* Carte droite */}
+              <div className="absolute transform rotate-12 translate-x-12 sm:translate-x-16 hover:rotate-[8deg] hover:-translate-y-4 transition-all duration-300 z-20">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="spades" rank="A" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
+              </div>
+              
+              {/* Carte arrière droite */}
+              <div className="absolute transform rotate-[25deg] translate-x-24 sm:translate-x-32 hover:rotate-[20deg] hover:-translate-y-4 transition-all duration-300 z-10">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="clubs" rank="J" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Effets de brillance animés */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-48 h-48 lg:w-64 lg:h-64 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+            </div>
+            
+            {/* Particules flottantes */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full animate-float-slow" />
+              <div className="absolute top-3/4 right-1/4 w-3 h-3 bg-primary/60 rounded-full animate-float-medium" />
+              <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-primary/40 rounded-full animate-float-fast" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA section */}
+      {/* Features Section */}
+      <section className="container px-4 py-12 lg:py-24">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="text-center text-3xl lg:text-5xl font-bold mb-4">
+            Entrez dans l'arène ultime !
+          </h2>
+          <p className="text-center text-lg lg:text-xl text-muted-foreground mb-12 lg:mb-16 max-w-3xl mx-auto">
+            Découvrez tout ce qui fait de LaMap241 l'expérience de jeu de cartes ultime
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="card-game-effect group hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+                <CardContent className="p-6 lg:p-8 text-center">
+                  <div className="mb-4 inline-flex size-14 lg:size-16 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <feature.icon className="size-7 lg:size-8" />
+                  </div>
+                  <h3 className="text-lg lg:text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm lg:text-base text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Game Preview Section */}
+      <section className="border-y bg-muted/30 py-12 lg:py-24 overflow-hidden">
+        <div className="container px-4">
+          <h2 className="text-center text-3xl lg:text-5xl font-bold mb-4">Découvrez nos cartes uniques</h2>
+          <p className="text-center text-lg lg:text-xl text-muted-foreground mb-12 lg:mb-16 max-w-3xl mx-auto">
+            Chaque carte est conçue avec soin pour vous offrir une expérience de jeu authentique et immersive
+          </p>
+          
+          {/* Carrousel infini sur desktop et mobile */}
+          <div className="relative space-y-6">
+            {/* Première ligne */}
+            <div className="relative">
+              <div className="flex gap-4 lg:gap-6 overflow-hidden">
+                <div className="flex gap-4 lg:gap-6 animate-slide-infinite">
+                  {/* Pattern: 2 face cards, 1 back card */}
+                  <PlayingCard suit="hearts" rank="A" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="K" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  
+                  <PlayingCard suit="clubs" rank="Q" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="J" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  
+                  <PlayingCard suit="hearts" rank="10" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="9" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  
+                  {/* Duplicate for seamless loop */}
+                  <PlayingCard suit="hearts" rank="A" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="K" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                </div>
+              </div>
+              
+              {/* Gradient de fondu sur les côtés */}
+              <div className="absolute inset-y-0 left-0 w-20 lg:w-32 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-20 lg:w-32 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
+            </div>
+            
+            {/* Deuxième ligne sur desktop */}
+            <div className="relative hidden lg:block">
+              <div className="flex gap-6 overflow-hidden">
+                <div className="flex gap-6 animate-slide-infinite-reverse">
+                  {/* Pattern inversé */}
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="A" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="clubs" rank="K" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="hearts" rank="Q" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="J" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="clubs" rank="10" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="9" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  
+                  {/* Duplicate for seamless loop */}
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="A" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="clubs" rank="K" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                </div>
+              </div>
+              
+              {/* Gradient de fondu sur les côtés */}
+              <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="border-y bg-muted/50 py-12 lg:py-24">
+        <div className="container px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-16 text-center max-w-6xl mx-auto">
+            {stats.map((stat, index) => (
+              <div key={index} className="space-y-2 group">
+                <p className="text-3xl lg:text-5xl font-bold text-primary transition-transform group-hover:scale-110">{stat.value}</p>
+                <p className="text-sm lg:text-base text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="container px-4 py-12 lg:py-24">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl lg:text-5xl font-bold mb-4">Comment ça marche ?</h2>
+          <p className="text-center text-lg lg:text-xl text-muted-foreground mb-12 lg:mb-16 max-w-3xl mx-auto">
+            Commencez à jouer en quelques minutes seulement
+          </p>
+          
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Étapes à gauche */}
+            <div className="space-y-6 lg:space-y-8">
+              {steps.map((step, index) => (
+                <div key={index} className="flex gap-4 items-start group">
+                  <div className="flex size-12 lg:size-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg lg:text-xl group-hover:scale-110 transition-transform">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg lg:text-xl mb-2">{step.title}</h3>
+                    <p className="text-sm lg:text-base text-muted-foreground">{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Carte bonus à droite */}
+            <div className="lg:sticky lg:top-24 h-fit">
+              <Card className="betting-zone relative overflow-hidden">
+                <CardContent className="p-8 lg:p-10 text-center space-y-6">
+                  {/* Cartes décoratives en arrière-plan */}
+                  <div className="absolute top-0 left-0 opacity-10 -rotate-45 -translate-x-1/2 -translate-y-1/2">
+                    <PlayingCard suit="diamonds" rank="A" width={180} height={252} />
+                  </div>
+                  <div className="absolute bottom-0 right-0 opacity-10 rotate-45 translate-x-1/2 translate-y-1/2">
+                    <PlayingCard suit="hearts" rank="K" width={180} height={252} />
+                  </div>
+                  
+                  <IconCoin className="size-16 lg:size-20 mx-auto text-primary relative z-10" />
+                  <h3 className="text-2xl lg:text-3xl font-bold relative z-10">Bonus de bienvenue</h3>
+                  <p className="text-3xl lg:text-4xl font-bold text-primary relative z-10">500 FCFA</p>
+                  <p className="text-base lg:text-lg text-muted-foreground relative z-10">
+                    Créez votre compte et recevez immédiatement 500 FCFA pour tester la plateforme !
+                  </p>
+                  <Link href="/signup">
+                    <Button size="lg" className="w-full gold-shine relative z-10 text-lg">
+                      Récupérer mon bonus
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="container px-4 py-12">
+        <div className="mx-auto max-w-3xl space-y-mobile">
+          <h2 className="text-center text-3xl font-bold">Questions fréquentes</h2>
+          
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">{faq.question}</h3>
+                  <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="container px-4 py-16">
+        <Card className="card-game-effect overflow-hidden">
+          <CardContent className="p-8 sm:p-12 text-center space-y-6">
+            <h2 className="text-3xl font-bold">
+              Prêt à commencer l'aventure ?
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Rejoignez des milliers de joueurs et montrez vos talents de stratège.
+              L'arène vous attend !
+            </p>
+            <Link href="/signup">
+              <Button size="lg" className="btn-chip gap-2">
+                Créer mon compte gratuitement
+                <IconChevronRight className="size-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Footer */}
-      <footer className="border-t py-10 mt-auto">
-        <div className="container flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <IconLockSquareRoundedFilled size={20} className="text-primary" />
-            <span className="font-bold">Auth Starter Kit</span>
-          </div>
-          <div className="flex gap-8">
-            <a
-              href="https://github.com/achour"
-              target="_blank"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Github
-            </a>
-            <a
-              href="https://www.mrdigitus.com/"
-              target="_blank"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Portfolio
-            </a>
-            <a
-              href="https://x.com/mr_digitus"
-              target="_blank"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Contact
-            </a>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Mr.Digitus
+      <footer className="border-t bg-muted/50">
+        <div className="container px-4 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+                <IconCards className="size-4 text-primary-foreground" />
+              </div>
+              <span className="font-semibold">LaMap241</span>
+            </div>
+            
+            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
+              <Link href="#" className="hover:text-foreground transition-colors">
+                Règles du jeu
+              </Link>
+              <Link href="#" className="hover:text-foreground transition-colors">
+                Conditions
+              </Link>
+              <Link href="#" className="hover:text-foreground transition-colors">
+                Contact
+              </Link>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              © 2024 LaMap241. Tous droits réservés.
+            </p>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
+// Data
+const features = [
+  {
+    icon: IconTrophy,
+    title: "Gains instantanés",
+    description: "Remportez vos gains immédiatement après chaque victoire"
+  },
+  {
+    icon: IconDeviceMobile,
+    title: "Mobile Money",
+    description: "Dépôts et retraits faciles via Airtel Money et Moov Money"
+  },
+  {
+    icon: IconShieldCheck,
+    title: "100% Sécurisé",
+    description: "Plateforme sécurisée avec anti-triche intégré"
+  },
+  {
+    icon: IconUsersGroup,
+    title: "Multijoueur",
+    description: "Affrontez des joueurs du monde entier en temps réel"
+  }
+];
+
+const stats = [
+  { value: "10K+", label: "Joueurs actifs" },
+  { value: "50K+", label: "Parties jouées" },
+  { value: "5M", label: "FCFA distribués" },
+  { value: "4.8/5", label: "Note moyenne" }
+];
+
+const steps = [
+  {
+    title: "Créez votre compte",
+    description: "Inscription rapide avec votre numéro de téléphone"
+  },
+  {
+    title: "Rechargez votre solde",
+    description: "Utilisez Mobile Money pour ajouter des fonds en quelques secondes"
+  },
+  {
+    title: "Choisissez votre mise",
+    description: "Créez ou rejoignez une partie avec la mise de votre choix"
+  },
+  {
+    title: "Remportez la victoire",
+    description: "Gagnez et retirez vos gains instantanément sur votre compte"
+  }
+];
+
+const faqs = [
+  {
+    question: "Comment retirer mes gains ?",
+    answer: "Les retraits sont instantanés via Mobile Money. Allez dans votre portefeuille, cliquez sur 'Retirer' et suivez les instructions."
+  },
+  {
+    question: "Quel est le montant minimum de mise ?",
+    answer: "Vous pouvez commencer à jouer avec une mise minimum de 100 FCFA."
+  },
+  {
+    question: "Le jeu est-il légal ?",
+    answer: "Oui, LaMap241 opère dans le respect de la législation en vigueur concernant les jeux d'argent en ligne."
+  }
+];
 ````

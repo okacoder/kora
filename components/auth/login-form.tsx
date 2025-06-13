@@ -59,11 +59,11 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Se connecter à votre compte</CardTitle>
-          <CardDescription>
-            Entrez votre nom d'utilisateur et votre mot de passe pour vous connecter
+      <Card className="border-primary/20 shadow-2xl backdrop-blur-sm bg-card/95">
+        <CardHeader className="space-y-3">
+          <CardTitle className="text-2xl font-bold text-center">Bienvenue sur LaMap241</CardTitle>
+          <CardDescription className="text-center">
+            Connectez-vous pour rejoindre l'arène et défier les meilleurs joueurs
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -105,7 +105,7 @@ export function LoginForm({
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button disabled={loading} type="submit" className="w-full">
+                <Button disabled={loading} type="submit" className="w-full btn-chip">
                   {loading ? (
                     <IconLoader className="animate-spin" stroke={2} />
                   ) : (
