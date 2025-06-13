@@ -62,9 +62,9 @@
   /* Tons neutres avec une touche chaude */
   --muted: oklch(0.92 0.02 70);
   --muted-foreground: oklch(0.45 0.02 40);
-  /* Bleu #465D74 pour les accents */
-  --accent: oklch(0.45 0.05 230);
-  --accent-foreground: oklch(0.95 0.01 70);
+  /* Accent marron clair pour les hovers et sélections */
+  --accent: oklch(0.88 0.04 65);
+  --accent-foreground: oklch(0.15 0.02 40);
   /* Rouge vif pour les alertes */
   --destructive: oklch(0.5 0.3 25);
   /* Bordures marron clair */
@@ -106,8 +106,8 @@
   /* Tons neutres sombres */
   --muted: oklch(0.25 0.02 230);
   --muted-foreground: oklch(0.65 0.02 70);
-  /* Bleu clair #465D74 */
-  --accent: oklch(0.55 0.08 230);
+  /* Accent marron sombre pour les hovers */
+  --accent: oklch(0.35 0.05 65);
   --accent-foreground: oklch(0.95 0.01 70);
   /* Rouge alerte lumineux */
   --destructive: oklch(0.6 0.35 20);
