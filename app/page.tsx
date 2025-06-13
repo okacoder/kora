@@ -20,8 +20,14 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 export default async function HomePage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Navigation */}
@@ -55,12 +61,24 @@ export default async function HomePage() {
 
           {/* Desktop menu */}
           <nav className="hidden sm:flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="outline">Se connecter</Button>
-            </Link>
-            <Link href="/signup">
-              <Button>Commencer à jouer</Button>
-            </Link>
+            {session ? (
+              <Link href="/dashboard">
+                <Button variant="outline">Se déconnecter</Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline">Se connecter</Button>
+              </Link>
+            )}
+            {session ? (
+              <Link href="/dashboard">
+                <Button>Commencer à jouer</Button>
+              </Link>
+            ) : (
+              <Link href="/signup">
+                <Button>Commencer à jouer</Button>
+              </Link>
+            )}
           </nav>
         </div>
       </header>
