@@ -71,7 +71,7 @@ export default async function HomePage() {
           {/* Badge */}
           <Badge variant="outline" className="mb-4 px-4 py-1.5">
             <IconSparkles className="mr-1 size-3" />
-            Jeu de cartes africain en ligne
+            Jeu de cartes en ligne
           </Badge>
 
           {/* Titre principal */}
@@ -174,7 +174,7 @@ export default async function HomePage() {
           </div>
           
           <p className="text-center text-muted-foreground mt-6 max-w-2xl mx-auto">
-            Chaque carte est conçue avec soin pour refléter l'authenticité du jeu traditionnel africain
+            Chaque carte est conçue avec soin pour vous offrir une expérience de jeu authentique
           </p>
         </div>
       </section>
