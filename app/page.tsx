@@ -66,7 +66,7 @@ export default async function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container px-4 py-12 lg:py-24">
+      <section className="container px-4 py-12 lg:py-24 overflow-x-hidden lg:overflow-visible">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Content côté gauche */}
           <div className="text-center lg:text-left space-y-6">
@@ -114,33 +114,43 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Cartes preview côté droit - plus grandes sur desktop */}
-          <div className="relative h-[400px] lg:h-[600px]">
+          {/* Cartes preview côté droit - grandes sur tous les appareils */}
+          <div className="relative h-[350px]  lg:h-[600px] overflow-visible">
             {/* Cartes en éventail */}
             <div className="absolute inset-0 flex items-center justify-center">
               {/* Carte arrière gauche */}
-              <div className="absolute transform -rotate-[25deg] -translate-x-20 lg:-translate-x-32 hover:rotate-[-20deg] hover:-translate-y-4 transition-all duration-300 z-10">
-                <PlayingCard suit="diamonds" rank="Q" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
+              <div className="absolute transform -rotate-[25deg] -translate-x-24 sm:-translate-x-32 hover:rotate-[-20deg] hover:-translate-y-4 transition-all duration-300 z-10">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="diamonds" rank="Q" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
               </div>
               
               {/* Carte gauche */}
-              <div className="absolute transform -rotate-12 -translate-x-10 lg:-translate-x-16 hover:rotate-[-8deg] hover:-translate-y-4 transition-all duration-300 z-20">
-                <PlayingCard suit="hearts" rank="K" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
+              <div className="absolute transform -rotate-12 -translate-x-12 sm:-translate-x-16 hover:rotate-[-8deg] hover:-translate-y-4 transition-all duration-300 z-20">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="hearts" rank="K" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
               </div>
               
               {/* Carte centrale (dos) */}
               <div className="absolute transform rotate-0 scale-110 hover:scale-125 hover:-translate-y-4 transition-all duration-300 z-30">
-                <CardBack width={132} height={185} className="lg:w-[198px] lg:h-[277px] shadow-2xl" />
+                <div className="w-[198px] h-[277px]">
+                  <CardBack width={198} height={277} className="w-full h-full shadow-2xl" />
+                </div>
               </div>
               
               {/* Carte droite */}
-              <div className="absolute transform rotate-12 translate-x-10 lg:translate-x-16 hover:rotate-[8deg] hover:-translate-y-4 transition-all duration-300 z-20">
-                <PlayingCard suit="spades" rank="A" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
+              <div className="absolute transform rotate-12 translate-x-12 sm:translate-x-16 hover:rotate-[8deg] hover:-translate-y-4 transition-all duration-300 z-20">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="spades" rank="A" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
               </div>
               
               {/* Carte arrière droite */}
-              <div className="absolute transform rotate-[25deg] translate-x-20 lg:translate-x-32 hover:rotate-[20deg] hover:-translate-y-4 transition-all duration-300 z-10">
-                <PlayingCard suit="clubs" rank="J" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
+              <div className="absolute transform rotate-[25deg] translate-x-24 sm:translate-x-32 hover:rotate-[20deg] hover:-translate-y-4 transition-all duration-300 z-10">
+                <div className="w-[180px] h-[252px]">
+                  <PlayingCard suit="clubs" rank="J" width={180} height={252} className="w-full h-full shadow-2xl" />
+                </div>
               </div>
             </div>
             
