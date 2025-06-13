@@ -43,20 +43,27 @@ enum Role {
 }
 
 model user {
-  id                  String    @id
+  id                  String        @id
   name                String
-  username            String    @unique
+  username            String        @unique
   displayUsername     String?
-  role                Role      @default(USER)
-  email               String    @unique
+  role                Role          @default(USER)
+  email               String        @unique
   emailVerified       Boolean
-  phoneNumber         String?   @unique
-  phoneNumberVerified Boolean   @default(false)
+  phoneNumber         String?       @unique
+  phoneNumberVerified Boolean       @default(false)
   image               String?
+  koras               Int           @default(0) // Jetons de jeu
+  totalWins           Int           @default(0)
+  totalGames          Int           @default(0)
   createdAt           DateTime
   updatedAt           DateTime
   account             account[]
   session             session[]
+  createdGames        game[]        @relation("GameCreator")
+  joinedGames         game[]        @relation("GameOpponent")
+  transactions        transaction[]
+  gameHistories       gameHistory[]
 
   @@index([email])
   @@index([phoneNumber])
@@ -70,4 +77,98 @@ model verification {
   expiresAt  DateTime
   createdAt  DateTime?
   updatedAt  DateTime?
+}
+
+// Modèles spécifiques à LaMap241
+
+enum GameType {
+  GARAM // Jeu de cartes Garame
+  // D'autres jeux pourront être ajoutés ici plus tard
+}
+
+model game {
+  id            String     @id @default(cuid())
+  gameType      GameType   @default(GARAM)
+  creatorId     String
+  opponentId    String?
+  status        GameStatus @default(WAITING)
+  korasStake    Int // Mise en koras
+  totalKorasPot Int // Total des koras en jeu
+  winnerId      String?
+  currentTurn   String? // ID du joueur dont c'est le tour
+  gameData      Json? // État du jeu (cartes, scores, etc.)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  creator       user          @relation("GameCreator", fields: [creatorId], references: [id])
+  opponent      user?         @relation("GameOpponent", fields: [opponentId], references: [id])
+  gameHistories gameHistory[]
+
+  @@index([status])
+  @@index([gameType])
+  @@index([creatorId])
+  @@index([opponentId])
+}
+
+enum GameStatus {
+  WAITING // En attente d'un adversaire
+  IN_PROGRESS // Partie en cours
+  COMPLETED // Partie terminée
+  CANCELLED // Partie annulée
+}
+
+model transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  type        TransactionType
+  amount      Float? // Montant en FCFA (pour dépôts/retraits)
+  koras       Int? // Nombre de koras (pour achats/gains)
+  korasBefore Int? // Solde koras avant transaction
+  korasAfter  Int? // Solde koras après transaction
+  description String?
+  reference   String? // Référence Mobile Money
+  gameId      String?
+  status      TransactionStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user user @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+}
+
+enum TransactionType {
+  DEPOSIT // Dépôt d'argent
+  WITHDRAWAL // Retrait d'argent
+  BUY_KORAS // Achat de koras
+  GAME_STAKE // Mise sur une partie
+  GAME_WIN // Gain d'une partie
+  BONUS // Bonus (ex: bienvenue, parrainage)
+  COMMISSION // Commission prélevée
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model gameHistory {
+  id        String   @id @default(cuid())
+  gameId    String
+  userId    String
+  action    String // Type d'action (PLAY_CARD, PASS_TURN, etc.)
+  data      Json? // Données de l'action
+  createdAt DateTime @default(now())
+
+  game game @relation(fields: [gameId], references: [id])
+  user user @relation(fields: [userId], references: [id])
+
+  @@index([gameId])
+  @@index([userId])
 }
