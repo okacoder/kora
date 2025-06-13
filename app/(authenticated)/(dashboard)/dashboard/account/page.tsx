@@ -17,16 +17,12 @@ export default function Page() {
 
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
-
+  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function getUser() {
     const { data: session } = await authClient.getSession();
-    // // if (!session?.user) {
-    // //   return router.push("/login");
-    // // }
-    // console.log(session);
     return session;
   }
 
@@ -34,6 +30,7 @@ export default function Page() {
     getUser().then((data) => {
       setFullname(data?.user?.name ?? ""); // Use empty string as fallback
       setEmail(data?.user?.email ?? "");
+      setUsername(data?.user?.username ?? "");
     });
   }, []);
 
@@ -51,15 +48,15 @@ export default function Page() {
   ) : (
     <>
       <div className="px-4 lg:px-6">
-        <h1 className="text-lg font-medium">Account Setting</h1>
+        <h1 className="text-lg font-medium">Paramètres du compte</h1>
         <p className="text-sm text-muted-foreground mb-2">
-          Edit your account information
+          Modifiez vos informations de compte
         </p>
         <Separator className="mb-4" />
         <form className="lg:w-1/2">
           <div className="flex flex-col gap-6">
             <div className="grid gap-3">
-              <Label htmlFor="email">Full Name</Label>
+              <Label htmlFor="email">Nom complet</Label>
               <Input
                 onChange={(e) => setFullname(e.target.value)}
                 value={fullname}
@@ -70,7 +67,18 @@ export default function Page() {
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Nom d'utilisateur</Label>
+              <Input
+                onChange={(e) => setUsername(e.target.value)}
+                value={username}
+                id="username"
+                type="text"
+                placeholder="achour_meguenni"
+                required
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="email">Adresse email</Label>
               <Input
                 onChange={(e) => setEmail(e.target.value)}
                 value={email}
@@ -86,15 +94,15 @@ export default function Page() {
                 {loading ? (
                   <IconLoader className="animate-spin" stroke={2} />
                 ) : (
-                  "Save"
+                  "Enregistrer"
                 )}
               </Button>
             </div>
           </div>
           <div className="mt-4 text-center text-sm">
-            Forgot your password?{" "}
+            Mot de passe oublié?{" "}
             <a href="/login" className="underline underline-offset-4">
-              Reset password
+              Réinitialiser le mot de passe
             </a>
           </div>
         </form>

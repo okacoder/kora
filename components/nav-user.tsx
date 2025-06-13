@@ -8,7 +8,7 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,10 +24,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { user } from "@prisma/client";
+import { Session } from "@/lib/auth";
 import LogoutButton from "./auth/logout-button";
 
-export function NavUser({ user }: { user: user }) {
+export function NavUser({ user }: { user: Session["user"] }) {
   const { isMobile } = useSidebar();
 
   return (
@@ -78,7 +78,7 @@ export function NavUser({ user }: { user: user }) {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
-                Account
+                Mon compte
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

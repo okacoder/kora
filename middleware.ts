@@ -3,7 +3,6 @@ import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
-
   const { pathname } = request.nextUrl;
 
   // Redirect authenticated users away from login/signup pages
@@ -12,13 +11,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect unauthenticated users trying to access protected routes
-  if (!sessionCookie && pathname.startsWith("/dashboard")) {
+  /**if (!sessionCookie && protectedRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.redirect(new URL("/login", request.url));
-  }
+  }*/
 
   return NextResponse.next();
 }
 
+const protectedRoutes = ["/dashboard"];
+
 export const config = {
-  matcher: ["/dashboard", "/login", "/signup"], // Apply middleware to these routes
+  matcher: ["/dashboard", "/login", "/signup"],
 };

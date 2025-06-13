@@ -29,6 +29,7 @@ export function SignupForm({
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,7 @@ export function SignupForm({
 
     const { data, error } = await authClient.signUp.email(
       {
+        username,
         /**
          * The user email
          */
@@ -51,6 +53,8 @@ export function SignupForm({
          * @default true
          */
         name: fullname,
+        role: "USER",
+        phoneNumber: ""
       },
       {
         onRequest: (ctx) => {
@@ -74,8 +78,8 @@ export function SignupForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>Get started with your new account</CardDescription>
+          <CardTitle>Créer un compte</CardTitle>
+          <CardDescription>Créer un compte pour commencer</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -87,18 +91,21 @@ export function SignupForm({
           <form onSubmit={(e) => handleSubmit(e)}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="email">Full Name</Label>
+                <Label htmlFor="username">Nom d'utilisateur</Label>
                 <Input
-                  onChange={(e) => setFullname(e.target.value)}
-                  value={fullname}
-                  id="name"
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setFullname(e.target.value);
+                  }}
+                  value={username}
+                  id="username"
                   type="text"
-                  placeholder="Achour Meguenni"
+                  placeholder="achour_meguenni"
                   required
                 />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Adresse email</Label>
                 <Input
                   onChange={(e) => setEmail(e.target.value)}
                   value={email}
@@ -110,12 +117,12 @@ export function SignupForm({
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Mot de passe</Label>
                   <a
                     href="#"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    Mot de passe oublié?
                   </a>
                 </div>
                 <Input
@@ -131,18 +138,18 @@ export function SignupForm({
                   {loading ? (
                     <IconLoader className="animate-spin" stroke={2} />
                   ) : (
-                    "Sign Up"
+                    "Créer un compte"
                   )}
                 </Button>
                 <Button variant="outline" className="w-full">
-                  Sign Up with Google
+                  Créer un compte avec Google
                 </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
+              Vous avez déjà un compte?{" "}
               <a href="/login" className="underline underline-offset-4">
-                Login
+                Se connecter
               </a>
             </div>
           </form>

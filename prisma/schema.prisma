@@ -36,16 +36,31 @@ model session {
   user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
 model user {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  account       account[]
-  session       session[]
+  id                  String    @id
+  name                String
+  username            String    @unique
+  displayUsername     String?
+  role                Role      @default(USER)
+  email               String    @unique
+  emailVerified       Boolean
+  phoneNumber         String?   @unique
+  phoneNumberVerified Boolean   @default(false)
+  image               String?
+  createdAt           DateTime
+  updatedAt           DateTime
+  account             account[]
+  session             session[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([username])
 }
 
 model verification {
