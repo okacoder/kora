@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { PlayingCard, CardBack } from "@/components/game-card";
 import {
   IconCards,
   IconCoin,
@@ -100,22 +101,26 @@ export default async function HomePage() {
 
           {/* Cartes preview */}
           <div className="relative pt-8 pb-4">
-            <div className="flex justify-center items-center -space-x-8">
-              <div className="playing-card transform -rotate-12 card-game-effect z-10">
-                <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
-                  <span className="text-4xl font-bold text-primary-foreground">J♦</span>
-                </div>
+            <div className="flex justify-center items-center -space-x-12 sm:-space-x-16">
+              {/* Carte de gauche */}
+              <div className="transform -rotate-12 hover:rotate-0 transition-transform duration-300 z-10">
+                <PlayingCard suit="hearts" rank="K" width={80} height={112} className="sm:w-[100px] sm:h-[140px]" />
               </div>
-              <div className="playing-card transform rotate-0 card-game-effect z-20 scale-110">
-                <div className="w-full h-full bg-gradient-to-br from-secondary to-secondary/80 rounded-lg flex items-center justify-center">
-                  <span className="text-4xl font-bold text-secondary-foreground">K♠</span>
-                </div>
+              
+              {/* Carte du milieu (dos) */}
+              <div className="transform rotate-0 scale-110 z-20">
+                <CardBack width={88} height={123} className="sm:w-[110px] sm:h-[154px]" />
               </div>
-              <div className="playing-card transform rotate-12 card-game-effect z-10">
-                <div className="w-full h-full bg-gradient-to-br from-accent to-accent/80 rounded-lg flex items-center justify-center">
-                  <span className="text-4xl font-bold text-accent-foreground">Q♥</span>
-                </div>
+              
+              {/* Carte de droite */}
+              <div className="transform rotate-12 hover:rotate-0 transition-transform duration-300 z-10">
+                <PlayingCard suit="spades" rank="A" width={80} height={112} className="sm:w-[100px] sm:h-[140px]" />
               </div>
+            </div>
+            
+            {/* Effet de brillance animé */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-pulse" />
             </div>
           </div>
         </div>
@@ -141,6 +146,36 @@ export default async function HomePage() {
               </Card>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Game Preview Section */}
+      <section className="border-y bg-muted/30 py-12 overflow-hidden">
+        <div className="container px-4">
+          <h2 className="text-center text-3xl font-bold mb-8">Découvrez nos cartes uniques</h2>
+          
+          {/* Carrousel de cartes animé */}
+          <div className="relative">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+              <div className="flex gap-4 animate-slide-infinite">
+                <PlayingCard suit="hearts" rank="A" className="flex-shrink-0" />
+                <PlayingCard suit="diamonds" rank="K" className="flex-shrink-0" />
+                <PlayingCard suit="clubs" rank="Q" className="flex-shrink-0" />
+                <PlayingCard suit="spades" rank="J" className="flex-shrink-0" />
+                <PlayingCard suit="hearts" rank="10" className="flex-shrink-0" />
+                <PlayingCard suit="diamonds" rank="9" className="flex-shrink-0" />
+                <CardBack className="flex-shrink-0" />
+              </div>
+            </div>
+            
+            {/* Gradient de fondu sur les côtés */}
+            <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          </div>
+          
+          <p className="text-center text-muted-foreground mt-6 max-w-2xl mx-auto">
+            Chaque carte est conçue avec soin pour refléter l'authenticité du jeu traditionnel africain
+          </p>
         </div>
       </section>
 
@@ -177,16 +212,24 @@ export default async function HomePage() {
             ))}
           </div>
 
-          <Card className="betting-zone mt-8">
+          <Card className="betting-zone mt-8 relative overflow-hidden">
             <CardContent className="p-6 text-center space-y-4">
-              <IconCoin className="size-12 mx-auto text-primary" />
-              <h3 className="text-xl font-semibold">Bonus de bienvenue</h3>
-              <p className="text-2xl font-bold text-primary">500 FCFA</p>
-              <p className="text-sm text-muted-foreground">
+              {/* Cartes décoratives en arrière-plan */}
+              <div className="absolute top-0 left-0 opacity-10 -rotate-45 -translate-x-1/2 -translate-y-1/2">
+                <PlayingCard suit="diamonds" rank="A" width={150} height={210} />
+              </div>
+              <div className="absolute bottom-0 right-0 opacity-10 rotate-45 translate-x-1/2 translate-y-1/2">
+                <PlayingCard suit="hearts" rank="K" width={150} height={210} />
+              </div>
+              
+              <IconCoin className="size-12 mx-auto text-primary relative z-10" />
+              <h3 className="text-xl font-semibold relative z-10">Bonus de bienvenue</h3>
+              <p className="text-2xl font-bold text-primary relative z-10">500 FCFA</p>
+              <p className="text-sm text-muted-foreground relative z-10">
                 Créez votre compte et recevez immédiatement 500 FCFA pour tester la plateforme !
               </p>
               <Link href="/signup">
-                <Button className="w-full sm:w-auto gold-shine">
+                <Button className="w-full sm:w-auto gold-shine relative z-10">
                   Récupérer mon bonus
                 </Button>
               </Link>

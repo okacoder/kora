@@ -475,8 +475,26 @@
       0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
   
-  /* Indicateur de glissement */
-  .swipe-indicator {
-    @apply w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto mb-2;
+  /* Animation de défilement infini */
+  @keyframes slide-infinite {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-slide-infinite {
+    animation: slide-infinite 20s linear infinite;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  /* Dupliquer le contenu pour l'effet infini */
+  .animate-slide-infinite::after {
+    content: '';
+    display: flex;
+    gap: 1rem;
   }
 }
