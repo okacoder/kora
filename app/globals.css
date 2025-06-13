@@ -202,7 +202,8 @@
   
   /* Boutons optimisés pour le tactile */
   [data-slot="button"] {
-    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+    @apply min-h-[44px] min-w-[44px];
+    touch-action: manipulation;
   }
   
   [data-slot="button"]:active {
@@ -265,7 +266,13 @@
   
   /* Tabs mobile-friendly */
   [data-slot="tabs-list"] {
-    @apply w-full justify-start overflow-x-auto scrollbar-none;
+    @apply w-full justify-start overflow-x-auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  [data-slot="tabs-list"]::-webkit-scrollbar {
+    display: none;
   }
   
   [data-slot="tabs-trigger"] {
@@ -364,12 +371,12 @@
   }
   
   /* Utilitaires pour mobile */
-  .scrollbar-none {
+  .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
   
-  .scrollbar-none::-webkit-scrollbar {
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
   
@@ -429,7 +436,9 @@
   
   /* Bottom sheet mobile */
   .bottom-sheet {
-    @apply fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl animate-slide-up safe-area-bottom;
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: slideUp 0.3s ease-out;
   }
   
   /* Floating action button */
