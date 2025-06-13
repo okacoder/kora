@@ -54,7 +54,7 @@ export function SignupForm({
          */
         name: fullname,
         role: "USER",
-        phoneNumber: ""
+        phoneNumber: username+ "@temp-phone"
       },
       {
         onRequest: (ctx) => {
