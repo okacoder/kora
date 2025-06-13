@@ -193,100 +193,65 @@ export default async function HomePage() {
             Chaque carte est conçue avec soin pour vous offrir une expérience de jeu authentique et immersive
           </p>
           
-          {/* Galerie de cartes sur desktop */}
-          <div className="hidden lg:block">
-            <div className="grid grid-cols-4 gap-8 max-w-6xl mx-auto">
-              {/* Première rangée - Rois */}
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg">Les Rois</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="hearts" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="diamonds" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="clubs" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="spades" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
+          {/* Carrousel infini sur desktop et mobile */}
+          <div className="relative space-y-6">
+            {/* Première ligne */}
+            <div className="relative">
+              <div className="flex gap-4 lg:gap-6 overflow-hidden">
+                <div className="flex gap-4 lg:gap-6 animate-slide-infinite">
+                  {/* Pattern: 2 face cards, 1 back card */}
+                  <PlayingCard suit="hearts" rank="A" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="K" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  
+                  <PlayingCard suit="clubs" rank="Q" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="J" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  
+                  <PlayingCard suit="hearts" rank="10" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="9" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  
+                  {/* Duplicate for seamless loop */}
+                  <PlayingCard suit="hearts" rank="A" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="K" width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
+                  <CardBack width={120} height={168} className="flex-shrink-0 lg:w-[140px] lg:h-[196px] hover:scale-105 transition-transform" />
                 </div>
               </div>
               
-              {/* Deuxième rangée - Dames */}
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg">Les Dames</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="hearts" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="diamonds" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="clubs" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="spades" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              
-              {/* Troisième rangée - As et dos */}
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg">Les As</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="hearts" rank="A" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300">
-                  <PlayingCard suit="spades" rank="A" width={160} height={224} className="mx-auto shadow-xl" />
-                </div>
-              </div>
-              <div className="space-y-4 col-span-2">
-                <h3 className="text-center font-semibold text-lg">Dos de carte</h3>
-                <div className="transform hover:scale-110 transition-transform duration-300 flex justify-center">
-                  <CardBack width={160} height={224} className="shadow-xl" />
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Carrousel mobile */}
-          <div className="lg:hidden relative">
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
-              <div className="flex gap-4 animate-slide-infinite">
-                <PlayingCard suit="hearts" rank="A" className="flex-shrink-0" />
-                <PlayingCard suit="diamonds" rank="K" className="flex-shrink-0" />
-                <PlayingCard suit="clubs" rank="Q" className="flex-shrink-0" />
-                <PlayingCard suit="spades" rank="J" className="flex-shrink-0" />
-                <PlayingCard suit="hearts" rank="10" className="flex-shrink-0" />
-                <PlayingCard suit="diamonds" rank="9" className="flex-shrink-0" />
-                <CardBack className="flex-shrink-0" />
-              </div>
+              {/* Gradient de fondu sur les côtés */}
+              <div className="absolute inset-y-0 left-0 w-20 lg:w-32 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-20 lg:w-32 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
             </div>
             
-            {/* Gradient de fondu sur les côtés */}
-            <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
+            {/* Deuxième ligne sur desktop */}
+            <div className="relative hidden lg:block">
+              <div className="flex gap-6 overflow-hidden">
+                <div className="flex gap-6 animate-slide-infinite-reverse">
+                  {/* Pattern inversé */}
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="A" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="clubs" rank="K" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="hearts" rank="Q" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="diamonds" rank="J" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="clubs" rank="10" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="9" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  
+                  {/* Duplicate for seamless loop */}
+                  <CardBack width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="spades" rank="A" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                  <PlayingCard suit="clubs" rank="K" width={140} height={196} className="flex-shrink-0 hover:scale-105 transition-transform" />
+                </div>
+              </div>
+              
+              {/* Gradient de fondu sur les côtés */}
+              <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
+            </div>
           </div>
         </div>
       </section>

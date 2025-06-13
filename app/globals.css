@@ -491,6 +491,21 @@
     gap: 1rem;
   }
   
+  @keyframes slide-infinite-reverse {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  .animate-slide-infinite-reverse {
+    animation: slide-infinite-reverse 25s linear infinite;
+    display: flex;
+    gap: 1.5rem;
+  }
+  
   /* Dupliquer le contenu pour l'effet infini */
   .animate-slide-infinite::after {
     content: '';
