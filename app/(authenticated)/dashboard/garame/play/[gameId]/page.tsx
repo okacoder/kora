@@ -1,142 +1,78 @@
+// app/(authenticated)/(dashboard)/dashboard/garame/play/[gameId]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { PlayingCard, CardBack } from "@/components/game-card";
 import { 
   IconCoin,
   IconClock,
+  IconAlertCircle,
   IconTrophy,
   IconHandStop,
   IconPlayerPlay,
-  IconCards
+  IconCards,
+  IconLoader2
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-// Types pour le jeu
-type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades';
-type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
-
-interface Card {
-  suit: Suit;
-  rank: Rank;
-}
-
-interface Player {
-  id: string;
-  name: string;
-  cards: Card[];
-  hasKora: boolean;
-  score: number;
-}
-
-interface GameState {
-  id: string;
-  currentTurn: string;
-  lastPlayedCard?: Card;
-  currentSuit?: Suit;
-  players: {
-    [playerId: string]: Player;
-  };
-  pot: number;
-  status: 'playing' | 'finished';
-  winnerId?: string;
-}
-
-// État initial du jeu (mock)
-const initialGameState: GameState = {
-  id: '1',
-  currentTurn: 'player1',
-  pot: 2000,
-  status: 'playing',
-  players: {
-    player1: {
-      id: 'player1',
-      name: 'Vous',
-      cards: [
-        { suit: 'hearts', rank: 'K' },
-        { suit: 'diamonds', rank: '7' },
-        { suit: 'clubs', rank: 'A' },
-        { suit: 'spades', rank: '10' },
-        { suit: 'hearts', rank: '3' }
-      ],
-      hasKora: true,
-      score: 0
-    },
-    player2: {
-      id: 'player2',
-      name: 'Jean241',
-      cards: [
-        { suit: 'hearts', rank: 'Q' },
-        { suit: 'diamonds', rank: 'J' },
-        { suit: 'clubs', rank: '5' },
-        { suit: 'spades', rank: 'K' },
-        { suit: 'hearts', rank: '8' }
-      ],
-      hasKora: false,
-      score: 0
-    }
-  }
-};
+import { useGameState, useOpponentAI } from "@/lib/garame/hooks/useGameState";
+import { ICard } from "@/lib/garame/domain/interfaces";
 
 export default function GamePlayPage({ params }: { params: { gameId: string } }) {
-  const [gameState, setGameState] = useState<GameState>(initialGameState);
+  const router = useRouter();
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState(30); // Timer de 30 secondes par tour
-  const currentPlayerId = 'player1'; // ID du joueur actuel (à récupérer depuis l'auth)
+  const currentPlayerId = 'current-user'; // À récupérer depuis l'auth
+  const opponentId = 'player2'; // À déterminer dynamiquement
   
-  const isMyTurn = gameState.currentTurn === currentPlayerId;
-  const myPlayer = gameState.players[currentPlayerId];
-  const opponent = gameState.players['player2'];
-
-  // Timer pour le tour
-  useEffect(() => {
-    if (gameState.status !== 'playing') return;
-    
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          // Temps écoulé, jouer automatiquement une carte
-          handleTimeout();
-          return 30;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [gameState.status, gameState.currentTurn]);
-
-  const handleTimeout = () => {
-    if (isMyTurn) {
-      // Jouer la première carte disponible
-      handlePlayCard(0);
-      toast.error("Temps écoulé ! Une carte a été jouée automatiquement.");
+  const {
+    gameState,
+    loading,
+    timeLeft,
+    canPlayCard,
+    playCard,
+    passKora,
+    isMyTurn
+  } = useGameState({
+    gameId: params.gameId,
+    playerId: currentPlayerId,
+    onGameEnd: (winnerId) => {
+      if (winnerId === currentPlayerId) {
+        toast.success(`Félicitations ! Vous avez gagné ${Math.floor((gameState?.pot || 0) * 0.9)} FCFA !`);
+      } else {
+        toast.error("Vous avez perdu cette partie. Tentez votre chance à nouveau !");
+      }
     }
-  };
-
-  const canPlayCard = (card: Card): boolean => {
-    // Si c'est le premier tour ou pas de carte jouée
-    if (!gameState.currentSuit) return true;
-    
-    // Si le joueur a la kora, il peut jouer n'importe quelle carte
-    if (myPlayer.hasKora) return true;
-    
-    // Sinon, il doit jouer la même famille si possible
-    const hasSameSuit = myPlayer.cards.some(c => c.suit === gameState.currentSuit);
-    if (hasSameSuit) {
-      return card.suit === gameState.currentSuit;
-    }
-    
-    // S'il n'a pas la famille demandée, il peut jouer n'importe quelle carte
-    return true;
-  };
-
-  const handlePlayCard = (index: number) => {
+  });
+  
+  // Activer l'IA pour l'adversaire en mode développement
+  useOpponentAI(gameState, opponentId);
+  
+  if (loading || !gameState) {
+    return (
+      <div className="flex items-center justify-center min-h-[600px]">
+        <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  
+  const myPlayer = gameState.players.get(currentPlayerId);
+  const opponent = gameState.players.get(opponentId);
+  
+  if (!myPlayer || !opponent) {
+    return (
+      <div className="flex items-center justify-center min-h-[600px]">
+        <p className="text-muted-foreground">Erreur lors du chargement de la partie</p>
+      </div>
+    );
+  }
+  
+  const handlePlayCard = async (index: number) => {
     if (!isMyTurn || gameState.status !== 'playing') return;
     
     const card = myPlayer.cards[index];
@@ -145,108 +81,8 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
       return;
     }
     
-    // Mettre à jour l'état du jeu
-    setGameState(prev => ({
-      ...prev,
-      lastPlayedCard: card,
-      currentSuit: card.suit,
-      currentTurn: 'player2',
-      players: {
-        ...prev.players,
-        [currentPlayerId]: {
-          ...myPlayer,
-          cards: myPlayer.cards.filter((_, i) => i !== index)
-        }
-      }
-    }));
-    
+    await playCard(index);
     setSelectedCard(null);
-    setTimeLeft(30);
-    
-    // Simuler le tour de l'adversaire
-    setTimeout(() => {
-      simulateOpponentTurn();
-    }, 2000);
-  };
-
-  const simulateOpponentTurn = () => {
-    // Logique simple pour simuler le jeu de l'adversaire
-    const opponentCards = opponent.cards;
-    const playableCards = opponentCards.filter((card, index) => {
-      if (!gameState.currentSuit) return true;
-      if (opponent.hasKora) return true;
-      
-      const hasSameSuit = opponentCards.some(c => c.suit === gameState.currentSuit);
-      if (hasSameSuit) {
-        return card.suit === gameState.currentSuit;
-      }
-      return true;
-    });
-    
-    if (playableCards.length === 0) return;
-    
-    const cardToPlay = playableCards[0];
-    const cardIndex = opponentCards.findIndex(c => c.suit === cardToPlay.suit && c.rank === cardToPlay.rank);
-    
-    setGameState(prev => ({
-      ...prev,
-      lastPlayedCard: cardToPlay,
-      currentSuit: cardToPlay.suit,
-      currentTurn: currentPlayerId,
-      players: {
-        ...prev.players,
-        player2: {
-          ...opponent,
-          cards: opponent.cards.filter((_, i) => i !== cardIndex)
-        }
-      }
-    }));
-    
-    setTimeLeft(30);
-    
-    // Vérifier si la partie est terminée
-    if (opponent.cards.length === 1) {
-      endGame();
-    }
-  };
-
-  const endGame = () => {
-    // Déterminer le gagnant
-    const winner = myPlayer.cards.length < opponent.cards.length ? currentPlayerId : 'player2';
-    
-    setGameState(prev => ({
-      ...prev,
-      status: 'finished',
-      winnerId: winner
-    }));
-    
-    if (winner === currentPlayerId) {
-      toast.success(`Félicitations ! Vous avez gagné ${Math.floor(gameState.pot * 0.9)} FCFA !`);
-    } else {
-      toast.error("Vous avez perdu cette partie. Tentez votre chance à nouveau !");
-    }
-  };
-
-  const handlePass = () => {
-    if (!isMyTurn || !myPlayer.hasKora) return;
-    
-    // Passer la kora à l'adversaire
-    setGameState(prev => ({
-      ...prev,
-      currentTurn: 'player2',
-      players: {
-        ...prev.players,
-        [currentPlayerId]: { ...myPlayer, hasKora: false },
-        player2: { ...opponent, hasKora: true }
-      }
-    }));
-    
-    setTimeLeft(30);
-    toast.info("Vous avez passé la main");
-    
-    setTimeout(() => {
-      simulateOpponentTurn();
-    }, 2000);
   };
 
   return (
@@ -290,16 +126,16 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
         {/* Adversaire */}
         <Card className={cn(
           "transition-all",
-          gameState.currentTurn === 'player2' && "ring-2 ring-primary"
+          gameState.currentTurnPlayerId === opponentId && "ring-2 ring-primary"
         )}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="size-10">
-                  <AvatarFallback>{opponent.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>IA</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold">{opponent.name}</h3>
+                  <h3 className="font-semibold">Adversaire IA</h3>
                   <div className="flex items-center gap-2">
                     {opponent.hasKora && (
                       <Badge variant="default" className="text-xs">
@@ -341,6 +177,16 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
                       height={140}
                     />
                   </div>
+                  {gameState.currentSuit && (
+                    <Badge variant="outline" className="text-sm">
+                      Famille demandée : {
+                        gameState.currentSuit === 'hearts' ? '♥ Cœurs' :
+                        gameState.currentSuit === 'diamonds' ? '♦ Carreaux' :
+                        gameState.currentSuit === 'clubs' ? '♣ Trèfles' :
+                        '♠ Piques'
+                      }
+                    </Badge>
+                  )}
                 </>
               ) : (
                 <div className="text-center py-8">
@@ -361,10 +207,10 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="size-10">
-                  <AvatarFallback>{myPlayer.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>VS</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold">{myPlayer.name}</h3>
+                  <h3 className="font-semibold">Vous</h3>
                   <div className="flex items-center gap-2">
                     {myPlayer.hasKora && (
                       <Badge variant="default" className="text-xs">
@@ -386,7 +232,7 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={handlePass}
+                  onClick={passKora}
                 >
                   Passer la main
                 </Button>
@@ -395,7 +241,7 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
           </CardHeader>
           <CardContent>
             <div className="flex justify-center gap-2 flex-wrap">
-              {myPlayer.cards.map((card, index) => (
+              {myPlayer.cards.map((card: ICard, index: number) => (
                 <div 
                   key={index} 
                   className={cn(
@@ -457,7 +303,7 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
       </Card>
 
       {/* Modal de fin de partie */}
-      {gameState.status === 'finished' && (
+      {gameState.status === 'finished' && gameState.winnerId && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardHeader className="text-center">
@@ -476,10 +322,10 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
                   : "Vous ferez mieux la prochaine fois !"}
               </p>
               <div className="flex gap-2 justify-center">
-                <Button onClick={() => window.location.href = '/garame'}>
+                <Button onClick={() => router.push('/dashboard/garame')}>
                   Nouvelle partie
                 </Button>
-                <Button variant="outline" onClick={() => window.location.href = '/'}>
+                <Button variant="outline" onClick={() => router.push('/dashboard')}>
                   Retour au tableau de bord
                 </Button>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,43 +11,69 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlayingCard, CardBack } from "@/components/game-card";
 import { 
   IconCoin, 
+  IconUsers, 
   IconTrophy, 
   IconPlus,
   IconCards,
   IconClock,
-  IconAlertCircle
+  IconAlertCircle,
+  IconLoader2
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-// Types pour le jeu
-interface GameRoom {
-  id: string;
-  stake: number;
-  creatorName: string;
-  status: 'waiting' | 'in_progress' | 'completed';
-  players: number;
-  maxPlayers: number;
-  createdAt: Date;
-}
-
-// Mock data pour les parties disponibles
-const mockAvailableGames: GameRoom[] = [
-  { id: '1', stake: 500, creatorName: 'Jean241', status: 'waiting', players: 1, maxPlayers: 2, createdAt: new Date() },
-  { id: '2', stake: 1000, creatorName: 'MariePro', status: 'waiting', players: 1, maxPlayers: 2, createdAt: new Date() },
-  { id: '3', stake: 2000, creatorName: 'KingGamer', status: 'waiting', players: 1, maxPlayers: 2, createdAt: new Date() },
-];
+import { useGameService, usePaymentService } from "@/lib/garame/infrastructure/garame-provider";
+import { IGameRoom } from "@/lib/garame/domain/interfaces";
 
 const predefinedStakes = [100, 500, 1000, 2000, 5000, 10000];
 
 export default function GaramePage() {
   const router = useRouter();
+  const gameService = useGameService();
+  const paymentService = usePaymentService();
+  
   const [selectedTab, setSelectedTab] = useState("join");
   const [selectedStake, setSelectedStake] = useState<string>("");
   const [customStake, setCustomStake] = useState("");
-  const [userBalance] = useState(25000); // Mock balance en FCFA
+  const [userBalance, setUserBalance] = useState<number>(0);
+  const [availableGames, setAvailableGames] = useState<IGameRoom[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingGames, setLoadingGames] = useState(true);
 
-  const handleCreateGame = () => {
+  // Charger le solde de l'utilisateur
+  useEffect(() => {
+    loadUserBalance();
+  }, []);
+
+  // Charger les parties disponibles
+  useEffect(() => {
+    loadAvailableGames();
+    // Rafraîchir toutes les 5 secondes
+    const interval = setInterval(loadAvailableGames, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadUserBalance = async () => {
+    try {
+      const balance = await paymentService.getBalance();
+      setUserBalance(balance);
+    } catch (error) {
+      console.error("Erreur lors du chargement du solde:", error);
+      toast.error("Impossible de charger votre solde");
+    }
+  };
+
+  const loadAvailableGames = async () => {
+    try {
+      const games = await gameService.getAvailableGames();
+      setAvailableGames(games);
+    } catch (error) {
+      console.error("Erreur lors du chargement des parties:", error);
+    } finally {
+      setLoadingGames(false);
+    }
+  };
+
+  const handleCreateGame = async () => {
     const stake = selectedStake === "custom" ? parseInt(customStake) : parseInt(selectedStake);
     
     if (!stake || stake < 100) {
@@ -60,15 +86,22 @@ export default function GaramePage() {
       return;
     }
     
-    // TODO: Appeler l'API pour créer la partie
-    toast.success(`Partie créée avec une mise de ${stake} FCFA`);
-    
-    // Rediriger vers la salle d'attente
-    router.push(`/dashboard/garame/room/new-room-id`);
+    setLoading(true);
+    try {
+      const room = await gameService.createGame(stake);
+      toast.success(`Partie créée avec une mise de ${stake} FCFA`);
+      
+      // Rediriger vers la salle d'attente
+      router.push(`/dashboard/garame/room/${room.id}`);
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de la création de la partie");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleJoinGame = (gameId: string) => {
-    const game = mockAvailableGames.find(g => g.id === gameId);
+  const handleJoinGame = async (roomId: string) => {
+    const game = availableGames.find(g => g.id === roomId);
     
     if (!game) return;
     
@@ -77,11 +110,29 @@ export default function GaramePage() {
       return;
     }
     
-    // TODO: Appeler l'API pour rejoindre la partie
-    toast.success("Vous avez rejoint la partie");
+    setLoading(true);
+    try {
+      await gameService.joinGame(roomId);
+      toast.success("Vous avez rejoint la partie");
+      
+      // Rediriger vers la partie
+      router.push(`/dashboard/garame/room/${roomId}`);
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de la connexion à la partie");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - new Date(date).getTime();
+    const minutes = Math.floor(diff / 60000);
     
-    // Rediriger vers la partie
-    router.push(`/garame/room/${gameId}`);
+    if (minutes < 1) return "À l'instant";
+    if (minutes < 60) return `Il y a ${minutes} min`;
+    if (minutes < 1440) return `Il y a ${Math.floor(minutes / 60)} h`;
+    return `Il y a ${Math.floor(minutes / 1440)} j`;
   };
 
   return (
@@ -121,67 +172,73 @@ export default function GaramePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                {mockAvailableGames.map((game) => (
-                  <Card key={game.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          {/* Aperçu des cartes */}
-                          <div className="flex -space-x-4">
-                            <div className="w-12 h-16">
-                              <CardBack width={48} height={64} className="shadow-sm" />
+              {loadingGames ? (
+                <div className="flex items-center justify-center py-8">
+                  <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {availableGames.map((game) => (
+                    <Card key={game.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            {/* Aperçu des cartes */}
+                            <div className="flex -space-x-4">
+                              <div className="w-12 h-16">
+                                <CardBack width={48} height={64} className="shadow-sm" />
+                              </div>
+                              <div className="w-12 h-16">
+                                <PlayingCard suit="hearts" rank="K" width={48} height={64} className="shadow-sm" />
+                              </div>
                             </div>
-                            <div className="w-12 h-16">
-                              <PlayingCard suit="hearts" rank="K" width={48} height={64} className="shadow-sm" />
+                            
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold">{game.creatorName}</p>
+                                <Badge variant="outline" className="text-xs">
+                                  {game.players}/{game.maxPlayers} joueurs
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <IconCoin className="size-4" />
+                                  Mise: {game.stake} FCFA
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <IconClock className="size-4" />
+                                  {formatTimeAgo(game.createdAt)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                           
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-semibold">{game.creatorName}</p>
-                              <Badge variant="outline" className="text-xs">
-                                {game.players}/{game.maxPlayers} joueurs
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <IconCoin className="size-4" />
-                                Mise: {game.stake} FCFA
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <IconClock className="size-4" />
-                                Il y a 2 min
-                              </span>
-                            </div>
-                          </div>
+                          <Button 
+                            onClick={() => handleJoinGame(game.id)}
+                            disabled={game.stake > userBalance || loading}
+                          >
+                            {loading ? <IconLoader2 className="animate-spin" /> : "Rejoindre"}
+                          </Button>
                         </div>
-                        
-                        <Button 
-                          onClick={() => handleJoinGame(game.id)}
-                          disabled={game.stake > userBalance}
-                        >
-                          Rejoindre
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {mockAvailableGames.length === 0 && (
-                  <div className="text-center py-8">
-                    <IconCards className="size-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Aucune partie disponible pour le moment</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => setSelectedTab("create")}
-                    >
-                      Créer une partie
-                    </Button>
-                  </div>
-                )}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {availableGames.length === 0 && (
+                    <div className="text-center py-8">
+                      <IconCards className="size-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">Aucune partie disponible pour le moment</p>
+                      <Button 
+                        variant="outline" 
+                        className="mt-4"
+                        onClick={() => setSelectedTab("create")}
+                      >
+                        Créer une partie
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -301,9 +358,13 @@ export default function GaramePage() {
                 size="lg" 
                 className="w-full"
                 onClick={handleCreateGame}
-                disabled={!selectedStake || (selectedStake === 'custom' && !customStake)}
+                disabled={!selectedStake || (selectedStake === 'custom' && !customStake) || loading}
               >
-                <IconTrophy className="mr-2" />
+                {loading ? (
+                  <IconLoader2 className="mr-2 animate-spin" />
+                ) : (
+                  <IconTrophy className="mr-2" />
+                )}
                 Créer la partie
               </Button>
             </CardContent>
