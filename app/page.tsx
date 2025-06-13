@@ -66,82 +66,118 @@ export default async function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container px-4 py-12 sm:py-20">
-        <div className="mx-auto max-w-4xl text-center space-y-mobile">
-          {/* Badge */}
-          <Badge variant="outline" className="mb-4 px-4 py-1.5">
-            <IconSparkles className="mr-1 size-3" />
-            Jeu de cartes en ligne
-          </Badge>
+      <section className="container px-4 py-12 lg:py-24">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Content côté gauche */}
+          <div className="text-center lg:text-left space-y-6">
+            {/* Badge */}
+            <Badge variant="outline" className="px-4 py-1.5 mx-auto lg:mx-0">
+              <IconSparkles className="mr-1 size-3" />
+              Jeu de cartes en ligne
+            </Badge>
 
-          {/* Titre principal */}
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Le duel de cartes <span className="text-primary">épique</span><br />
-            vous attend !
-          </h1>
+            {/* Titre principal */}
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
+              Le duel de cartes <span className="text-primary">épique</span> vous attend !
+            </h1>
 
-          {/* Description */}
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Devenez maître du Garame ! Affrontez des joueurs, misez de l'argent réel
-            et remportez des gains instantanés dans ce jeu de cartes stratégique.
-          </p>
+            {/* Description */}
+            <p className="text-lg text-muted-foreground sm:text-xl lg:text-2xl max-w-xl mx-auto lg:mx-0">
+              Devenez maître du Garame ! Affrontez des joueurs, misez de l'argent réel
+              et remportez des gains instantanés dans ce jeu de cartes stratégique.
+            </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/signup">
-              <Button size="lg" className="btn-chip w-full sm:w-auto gap-2">
-                Jouer maintenant
-                <IconChevronRight className="size-4" />
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link href="/signup">
+                <Button size="lg" className="btn-chip w-full sm:w-auto gap-2 lg:text-lg lg:px-8 lg:py-6">
+                  Jouer maintenant
+                  <IconChevronRight className="size-4 lg:size-5" />
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" className="w-full sm:w-auto lg:text-lg lg:px-8 lg:py-6">
+                Voir les règles
               </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto">
-              Voir les règles
-            </Button>
+            </div>
+
+            {/* Stats rapides */}
+            <div className="flex gap-6 justify-center lg:justify-start pt-6">
+              <div>
+                <p className="text-2xl font-bold text-primary">10K+</p>
+                <p className="text-sm text-muted-foreground">Joueurs actifs</p>
+              </div>
+              <Separator orientation="vertical" className="h-12" />
+              <div>
+                <p className="text-2xl font-bold text-primary">4.8/5</p>
+                <p className="text-sm text-muted-foreground">Note moyenne</p>
+              </div>
+            </div>
           </div>
 
-          {/* Cartes preview */}
-          <div className="relative pt-8 pb-4">
-            <div className="flex justify-center items-center -space-x-12 sm:-space-x-16">
-              {/* Carte de gauche */}
-              <div className="transform -rotate-12 hover:rotate-0 transition-transform duration-300 z-10">
-                <PlayingCard suit="hearts" rank="K" width={80} height={112} className="sm:w-[100px] sm:h-[140px]" />
+          {/* Cartes preview côté droit - plus grandes sur desktop */}
+          <div className="relative h-[400px] lg:h-[600px]">
+            {/* Cartes en éventail */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* Carte arrière gauche */}
+              <div className="absolute transform -rotate-[25deg] -translate-x-20 lg:-translate-x-32 hover:rotate-[-20deg] hover:-translate-y-4 transition-all duration-300 z-10">
+                <PlayingCard suit="diamonds" rank="Q" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
               </div>
               
-              {/* Carte du milieu (dos) */}
-              <div className="transform rotate-0 scale-110 z-20">
-                <CardBack width={88} height={123} className="sm:w-[110px] sm:h-[154px]" />
+              {/* Carte gauche */}
+              <div className="absolute transform -rotate-12 -translate-x-10 lg:-translate-x-16 hover:rotate-[-8deg] hover:-translate-y-4 transition-all duration-300 z-20">
+                <PlayingCard suit="hearts" rank="K" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
               </div>
               
-              {/* Carte de droite */}
-              <div className="transform rotate-12 hover:rotate-0 transition-transform duration-300 z-10">
-                <PlayingCard suit="spades" rank="A" width={80} height={112} className="sm:w-[100px] sm:h-[140px]" />
+              {/* Carte centrale (dos) */}
+              <div className="absolute transform rotate-0 scale-110 hover:scale-125 hover:-translate-y-4 transition-all duration-300 z-30">
+                <CardBack width={132} height={185} className="lg:w-[198px] lg:h-[277px] shadow-2xl" />
+              </div>
+              
+              {/* Carte droite */}
+              <div className="absolute transform rotate-12 translate-x-10 lg:translate-x-16 hover:rotate-[8deg] hover:-translate-y-4 transition-all duration-300 z-20">
+                <PlayingCard suit="spades" rank="A" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
+              </div>
+              
+              {/* Carte arrière droite */}
+              <div className="absolute transform rotate-[25deg] translate-x-20 lg:translate-x-32 hover:rotate-[20deg] hover:-translate-y-4 transition-all duration-300 z-10">
+                <PlayingCard suit="clubs" rank="J" width={120} height={168} className="lg:w-[180px] lg:h-[252px] shadow-2xl" />
               </div>
             </div>
             
-            {/* Effet de brillance animé */}
+            {/* Effets de brillance animés */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+              <div className="w-48 h-48 lg:w-64 lg:h-64 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+            </div>
+            
+            {/* Particules flottantes */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full animate-float-slow" />
+              <div className="absolute top-3/4 right-1/4 w-3 h-3 bg-primary/60 rounded-full animate-float-medium" />
+              <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-primary/40 rounded-full animate-float-fast" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="container px-4 py-12">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-3xl font-bold mb-12">
+      <section className="container px-4 py-12 lg:py-24">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="text-center text-3xl lg:text-5xl font-bold mb-4">
             Entrez dans l'arène ultime !
           </h2>
+          <p className="text-center text-lg lg:text-xl text-muted-foreground mb-12 lg:mb-16 max-w-3xl mx-auto">
+            Découvrez tout ce qui fait de LaMap241 l'expérience de jeu de cartes ultime
+          </p>
           
-          <div className="game-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="card-game-effect group hover:scale-105 transition-transform">
-                <CardContent className="p-6 text-center">
-                  <div className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <feature.icon className="size-6" />
+              <Card key={index} className="card-game-effect group hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+                <CardContent className="p-6 lg:p-8 text-center">
+                  <div className="mb-4 inline-flex size-14 lg:size-16 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <feature.icon className="size-7 lg:size-8" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <h3 className="text-lg lg:text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm lg:text-base text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -150,12 +186,92 @@ export default async function HomePage() {
       </section>
 
       {/* Game Preview Section */}
-      <section className="border-y bg-muted/30 py-12 overflow-hidden">
+      <section className="border-y bg-muted/30 py-12 lg:py-24 overflow-hidden">
         <div className="container px-4">
-          <h2 className="text-center text-3xl font-bold mb-8">Découvrez nos cartes uniques</h2>
+          <h2 className="text-center text-3xl lg:text-5xl font-bold mb-4">Découvrez nos cartes uniques</h2>
+          <p className="text-center text-lg lg:text-xl text-muted-foreground mb-12 lg:mb-16 max-w-3xl mx-auto">
+            Chaque carte est conçue avec soin pour vous offrir une expérience de jeu authentique et immersive
+          </p>
           
-          {/* Carrousel de cartes animé */}
-          <div className="relative">
+          {/* Galerie de cartes sur desktop */}
+          <div className="hidden lg:block">
+            <div className="grid grid-cols-4 gap-8 max-w-6xl mx-auto">
+              {/* Première rangée - Rois */}
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg">Les Rois</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="hearts" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="diamonds" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="clubs" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="spades" rank="K" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              
+              {/* Deuxième rangée - Dames */}
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg">Les Dames</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="hearts" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="diamonds" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="clubs" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="spades" rank="Q" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              
+              {/* Troisième rangée - As et dos */}
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg">Les As</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="hearts" rank="A" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-center font-semibold text-lg opacity-0">-</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300">
+                  <PlayingCard suit="spades" rank="A" width={160} height={224} className="mx-auto shadow-xl" />
+                </div>
+              </div>
+              <div className="space-y-4 col-span-2">
+                <h3 className="text-center font-semibold text-lg">Dos de carte</h3>
+                <div className="transform hover:scale-110 transition-transform duration-300 flex justify-center">
+                  <CardBack width={160} height={224} className="shadow-xl" />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Carrousel mobile */}
+          <div className="lg:hidden relative">
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
               <div className="flex gap-4 animate-slide-infinite">
                 <PlayingCard suit="hearts" rank="A" className="flex-shrink-0" />
@@ -169,24 +285,20 @@ export default async function HomePage() {
             </div>
             
             {/* Gradient de fondu sur les côtés */}
-            <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
           </div>
-          
-          <p className="text-center text-muted-foreground mt-6 max-w-2xl mx-auto">
-            Chaque carte est conçue avec soin pour vous offrir une expérience de jeu authentique
-          </p>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="border-y bg-muted/50 py-12">
+      <section className="border-y bg-muted/50 py-12 lg:py-24">
         <div className="container px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-16 text-center max-w-6xl mx-auto">
             {stats.map((stat, index) => (
-              <div key={index} className="space-y-2">
-                <p className="text-3xl font-bold text-primary">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <div key={index} className="space-y-2 group">
+                <p className="text-3xl lg:text-5xl font-bold text-primary transition-transform group-hover:scale-110">{stat.value}</p>
+                <p className="text-sm lg:text-base text-muted-foreground">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -194,47 +306,56 @@ export default async function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="container px-4 py-12">
-        <div className="mx-auto max-w-4xl space-y-mobile">
-          <h2 className="text-center text-3xl font-bold">Comment ça marche ?</h2>
+      <section className="container px-4 py-12 lg:py-24">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl lg:text-5xl font-bold mb-4">Comment ça marche ?</h2>
+          <p className="text-center text-lg lg:text-xl text-muted-foreground mb-12 lg:mb-16 max-w-3xl mx-auto">
+            Commencez à jouer en quelques minutes seulement
+          </p>
           
-          <div className="space-y-4">
-            {steps.map((step, index) => (
-              <div key={index} className="flex gap-4 items-start">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                  {index + 1}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Étapes à gauche */}
+            <div className="space-y-6 lg:space-y-8">
+              {steps.map((step, index) => (
+                <div key={index} className="flex gap-4 items-start group">
+                  <div className="flex size-12 lg:size-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg lg:text-xl group-hover:scale-110 transition-transform">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg lg:text-xl mb-2">{step.title}</h3>
+                    <p className="text-sm lg:text-base text-muted-foreground">{step.description}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            
+            {/* Carte bonus à droite */}
+            <div className="lg:sticky lg:top-24 h-fit">
+              <Card className="betting-zone relative overflow-hidden">
+                <CardContent className="p-8 lg:p-10 text-center space-y-6">
+                  {/* Cartes décoratives en arrière-plan */}
+                  <div className="absolute top-0 left-0 opacity-10 -rotate-45 -translate-x-1/2 -translate-y-1/2">
+                    <PlayingCard suit="diamonds" rank="A" width={180} height={252} />
+                  </div>
+                  <div className="absolute bottom-0 right-0 opacity-10 rotate-45 translate-x-1/2 translate-y-1/2">
+                    <PlayingCard suit="hearts" rank="K" width={180} height={252} />
+                  </div>
+                  
+                  <IconCoin className="size-16 lg:size-20 mx-auto text-primary relative z-10" />
+                  <h3 className="text-2xl lg:text-3xl font-bold relative z-10">Bonus de bienvenue</h3>
+                  <p className="text-3xl lg:text-4xl font-bold text-primary relative z-10">500 FCFA</p>
+                  <p className="text-base lg:text-lg text-muted-foreground relative z-10">
+                    Créez votre compte et recevez immédiatement 500 FCFA pour tester la plateforme !
+                  </p>
+                  <Link href="/signup">
+                    <Button size="lg" className="w-full gold-shine relative z-10 text-lg">
+                      Récupérer mon bonus
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-
-          <Card className="betting-zone mt-8 relative overflow-hidden">
-            <CardContent className="p-6 text-center space-y-4">
-              {/* Cartes décoratives en arrière-plan */}
-              <div className="absolute top-0 left-0 opacity-10 -rotate-45 -translate-x-1/2 -translate-y-1/2">
-                <PlayingCard suit="diamonds" rank="A" width={150} height={210} />
-              </div>
-              <div className="absolute bottom-0 right-0 opacity-10 rotate-45 translate-x-1/2 translate-y-1/2">
-                <PlayingCard suit="hearts" rank="K" width={150} height={210} />
-              </div>
-              
-              <IconCoin className="size-12 mx-auto text-primary relative z-10" />
-              <h3 className="text-xl font-semibold relative z-10">Bonus de bienvenue</h3>
-              <p className="text-2xl font-bold text-primary relative z-10">500 FCFA</p>
-              <p className="text-sm text-muted-foreground relative z-10">
-                Créez votre compte et recevez immédiatement 500 FCFA pour tester la plateforme !
-              </p>
-              <Link href="/signup">
-                <Button className="w-full sm:w-auto gold-shine relative z-10">
-                  Récupérer mon bonus
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
         </div>
       </section>
 
