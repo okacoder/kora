@@ -21,20 +21,27 @@ import {
   FakeGameEventHandler,
 } from "../application/services";
 
+// Helper to avoid duplicate bindings that lead to "Ambiguous bindings" errors.
+function bindSingletonOnce<T>(identifier: symbol, constructor: new (...args: any[]) => T) {
+  if (!container.isBound(identifier)) {
+    container.bind<T>(identifier).to(constructor).inSingletonScope();
+  }
+}
+
 // Configuration pour l'environnement de développement (fake repositories)
 export function configureFakeContainer() {
   // Repositories
-  container.bind<IPlayerRepository>(TYPES.PlayerRepository).to(FakePlayerRepository).inSingletonScope();
-  container.bind<IGameRoomRepository>(TYPES.GameRoomRepository).to(FakeGameRoomRepository).inSingletonScope();
-  container.bind<IGameStateRepository>(TYPES.GameStateRepository).to(FakeGameStateRepository).inSingletonScope();
-  container.bind<ITransactionRepository>(TYPES.TransactionRepository).to(FakeTransactionRepository).inSingletonScope();
+  bindSingletonOnce<IPlayerRepository>(TYPES.PlayerRepository, FakePlayerRepository);
+  bindSingletonOnce<IGameRoomRepository>(TYPES.GameRoomRepository, FakeGameRoomRepository);
+  bindSingletonOnce<IGameStateRepository>(TYPES.GameStateRepository, FakeGameStateRepository);
+  bindSingletonOnce<ITransactionRepository>(TYPES.TransactionRepository, FakeTransactionRepository);
   
   // Event Handler
-  container.bind<IGameEventHandler>(TYPES.GameEventHandler).to(FakeGameEventHandler).inSingletonScope();
+  bindSingletonOnce<IGameEventHandler>(TYPES.GameEventHandler, FakeGameEventHandler);
   
   // Services
-  container.bind<IGameService>(TYPES.GameService).to(GameService).inSingletonScope();
-  container.bind<IPaymentService>(TYPES.PaymentService).to(PaymentService).inSingletonScope();
+  bindSingletonOnce<IGameService>(TYPES.GameService, GameService);
+  bindSingletonOnce<IPaymentService>(TYPES.PaymentService, PaymentService);
 }
 
 // Configuration pour la production (vraies implémentations)
@@ -47,6 +54,12 @@ export function configureProductionContainer() {
 
 // Initialiser le container selon l'environnement
 export function initializeContainer() {
+  // Invalidate previous bindings during HMR or re-initialization to avoid "Ambiguous bindings" errors
+  try {
+    container.unbindAll();
+  } catch {
+    // ignore if already unbound
+  }
   if (process.env.NODE_ENV === 'production') {
     // configureProductionContainer();
     // Pour l'instant, utiliser les fakes même en production
