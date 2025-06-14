@@ -1,7 +1,7 @@
 // lib/garame/infrastructure/garame-provider.tsx
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import { initializeContainer, getService } from "./container-config";
 import { TYPES } from "./ioc-container";
 import { IGameService, IPaymentService, IGameEventHandler } from "../domain/interfaces";
@@ -21,28 +21,26 @@ const GarameContext = createContext<GarameContextType>({
 });
 
 export function GarameProvider({ children }: { children: React.ReactNode }) {
-  const [services, setServices] = useState<GarameContextType>({
-    gameService: null,
-    paymentService: null,
-    eventHandler: null,
-    isInitialized: false,
-  });
-
-  useEffect(() => {
-    // Initialiser le container IoC
+  // Initialiser et mémoriser les services de façon synchrone afin qu'ils soient
+  // disponibles dès la première passe de rendu. Cela évite que les composants
+  // consommateurs ne se montent avant que `isInitialized` ne passe à true.
+  const services = useMemo<GarameContextType>(() => {
+    // Initialiser le container IoC (liaisons, singletons, etc.)
     initializeContainer();
 
-    // Obtenir les services
+    // Récupérer les services configurés
     const gameService = getService<IGameService>(TYPES.GameService);
     const paymentService = getService<IPaymentService>(TYPES.PaymentService);
     const eventHandler = getService<IGameEventHandler>(TYPES.GameEventHandler);
 
-    setServices({
+    return {
       gameService,
       paymentService,
       eventHandler,
       isInitialized: true,
-    });
+    };
+    // useMemo avec tableau de dépendances vide => appellé une seule fois par
+    // instance du composant Provider côté client.
   }, []);
 
   return (
