@@ -29,6 +29,7 @@ export default function GameRoomPage() {
   const [currentPlayer, setCurrentPlayer] = useState<IPlayer | null>(null);
   const [opponent, setOpponent] = useState<IPlayer | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [gameStateId, setGameStateId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Charger les données de la salle
@@ -56,7 +57,8 @@ export default function GameRoomPage() {
           break;
           
         case 'game_started':
-          // Démarrer le compte à rebours
+          // Sauvegarder l'identifiant de la partie et démarrer le compte à rebours
+          setGameStateId(event.data.gameStateId);
           setCountdown(5);
           break;
       }
@@ -76,15 +78,15 @@ export default function GameRoomPage() {
     
     const timer = setTimeout(() => {
       if (countdown === 1) {
-        // Rediriger vers la partie
-        router.push(`/dashboard/garame/play/${gameRoom?.id}`);
+        // Rediriger vers la partie (utiliser gameStateId si disponible, sinon l'id de la room)
+        router.push(`/dashboard/garame/play/${gameStateId ?? gameRoom?.id}`);
       } else {
         setCountdown(countdown - 1);
       }
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [countdown, gameRoom, router]);
+  }, [countdown, gameRoom, gameStateId, router]);
   
   // Charger les données actuelles du joueur
   useEffect(() => {
@@ -129,10 +131,7 @@ export default function GameRoomPage() {
           balance: 0, // Non affiché
         });
         
-        // Si la partie commence, démarrer le countdown
-        if (room.status === 'starting') {
-          setCountdown(5);
-        }
+        // Le compte à rebours démarrera après réception de l'événement "game_started"
       }
     } catch (error) {
       console.error("Erreur lors du chargement de la salle:", error);
