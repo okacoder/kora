@@ -13,13 +13,14 @@ import {
   IconAlertCircle,
   IconCards
 } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useGameService, usePaymentService, useGameEventHandler } from "@/lib/garame/infrastructure/garame-provider";
 import { IGameRoom, IPlayer, IGameEvent } from "@/lib/garame/domain/interfaces";
 
-export default function GameRoomPage({ params }: { params: { roomId: string } }) {
+export default function GameRoomPage() {
   const router = useRouter();
+  const { roomId } = useParams<{ roomId: string }>();
   const gameService = useGameService();
   const paymentService = usePaymentService();
   const eventHandler = useGameEventHandler();
@@ -32,8 +33,9 @@ export default function GameRoomPage({ params }: { params: { roomId: string } })
   
   // Charger les données de la salle
   useEffect(() => {
+    if (!roomId) return;
     loadRoomData();
-  }, [params.roomId]);
+  }, [roomId]);
   
   // S'abonner aux événements de la salle
   useEffect(() => {
@@ -60,12 +62,13 @@ export default function GameRoomPage({ params }: { params: { roomId: string } })
       }
     };
     
-    eventHandler.subscribe(params.roomId, handleGameEvent);
+    if (!roomId) return;
+    eventHandler.subscribe(roomId, handleGameEvent);
     
     return () => {
-      eventHandler.unsubscribe(params.roomId);
+      if (roomId) eventHandler.unsubscribe(roomId);
     };
-  }, [gameRoom, params.roomId]);
+  }, [gameRoom, roomId]);
   
   // Gérer le compte à rebours
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function GameRoomPage({ params }: { params: { roomId: string } })
   const loadRoomData = async () => {
     try {
       setLoading(true);
-      const room = await gameService.getGameRoom(params.roomId);
+      const room = await gameService.getGameRoom(roomId!);
       
       if (!room) {
         toast.error("Salle introuvable");
@@ -141,7 +144,7 @@ export default function GameRoomPage({ params }: { params: { roomId: string } })
   
   const handleLeaveRoom = async () => {
     try {
-      await gameService.leaveGame(params.roomId);
+      await gameService.leaveGame(roomId!);
       toast.info("Vous avez quitté la partie");
       router.push("/dashboard/garame");
     } catch (error) {

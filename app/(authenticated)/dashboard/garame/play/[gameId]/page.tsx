@@ -1,18 +1,15 @@
-// app/(authenticated)/(dashboard)/dashboard/garame/play/[gameId]/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { PlayingCard, CardBack } from "@/components/game-card";
 import { 
   IconCoin,
   IconClock,
-  IconAlertCircle,
   IconTrophy,
   IconHandStop,
   IconPlayerPlay,
@@ -24,11 +21,13 @@ import { cn } from "@/lib/utils";
 import { useGameState, useOpponentAI } from "@/lib/garame/hooks/useGameState";
 import { ICard } from "@/lib/garame/domain/interfaces";
 
-export default function GamePlayPage({ params }: { params: { gameId: string } }) {
+export default function GamePlayPage() {
   const router = useRouter();
+  const { gameId } = useParams<{ gameId: string }>();
+
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
-  const currentPlayerId = 'current-user'; // À récupérer depuis l'auth
-  const opponentId = 'player2'; // À déterminer dynamiquement
+  const currentPlayerId = 'current-user';
+  const opponentId = 'player2';
   
   const {
     gameState,
@@ -39,7 +38,7 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
     passKora,
     isMyTurn
   } = useGameState({
-    gameId: params.gameId,
+    gameId: gameId!,
     playerId: currentPlayerId,
     onGameEnd: (winnerId) => {
       if (winnerId === currentPlayerId) {
@@ -50,7 +49,6 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
     }
   });
   
-  // Activer l'IA pour l'adversaire en mode développement
   useOpponentAI(gameState, opponentId);
   
   if (loading || !gameState) {
@@ -91,7 +89,7 @@ export default function GamePlayPage({ params }: { params: { gameId: string } })
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold">Partie en cours</h1>
-          <Badge variant="outline">Salle #{params.gameId}</Badge>
+          <Badge variant="outline">Salle #{gameId}</Badge>
         </div>
         
         <div className="flex items-center gap-4">
