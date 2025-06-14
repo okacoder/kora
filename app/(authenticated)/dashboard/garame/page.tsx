@@ -119,7 +119,7 @@ export default function GaramePage() {
       toast.success("Vous avez rejoint la partie");
       
       // Rediriger vers la partie
-      router.push(`/dashboard/garame/room/${roomId}`);
+      router.push(`/dashboard/garame/${roomId}`);
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la connexion à la partie");
     } finally {
