@@ -40,9 +40,9 @@ class FakeDataStore {
     // Joueur actuel
     this.players.set("current-user", {
       id: "current-user",
-      name: "Vous",
+      name: "OkaTest",
       username: "player1",
-      balance: 25000,
+      balance: 50000,
     });
     
     // Autres joueurs

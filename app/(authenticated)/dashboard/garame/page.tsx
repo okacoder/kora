@@ -53,6 +53,8 @@ export default function GaramePage() {
       toast.error("Impossible de charger votre solde");
     }
   };
+
+  loadUserBalance();
   }, []);
 
   // Charger les parties disponibles
@@ -62,16 +64,6 @@ export default function GaramePage() {
     const interval = setInterval(loadAvailableGames, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  const loadUserBalance = async () => {
-    try {
-      const balance = await paymentService.getBalance();
-      setUserBalance(balance);
-    } catch (error) {
-      console.error("Erreur lors du chargement du solde:", error);
-      toast.error("Impossible de charger votre solde");
-    }
-  };
 
   const loadAvailableGames = async () => {
     try {
@@ -103,7 +95,7 @@ export default function GaramePage() {
       toast.success(`Partie créée avec une mise de ${stake} koras`);
       
       // Rediriger vers la salle d'attente
-      router.push(`/dashboard/garame/room/${room.id}`);
+      router.push(`/dashboard/garame/${room.id}`);
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la création de la partie");
     } finally {
