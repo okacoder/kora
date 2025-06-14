@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   IconCards,
+  IconCoin,
   IconDashboard,
   IconHome,
   IconInnerShadowTop,
@@ -34,8 +35,13 @@ const data = {
     },
     {
       title: "Jouer à Garame",
-      url: "/garame",
+      url: "/dashboard/garame",
       icon: IconCards,
+    },
+    {
+      title: "Mes Koras",
+      url: "/dashboard/koras",
+      icon: IconCoin,
     },
     {
       title: "Mon compte",

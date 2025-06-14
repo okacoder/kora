@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 
