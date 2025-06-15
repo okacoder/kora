@@ -4,15 +4,11 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlayingCard, CardBack } from "@/components/game-card";
 import { 
   IconCoin,
   IconClock,
   IconTrophy,
   IconHandStop,
-  IconPlayerPlay,
   IconCards,
   IconLoader2
 } from "@tabler/icons-react";
@@ -29,7 +25,7 @@ export default function GamePlayPage() {
   const { gameId } = useParams<{ gameId: string }>();
   const currentPlayer = useCurrentUser();
 
-  const { gameState, loading, startGame, playCard, timer } = useGameMaster({ gameId: gameId!, playerId: currentPlayer?.id!, onGameEnd: handleGameEnd });
+  const { gameState, loading, playCard, timer } = useGameMaster({ gameId: gameId!, playerId: currentPlayer?.id!, onGameEnd: handleGameEnd });
 
   const [showRules, setShowRules] = useState(false);
 
@@ -56,7 +52,7 @@ export default function GamePlayPage() {
     <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center bg-background">
       {/* Header: infos, timer, pot, retour */}
       <div className="absolute top-0 left-0 w-full flex items-center justify-between px-4 py-2 z-20">
-        <Link href={routes.game(gameState.id)} className="size-6">
+        <Link href={routes.gameRoom(gameState.id)} className="size-6">
           <IconCards className="size-6" />
         </Link>
         <div className="flex items-center gap-4">
@@ -88,9 +84,9 @@ export default function GamePlayPage() {
       <GameTable
         gameState={gameState}
         currentPlayerId={currentPlayer?.id!}
-        playerNames={gameState.players}
-        playerAvatars={gameState.players}
-        onCardClick={playCard}
+        playerNames={new Map(Array.from(gameState.players.entries()).map(([id, player]) => [id, player.playerId]))}
+        playerAvatars={new Map(Array.from(gameState.players.entries()).map(([id, player]) => [id, player.playerId]))}
+        onCardClick={(playerId, cardIndex) => playCard(cardIndex)}
       />
 
       {/* Modal de règles rapides */}
@@ -121,15 +117,15 @@ export default function GamePlayPage() {
             <CardHeader className="text-center">
               <IconTrophy className={cn(
                 "size-16 mx-auto mb-4",
-                gameState.winnerId === currentPlayerId ? "text-yellow-500" : "text-muted-foreground"
+                gameState.winnerId === currentPlayer?.id ? "text-yellow-500" : "text-muted-foreground"
               )} />
               <CardTitle className="text-2xl">
-                {gameState.winnerId === currentPlayerId ? "Victoire !" : "Défaite"}
+                {gameState.winnerId === currentPlayer?.id ? "Victoire !" : "Défaite"}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-lg">
-                {gameState.winnerId === currentPlayerId 
+                {gameState.winnerId === currentPlayer?.id 
                   ? `Vous avez gagné ${Math.floor(gameState.pot * 0.9).toLocaleString()} FCFA !`
                   : "Vous ferez mieux la prochaine fois !"}
               </p>

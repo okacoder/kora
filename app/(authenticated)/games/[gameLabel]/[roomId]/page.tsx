@@ -22,7 +22,6 @@ import { IGameRoom, IPlayer, IGameEvent } from "@/lib/garame/domain/interfaces";
 import { games } from "@/lib/games";
 import { routes } from "@/lib/routes";
 
-// Game-specific renderers interface
 interface GameRenderer {
   renderPlayerArea: (player: IPlayer | null, isCurrentPlayer: boolean, gameRoom: IGameRoom) => React.ReactNode;
   getGameIcon: () => React.ReactNode;
@@ -169,7 +168,7 @@ export default function GameRoomPage() {
       
       if (!room) {
         toast.error("Salle introuvable");
-        router.push(routes.game(gameId));
+        router.push(routes.gameRoom(gameId));
         return;
       }
       
@@ -198,7 +197,7 @@ export default function GameRoomPage() {
     try {
       await gameService.leaveGame(roomId!);
       toast.info("Vous avez quitté la partie");
-      router.push(routes.game(gameId));
+      router.push(routes.gameRoom(gameId));
     } catch (error) {
       console.error("Erreur lors de la sortie:", error);
       toast.error("Impossible de quitter la partie");
