@@ -1,4 +1,3 @@
-// Entités du domaine
 export interface IPlayer {
   id: string;
   name: string;
@@ -10,6 +9,12 @@ export interface IPlayer {
 export interface ICard {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
   rank: 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
+}
+
+export interface IGameCard extends ICard {
+  playerId: string;
+  gameId: string;
+  canBePlayed: boolean;
 }
 
 export interface IGameRoom {
@@ -30,8 +35,8 @@ export interface IGameState {
   id: string;
   roomId: string;
   currentTurnPlayerId: string;
-  lastPlayedCard?: ICard;
-  currentSuit?: ICard['suit'];
+  lastPlayedCard?: IGameCard;
+  currentSuit?: IGameCard['suit'];
   players: Map<string, IPlayerGameState>;
   pot: number;
   status: 'playing' | 'finished';
@@ -42,7 +47,7 @@ export interface IGameState {
 
 export interface IPlayerGameState {
   playerId: string;
-  cards: ICard[];
+  cards: IGameCard[];
   hasKora: boolean;
   score: number;
   isReady: boolean;
@@ -110,7 +115,7 @@ export interface IPaymentService {
 
 // Event interfaces pour la communication temps réel
 export interface IGameEvent {
-  type: 'player_joined' | 'player_left' | 'game_started' | 'card_played' | 'kora_passed' | 'game_ended';
+  type: 'player_joined' | 'player_left' | 'game_started' | 'card_played' | 'game_ended';
   gameId: string;
   data: any;
   timestamp: Date;

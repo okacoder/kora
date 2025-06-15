@@ -22,11 +22,9 @@ export const AuthenticatedLayout = async ({ children }: { children: React.ReactN
         />
         <SidebarInset className="bg-background overflow-hidden">
           <SiteHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                {children}
-              </div>
+          <div className="flex-1 relative">
+            <div className="absolute py-6 inset-0 overflow-y-scroll @container/main">
+              {children}
             </div>
           </div>
         </SidebarInset>

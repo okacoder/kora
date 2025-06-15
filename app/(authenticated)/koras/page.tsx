@@ -24,7 +24,7 @@ import {
   IconReceipt
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { usePaymentService } from "@/lib/garame/infrastructure/garame-provider";
+import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
 import { ITransaction } from "@/lib/garame/domain/interfaces";
 
 // Taux de conversion
@@ -41,7 +41,7 @@ const rechargeOptions = [
 ];
 
 export default function KorasPage() {
-  const paymentService = usePaymentService();
+  const { paymentService } = useGarameServices();
   
   const [balance, setBalance] = useState<number>(0);
   const [korasBalance, setKorasBalance] = useState<number>(0);

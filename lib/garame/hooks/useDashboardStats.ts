@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { usePaymentService } from "@/lib/garame/infrastructure/garame-provider";
+import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
 import { ITransaction } from "@/lib/garame/domain/interfaces";
 
 interface DashboardStats {
@@ -18,7 +18,7 @@ interface DashboardStats {
  * Il centralise la récupération des données afin de respecter le principe DRY.
  */
 export function useDashboardStats(): DashboardStats {
-  const paymentService = usePaymentService();
+  const {paymentService} = useGarameServices();
 
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useGameService, useGameEventHandler } from "../infrastructure/garame-provider";
+import { useGarameServices } from "../infrastructure/garame-provider";
 import { IGameState, IGameEvent, ICard, InvalidMoveError } from "../domain/interfaces";
 import { toast } from "sonner";
+
 
 interface UseGameStateOptions {
   gameId: string;
@@ -12,8 +13,7 @@ interface UseGameStateOptions {
 }
 
 export function useGameState({ gameId, playerId, onGameEnd }: UseGameStateOptions) {
-  const gameService = useGameService();
-  const eventHandler = useGameEventHandler();
+  const { gameService, eventHandler } = useGarameServices();
   
   const [gameState, setGameState] = useState<IGameState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -173,7 +173,7 @@ export function useGameState({ gameId, playerId, onGameEnd }: UseGameStateOption
 
 // Hook pour simuler le jeu de l'adversaire (IA)
 export function useOpponentAI(gameState: IGameState | null, opponentId: string) {
-  const gameService = useGameService();
+  const { gameService } = useGarameServices();
   
   useEffect(() => {
     if (!gameState || gameState.status !== 'playing') return;

@@ -2,7 +2,6 @@
 
 import { useDashboardStats } from "@/lib/garame/hooks/useDashboardStats";
 import { Skeleton } from "./ui/skeleton";
-import { IconTrophy, IconDeviceMobile, IconShieldCheck, IconUsersGroup } from "@tabler/icons-react";
 import { DashboardSummaryCards } from "./dashboard-summary-cards";
 import { TransactionsTable } from "./transactions-table";
 
