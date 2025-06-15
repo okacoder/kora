@@ -48,7 +48,6 @@ export interface IGameState {
 export interface IPlayerGameState {
   playerId: string;
   cards: IGameCard[];
-  hasKora: boolean;
   score: number;
   isReady: boolean;
 }
@@ -102,7 +101,6 @@ export interface IGameService {
   getGameRoom(roomId: string): Promise<IGameRoom | null>;
   startGame(roomId: string): Promise<IGameState>;
   playCard(gameId: string, cardIndex: number): Promise<IGameState>;
-  passKora(gameId: string): Promise<void>;
   getGameState(gameId: string): Promise<IGameState | null>;
 }
 

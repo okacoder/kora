@@ -152,31 +152,6 @@ export class GameService implements IGameService {
     return gameState;
   }
   
-  async passKora(gameId: string): Promise<void> {
-    const currentPlayer = await this.playerRepo.getCurrentPlayer();
-    const gameState = await this.gameStateRepo.getGameState(gameId);
-    
-    if (!gameState) throw new Error("Partie introuvable");
-    
-    const playerIds = Array.from(gameState.players.keys());
-    const otherPlayerId = playerIds.find(id => id !== currentPlayer.id);
-    
-    if (!otherPlayerId) throw new Error("Adversaire introuvable");
-    
-    await this.gameStateRepo.passKora(gameId, currentPlayer.id, otherPlayerId);
-    
-    // Émettre l'événement
-    this.eventHandler.emit({
-      type: 'kora_passed',
-      gameId: gameState.roomId,
-      data: {
-        fromPlayerId: currentPlayer.id,
-        toPlayerId: otherPlayerId,
-      },
-      timestamp: new Date(),
-    });
-  }
-  
   async getGameState(gameId: string): Promise<IGameState | null> {
     return await this.gameStateRepo.getGameState(gameId);
   }
