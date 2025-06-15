@@ -1,4 +1,4 @@
-import { routes } from '@/app/lib/routes';
+import { routes } from '@/lib/routes';
 import { auth, Session } from '@/lib/auth';
 import { Role } from '@prisma/client';
 import { redirect } from 'next/navigation';

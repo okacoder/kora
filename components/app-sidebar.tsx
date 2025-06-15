@@ -24,7 +24,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Session } from "@/lib/auth";
-import { routes } from "@/app/lib/routes";
+import { routes } from "@/lib/routes";
 import Link from "next/link";
 
 

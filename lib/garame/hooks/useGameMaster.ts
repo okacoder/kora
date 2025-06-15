@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from "react";
 import { useGarameServices } from "../infrastructure/garame-provider";
 import { IGameState } from "../domain/interfaces";
@@ -11,16 +13,20 @@ interface UseGameMasterOptions {
 }
 
 export function useGameMaster({ gameId, playerId }: UseGameMasterOptions) {
+  const [timer, setTimer] = useState(30);
   const { gameService, paymentService, eventHandler } = useGarameServices();
   const [loading, setLoading] = useState(true);
   const [gameState, setGameState] = useState<IGameState | null>(null);
 
   async function startGame() {
     const { error, data } = await tryCatch(gameService.startGame(gameId));
+
     if (error) {
       toast.error(error.message);
       return;
     }
+
+    setTimer(30);
     setGameState(data);
   }
 
@@ -58,8 +64,9 @@ export function useGameMaster({ gameId, playerId }: UseGameMasterOptions) {
     }
     
     setGameState(data);
+    setTimer(30);
     setLoading(false);
   }
   
-  return { gameState, loading, startGame, playCard };
+  return { gameState, loading, startGame, playCard, timer };
 }

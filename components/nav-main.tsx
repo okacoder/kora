@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { games } from "@/app/lib/games";
-import { routes } from "@/app/lib/routes";
+import { games } from "@/lib/games";
+import { routes } from "@/lib/routes";
 
 export function NavMain({
   items,

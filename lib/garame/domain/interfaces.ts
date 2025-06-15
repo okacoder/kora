@@ -1,6 +1,5 @@
 export interface IPlayer {
   id: string;
-  name: string;
   username: string;
   avatar?: string;
   balance: number;

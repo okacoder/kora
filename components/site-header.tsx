@@ -1,4 +1,4 @@
-import { routes } from "@/app/lib/routes";
+import { routes } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";

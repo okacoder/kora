@@ -20,7 +20,7 @@ import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
 import { IGameRoom, IPlayer, IGameEvent } from "@/lib/garame/domain/interfaces";
-import { games } from "@/app/lib/games";
+import { games } from "@/lib/games";
 
 // Game-specific renderers interface
 interface GameRenderer {
