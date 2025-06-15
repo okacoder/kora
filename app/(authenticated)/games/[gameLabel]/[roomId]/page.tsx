@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
   IconLoader2,
   IconArrowLeft,
@@ -21,6 +20,7 @@ import { toast } from "sonner";
 import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
 import { IGameRoom, IPlayer, IGameEvent } from "@/lib/garame/domain/interfaces";
 import { games } from "@/lib/games";
+import { routes } from "@/lib/routes";
 
 // Game-specific renderers interface
 interface GameRenderer {
@@ -154,7 +154,6 @@ export default function GameRoomPage() {
       // Simuler la récupération du joueur actuel
       setCurrentPlayer({
         id: 'current-user',
-        name: 'Vous',
         username: 'player1',
         balance,
       });
@@ -170,7 +169,7 @@ export default function GameRoomPage() {
       
       if (!room) {
         toast.error("Salle introuvable");
-        router.push(`/games/${gameId}`);
+        router.push(routes.game(gameId));
         return;
       }
       
@@ -181,7 +180,6 @@ export default function GameRoomPage() {
         // Dans un vrai système, on récupérerait les infos de l'adversaire
         setOpponent({
           id: room.opponentId,
-          name: room.opponentName || 'Adversaire',
           username: 'opponent',
           balance: 0, // Non affiché
         });
@@ -200,7 +198,7 @@ export default function GameRoomPage() {
     try {
       await gameService.leaveGame(roomId!);
       toast.info("Vous avez quitté la partie");
-      router.push(`/games/${gameId}`);
+      router.push(routes.game(gameId));
     } catch (error) {
       console.error("Erreur lors de la sortie:", error);
       toast.error("Impossible de quitter la partie");
@@ -282,12 +280,12 @@ export default function GameRoomPage() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                   <AvatarFallback className="text-xs sm:text-sm">
-                    {isCreator ? currentPlayer?.name.slice(0, 2).toUpperCase() : gameRoom.creatorName.slice(0, 2).toUpperCase()}
+                    {isCreator ? currentPlayer?.username.slice(0, 2).toUpperCase() : gameRoom.creatorName.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-sm sm:text-base truncate">
-                    {isCreator ? currentPlayer?.name : gameRoom.creatorName}
+                    {isCreator ? currentPlayer?.username : gameRoom.creatorName}
                   </h3>
                   <div className="flex items-center gap-1">
                     <Badge variant="default" className="text-xs">
@@ -309,7 +307,7 @@ export default function GameRoomPage() {
           </CardHeader>
           <CardContent className="p-3 sm:p-4 md:p-6">
             {gameRenderer.renderPlayerArea(
-              isCreator ? currentPlayer : { id: gameRoom.creatorId, name: gameRoom.creatorName, username: 'creator', balance: 0 },
+              isCreator ? currentPlayer : { id: gameRoom.creatorId, username: gameRoom.creatorName, balance: 0 },
               isCreator,
               gameRoom
             )}
@@ -324,12 +322,12 @@ export default function GameRoomPage() {
                 <div className="flex items-center gap-2 sm:gap-3">
                   <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                     <AvatarFallback className="text-xs sm:text-sm">
-                      {!isCreator ? currentPlayer?.name.slice(0, 2).toUpperCase() : opponent.name.slice(0, 2).toUpperCase()}
+                      {!isCreator ? currentPlayer?.username.slice(0, 2).toUpperCase() : opponent.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-sm sm:text-base truncate">
-                      {!isCreator ? currentPlayer?.name : opponent.name}
+                      {!isCreator ? currentPlayer?.username : opponent.username}
                     </h3>
                     <div className="flex items-center gap-1">
                       <Badge variant="default" className="text-xs">
