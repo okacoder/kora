@@ -33,11 +33,6 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Graph */}
-      <div className="px-4 lg:px-6">
-        <ChartAreaInteractive />
-      </div>
-
       {/* Table des transactions */}
       <div className="px-4 lg:px-6">
         {loading ? (

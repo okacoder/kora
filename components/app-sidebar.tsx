@@ -29,7 +29,7 @@ import { Session } from "@/lib/auth";
 const data = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Tableau de bord",
       url: "/dashboard",
       icon: IconDashboard,
     },
@@ -42,6 +42,13 @@ const data = {
       title: "Mes Koras",
       url: "/dashboard/koras",
       icon: IconCoin,
+    }
+  ],
+  navSecondary: [
+    {
+      title: "Page d'accueil",
+      url: "/",
+      icon: IconHome,
     },
     {
       title: "Mon compte",
@@ -52,13 +59,6 @@ const data = {
       title: "Paramètres",
       url: "/dashboard/setting",
       icon: IconSettings,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Home",
-      url: "/",
-      icon: IconHome,
     },
   ],
 };
