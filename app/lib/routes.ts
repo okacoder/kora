@@ -1,10 +1,12 @@
 import { Route } from "next";
 
-export const routes: Record<string, Route<string> | ((...args: any[]) => string)> = {
+export const routes = {
   base: "/",
   games: "/games",
-  game: (gameId: string) => `/games/${gameId}`,
+  game: (gameId: string) => `/games/${gameId}` as Route<string>,
   koras: "/koras",
   setting: "/setting",
   account: "/account",
-};
+  login: "/login",
+  signup: "/signup",
+} as const;
