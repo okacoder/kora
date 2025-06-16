@@ -22,29 +22,39 @@ import GameTable from "@/lib/garame/components/gameboard";
 
 export default function GamePlayPage() {
   const router = useRouter();
-  const { gameId } = useParams<{ gameId: string }>();
+  const { gameLabel, gameId } = useParams<{ gameLabel: string, gameId: string }>();
   const currentPlayer = useCurrentUser();
-
-  const { gameState, loading, playCard, timer } = useGameMaster({ gameId: gameId!, playerId: currentPlayer?.id!, onGameEnd: handleGameEnd });
-
-  const [showRules, setShowRules] = useState(false);
-
-  if (loading || !gameState) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
   
-  const myPlayer = gameState.players.get(currentPlayer?.id!);
+  const [showEndGameModal, setShowEndGameModal] = useState(false);
+  const [winnerId, setWinnerId] = useState<string | null>(null);
 
-  function handleGameEnd(winnerId: string) {
-    if (winnerId === currentPlayer?.id) {
-      toast.success(`Félicitations ! Vous avez gagné ${Math.floor((gameState?.pot || 0) * 0.9)} FCFA !`);
+  const handleGameEnd = (theWinnerId: string, gain: number) => {
+    setWinnerId(theWinnerId);
+    setShowEndGameModal(true);
+    if (theWinnerId === currentPlayer?.id) {
+      toast.success(`Félicitations ! Vous avez gagné ${gain.toLocaleString()} FCFA !`);
     } else {
       toast.error("Vous avez perdu cette partie. Tentez votre chance à nouveau !");
     }
+  };
+
+  const { gameState, loading, playCard, timer } = useGameMaster({ 
+    gameId: gameId!, 
+    playerId: currentPlayer?.id!, 
+    onGameEnd: handleGameEnd 
+  });
+
+  const [showRules, setShowRules] = useState(false);
+
+  if (loading || !gameState || !currentPlayer) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center">
+          <IconLoader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">Chargement de la partie...</p>
+        </div>
+      </div>
+    );
   }
 
   // Responsive layout: grid for desktop, flex-col for mobile, no scroll
@@ -52,18 +62,18 @@ export default function GamePlayPage() {
     <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center bg-background">
       {/* Header: infos, timer, pot, retour */}
       <div className="absolute top-0 left-0 w-full flex items-center justify-between px-4 py-2 z-20">
-        <Link href={routes.gameRoom(gameState.id)} className="size-6">
+        <Link href={`/games/${gameLabel}`} className="p-2 rounded-full hover:bg-muted">
           <IconCards className="size-6" />
         </Link>
         <div className="flex items-center gap-4">
           <Card className={cn(
-            "border-2 h-12 flex items-center justify-center px-3",
-            gameState.currentTurnPlayerId === currentPlayer?.id ? "border-primary animate-pulse" : "border-muted"
+            "border-2 h-12 flex items-center justify-center px-3 transition-colors",
+            gameState.currentTurnPlayerId === currentPlayer.id ? "border-primary animate-pulse" : "border-muted"
           )}>
             <CardContent className="flex items-center gap-2 p-0">
               <IconClock className="size-5" />
               <span className="font-mono font-bold text-lg">
-                {timer.toString().padStart(2, '0')} s
+                {timer.toString().padStart(2, '0')}s
               </span>
             </CardContent>
           </Card>
@@ -74,67 +84,66 @@ export default function GamePlayPage() {
             </CardContent>
           </Card>
         </div>
-        {/* Info rules icon */}
         <Button variant="ghost" size="icon" onClick={() => setShowRules(true)}>
           <IconHandStop className="size-6 text-primary" />
         </Button>
       </div>
 
-      {/* Player area */}
       <GameTable
         gameState={gameState}
-        currentPlayerId={currentPlayer?.id!}
-        playerNames={new Map(Array.from(gameState.players.entries()).map(([id, player]) => [id, player.playerId]))}
-        playerAvatars={new Map(Array.from(gameState.players.entries()).map(([id, player]) => [id, player.playerId]))}
-        onCardClick={(playerId, cardIndex) => playCard(cardIndex)}
+        currentPlayerId={currentPlayer.id}
+        playerNames={new Map(Array.from(gameState.players.values()).map(p => [p.playerId, p.username]))}
+        playerAvatars={new Map(Array.from(gameState.players.values()).map(p => [p.playerId, p.avatar || '']))}
+        onCardClick={(_playerId, cardIndex) => playCard(cardIndex)}
+        className="mt-16"
       />
 
       {/* Modal de règles rapides */}
       {showRules && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowRules(false)}>
+          <Card className="max-w-md w-full" onClick={e => e.stopPropagation()}>
             <CardHeader className="text-center">
               <IconHandStop className="size-12 mx-auto mb-2 text-primary" />
-              <CardTitle className="text-xl">Règles rapides</CardTitle>
+              <CardTitle className="text-xl">Règles rapides de la Garame</CardTitle>
             </CardHeader>
-            <CardContent className="text-center space-y-2">
-              <ul className="text-base text-muted-foreground space-y-1">
-                <li>• Le joueur avec la kora commence et peut jouer n'importe quelle carte</li>
-                <li>• Les autres joueurs doivent suivre la même famille si possible</li>
-                <li>• Si vous n'avez pas la famille demandée, jouez n'importe quelle carte</li>
-                <li>• Le premier à se débarrasser de toutes ses cartes gagne</li>
-              </ul>
-              <Button className="mt-4 w-full" onClick={() => setShowRules(false)}>Fermer</Button>
+            <CardContent className="text-left space-y-2 text-muted-foreground">
+                <p>• Le but est de se débarrasser de toutes ses cartes.</p>
+                <p>• Le joueur qui a la "Kora" (indiquée par <IconHandStop className="inline-block size-4" />) commence.</p>
+                <p>• Le premier joueur peut jouer n'importe quelle carte.</p>
+                <p>• Les joueurs suivants doivent jouer une carte de la même famille (couleur) si possible.</p>
+                <p>• Si un joueur ne peut pas suivre, il peut jouer n'importe quelle carte.</p>
+                <p>• Le premier joueur à vider sa main gagne le pot (moins une commission).</p>
+              <Button className="mt-4 w-full" onClick={() => setShowRules(false)}>Compris !</Button>
             </CardContent>
           </Card>
         </div>
       )}
 
       {/* Modal de fin de partie */}
-      {gameState.status === 'finished' && gameState.winnerId && (
+      {showEndGameModal && winnerId && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardHeader className="text-center">
               <IconTrophy className={cn(
                 "size-16 mx-auto mb-4",
-                gameState.winnerId === currentPlayer?.id ? "text-yellow-500" : "text-muted-foreground"
+                winnerId === currentPlayer.id ? "text-yellow-500" : "text-muted-foreground"
               )} />
               <CardTitle className="text-2xl">
-                {gameState.winnerId === currentPlayer?.id ? "Victoire !" : "Défaite"}
+                {winnerId === currentPlayer.id ? "Victoire !" : "Défaite"}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-lg">
-                {gameState.winnerId === currentPlayer?.id 
+                {winnerId === currentPlayer.id 
                   ? `Vous avez gagné ${Math.floor(gameState.pot * 0.9).toLocaleString()} FCFA !`
-                  : "Vous ferez mieux la prochaine fois !"}
+                  : `Le joueur gagnant est ${gameState.players.get(winnerId)?.username}. Tentez votre chance à nouveau !`}
               </p>
               <div className="flex gap-2 justify-center">
-                <Button onClick={() => router.push('/dashboard/garame')}>
+                <Button onClick={() => router.push(`/games/${gameLabel}`)}>
                   Nouvelle partie
                 </Button>
-                <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                  Retour au tableau de bord
+                <Button variant="outline" onClick={() => router.push('/koras')}>
+                  Retour à l'accueil
                 </Button>
               </div>
             </CardContent>

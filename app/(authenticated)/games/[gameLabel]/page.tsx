@@ -119,7 +119,7 @@ export default function GamePage() {
       toast.success("Vous avez rejoint la partie");
 
       // Rediriger vers la partie
-      router.push(routes.gamePlay(gameId!, roomId));
+      router.push(routes.gamePlay('garame', roomId));
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la connexion à la partie");
     } finally {

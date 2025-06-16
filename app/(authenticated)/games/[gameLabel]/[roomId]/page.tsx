@@ -72,7 +72,7 @@ const getGameRenderer = (gameId: string): GameRenderer => {
 
 export default function GameRoomPage() {
   const router = useRouter();
-  const { gameId, roomId } = useParams<{ gameId: string; roomId: string }>();
+  const { gameLabel, roomId } = useParams<{ gameLabel: string; roomId: string }>();
   const { gameService, paymentService, eventHandler } = useGarameServices();
   
   const [gameRoom, setGameRoom] = useState<IGameRoom | null>(null);
@@ -83,8 +83,8 @@ export default function GameRoomPage() {
   const [loading, setLoading] = useState(true);
   
   // Get game info and renderer
-  const gameInfo = games.find(g => g.id === gameId);
-  const gameRenderer = getGameRenderer(gameId);
+  const gameInfo = games.find(g => g.id === gameLabel);
+  const gameRenderer = getGameRenderer(gameLabel);
   
   // Charger les données de la salle
   useEffect(() => {
@@ -133,7 +133,7 @@ export default function GameRoomPage() {
     const timer = setTimeout(() => {
       if (countdown === 1) {
         // Rediriger vers la partie (utiliser gameStateId si disponible, sinon l'id de la room)
-        router.push(`/games/${gameId}/play/${gameStateId ?? gameRoom?.id}`);
+        router.push(routes.gamePlay(gameLabel, gameStateId ?? gameRoom?.id!));
       } else {
         setCountdown(countdown - 1);
       }
@@ -168,19 +168,19 @@ export default function GameRoomPage() {
       
       if (!room) {
         toast.error("Salle introuvable");
-        router.push(routes.gameRoom(gameId));
+        router.push(routes.gameRoom(roomId));
         return;
       }
       
       setGameRoom(room);
       
       // Si la salle a un adversaire, le charger
-      if (room.opponentId && room.status !== 'waiting') {
+      if (room.opponentId && room.opponentName && room.status !== 'waiting') {
         // Dans un vrai système, on récupérerait les infos de l'adversaire
         setOpponent({
           id: room.opponentId,
-          username: 'opponent',
-          balance: 0, // Non affiché
+          username: room.opponentName,
+          balance: 0,
         });
         
         // Le compte à rebours démarrera après réception de l'événement "game_started"
@@ -197,7 +197,7 @@ export default function GameRoomPage() {
     try {
       await gameService.leaveGame(roomId!);
       toast.info("Vous avez quitté la partie");
-      router.push(routes.gameRoom(gameId));
+      router.push(routes.gameRoom(roomId));
     } catch (error) {
       console.error("Erreur lors de la sortie:", error);
       toast.error("Impossible de quitter la partie");

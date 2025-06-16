@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
@@ -25,6 +25,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const callbackUrl = useSearchParams().get("callbackUrl");
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +47,7 @@ export function LoginForm({
           setLoading(true);
         },
         onSuccess: (ctx) => {
-          router.push("/dashboard");
+          router.push(callbackUrl || "/");
         },
         onError: (ctx) => {
           // display the error message

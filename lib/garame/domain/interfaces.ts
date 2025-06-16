@@ -46,9 +46,12 @@ export interface IGameState {
 
 export interface IPlayerGameState {
   playerId: string;
+  username: string;
+  avatar?: string;
   cards: IGameCard[];
   score: number;
   isReady: boolean;
+  hasKora: boolean;
 }
 
 export interface ITransaction {
@@ -112,7 +115,7 @@ export interface IPaymentService {
 
 // Event interfaces pour la communication temps réel
 export interface IGameEvent {
-  type: 'player_joined' | 'player_left' | 'game_started' | 'card_played' | 'game_ended';
+  type: 'player_joined' | 'player_left' | 'game_started' | 'game_state_updated';
   gameId: string;
   data: any;
   timestamp: Date;
