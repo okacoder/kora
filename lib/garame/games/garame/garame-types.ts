@@ -14,11 +14,10 @@ export interface GaramePlayerState extends BasePlayerState {
 }
 
 export interface GarameAction {
-  type: 'play_card' | 'pass_kora';
+  type: 'play_card';
   playerId: string;
   data: {
-    cardIndex?: number;
-    card?: Card;
-    targetPlayerId?: string; // For pass_kora action
+    cardIndex: number;
+    card: Card;
   };
 }

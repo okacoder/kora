@@ -7,7 +7,7 @@ import { GarameAI } from './garame-ai';
 export class GarameEngine extends BaseGameEngine {
   createInitialState(room: GameRoom): GarameGameState {
     const deck = GarameRules.createShuffledDeck();
-    const cardsPerPlayer = 5; // Traditional Garame uses 5 cards per player
+    const cardsPerPlayer = 10;
     
     const gameState: GarameGameState = {
       id: `game-${Date.now()}`,
@@ -16,7 +16,6 @@ export class GarameEngine extends BaseGameEngine {
       currentPlayerId: room.players[0].id,
       players: new Map(),
       lastPlayedCard: null,
-      currentSuit: undefined,
       deck: [],
       discardPile: [],
       pot: room.totalPot,
@@ -25,7 +24,7 @@ export class GarameEngine extends BaseGameEngine {
       startedAt: new Date()
     };
 
-    // Deal cards to players
+    // Deal cards
     room.players.forEach((player, index) => {
       const playerCards = deck.slice(
         index * cardsPerPlayer,
@@ -37,7 +36,7 @@ export class GarameEngine extends BaseGameEngine {
         position: player.position,
         cards: playerCards,
         score: 0,
-        hasKora: index === 0, // First player gets Kora
+        hasKora: index === 0,
         wonTricks: 0,
         isActive: true,
         isAI: player.isAI,
@@ -57,75 +56,36 @@ export class GarameEngine extends BaseGameEngine {
     const gameState = state as GarameGameState;
     const garameAction = action as any;
 
+    if (action.type !== 'play_card') return false;
     if (state.currentPlayerId !== action.playerId) return false;
 
-    if (action.type === 'play_card') {
-      const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
-      if (!playerState) return false;
+    const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
+    if (!playerState) return false;
 
-      const card = playerState.cards[garameAction.data.cardIndex];
-      if (!card) return false;
+    const card = playerState.cards[garameAction.data.cardIndex];
+    if (!card) return false;
 
-      return GarameRules.canPlayCard(gameState, action.playerId, card);
-    }
-
-    if (action.type === 'pass_kora') {
-      const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
-      const targetState = gameState.players.get(garameAction.data.targetPlayerId) as GaramePlayerState;
-      
-      return playerState?.hasKora === true && targetState?.isActive === true;
-    }
-
-    return false;
+    return GarameRules.canPlayCard(gameState, action.playerId, card);
   }
 
   applyAction(state: BaseGameState, action: GameAction): GarameGameState {
     const gameState = { ...state } as GarameGameState;
     const garameAction = action as any;
+    const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
 
-    if (action.type === 'play_card') {
-      const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
-      
-      // Remove card from hand
-      const card = playerState.cards.splice(garameAction.data.cardIndex, 1)[0];
-      
-      // Apply game rules
-      const updates = GarameRules.applyCardPlay(gameState, action.playerId, card);
-      Object.assign(gameState, updates);
+    // Remove card from hand
+    const card = playerState.cards.splice(garameAction.data.cardIndex, 1)[0];
 
-      // Update player's last action
-      playerState.lastAction = action;
+    // Apply Garame rules
+    const updates = GarameRules.applyCardPlay(gameState, action.playerId, card);
+    Object.assign(gameState, updates);
 
-      // Check if this completes a trick (in 2-player Garame, every card play does)
-      const players = Array.from(gameState.players.keys());
-      const otherPlayerId = players.find(id => id !== action.playerId);
-      
-      if (otherPlayerId) {
-        // In traditional Garame, the other player gets Kora after each play
-        const otherPlayer = gameState.players.get(otherPlayerId) as GaramePlayerState;
-        if (otherPlayer) {
-          playerState.hasKora = false;
-          otherPlayer.hasKora = true;
-        }
-      }
-
-      // Next player's turn
-      gameState.currentPlayerId = otherPlayerId || action.playerId;
-      gameState.currentSuit = undefined; // Reset for next trick
-    }
-
-    if (action.type === 'pass_kora') {
-      const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
-      const targetState = gameState.players.get(garameAction.data.targetPlayerId) as GaramePlayerState;
-      
-      if (playerState && targetState) {
-        playerState.hasKora = false;
-        targetState.hasKora = true;
-        gameState.currentPlayerId = garameAction.data.targetPlayerId;
-      }
-    }
-
+    // Next player
+    const players = Array.from(gameState.players.keys());
+    const currentIndex = players.indexOf(action.playerId);
+    gameState.currentPlayerId = players[(currentIndex + 1) % players.length];
     gameState.turn++;
+
     return gameState;
   }
 
@@ -140,52 +100,24 @@ export class GarameEngine extends BaseGameEngine {
     
     if (!playerState || state.currentPlayerId !== playerId) return [];
 
-    const actions: GameAction[] = [];
-
-    // Get playable card actions
     const validIndices = GarameRules.getPlayableCards(gameState, playerId);
     
-    validIndices.forEach(index => {
-      actions.push({
-        type: 'play_card',
-        playerId,
-        data: {
-          cardIndex: index,
-          card: playerState.cards[index]
-        },
-        timestamp: new Date()
-      });
-    });
-
-    // Add pass Kora action if player has it
-    if (playerState.hasKora) {
-      const otherPlayers = Array.from(gameState.players.entries())
-        .filter(([id, p]) => id !== playerId && p.isActive);
-      
-      otherPlayers.forEach(([targetId]) => {
-        actions.push({
-          type: 'pass_kora',
-          playerId,
-          data: {
-            targetPlayerId: targetId
-          },
-          timestamp: new Date()
-        });
-      });
-    }
-
-    return actions;
+    return validIndices.map(index => ({
+      type: 'play_card',
+      playerId,
+      data: {
+        cardIndex: index,
+        card: playerState.cards[index]
+      },
+      timestamp: new Date()
+    }));
   }
 
   calculateScores(state: BaseGameState): Map<string, number> {
     const scores = new Map<string, number>();
     
     for (const [playerId, playerState] of state.players) {
-      const garamePlayer = playerState as GaramePlayerState;
-      // Score based on cards left (lower is better) and tricks won
-      const cardsLeft = garamePlayer.cards.length;
-      const score = garamePlayer.wonTricks * 100 - cardsLeft * 10;
-      scores.set(playerId, score);
+      scores.set(playerId, playerState.score);
     }
     
     return scores;

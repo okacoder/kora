@@ -2,23 +2,22 @@ import { Card } from '../../core/types';
 import { GarameGameState, GaramePlayerState } from './garame-types';
 
 export class GarameRules {
-  // Create and shuffle a standard 52-card deck
   static createShuffledDeck(): Card[] {
     const suits: Card['suit'][] = ['hearts', 'diamonds', 'clubs', 'spades'];
     const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-    const deck: Card[] = [];
     
+    const deck: Card[] = [];
     for (const suit of suits) {
       for (const rank of ranks) {
-        deck.push({ 
-          suit, 
+        deck.push({
+          suit,
           rank,
-          id: `${suit}-${rank}` 
+          id: `${suit}-${rank}`
         });
       }
     }
     
-    // Shuffle using Fisher-Yates algorithm
+    // Shuffle
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -27,67 +26,44 @@ export class GarameRules {
     return deck;
   }
 
-  // Check if a player can play a specific card
-  static canPlayCard(
-    gameState: GarameGameState, 
-    playerId: string, 
-    card: Card
-  ): boolean {
-    // Not player's turn
-    if (gameState.currentPlayerId !== playerId) {
-      return false;
-    }
-
+  static canPlayCard(gameState: GarameGameState, playerId: string, card: Card): boolean {
     const playerState = gameState.players.get(playerId) as GaramePlayerState;
     if (!playerState) return false;
 
-    // Player with Kora can play any card
-    if (playerState.hasKora) {
-      return true;
-    }
+    // If player has Kora, they can play any card
+    if (playerState.hasKora) return true;
 
-    // If no suit has been set (first card of trick), any card is valid
-    if (!gameState.currentSuit) {
-      return true;
-    }
+    // If no card has been played this turn, any card is valid
+    if (!gameState.lastPlayedCard) return true;
 
     // Must follow suit if possible
-    const hasSuitCard = playerState.cards.some(c => c.suit === gameState.currentSuit);
-    if (hasSuitCard) {
+    const playerCards = playerState.cards;
+    const hasSuit = playerCards.some(c => c.suit === gameState.currentSuit);
+    
+    if (hasSuit) {
       return card.suit === gameState.currentSuit;
     }
-
-    // Can play any card if no cards of the required suit
+    
+    // If no cards of the required suit, any card is valid
     return true;
   }
 
-  // Get indices of playable cards for a player
-  static getPlayableCards(
-    gameState: GarameGameState, 
-    playerId: string
-  ): number[] {
+  static getPlayableCards(gameState: GarameGameState, playerId: string): number[] {
     const playerState = gameState.players.get(playerId) as GaramePlayerState;
-    if (!playerState || gameState.currentPlayerId !== playerId) {
-      return [];
-    }
+    if (!playerState) return [];
 
     const playableIndices: number[] = [];
     
-    playerState.cards.forEach((card, index) => {
-      if (this.canPlayCard(gameState, playerId, card)) {
-        playableIndices.push(index);
+    for (let i = 0; i < playerState.cards.length; i++) {
+      if (this.canPlayCard(gameState, playerId, playerState.cards[i])) {
+        playableIndices.push(i);
       }
-    });
-
+    }
+    
     return playableIndices;
   }
 
-  // Apply card play and update game state
-  static applyCardPlay(
-    gameState: GarameGameState,
-    playerId: string,
-    card: Card
-  ): Partial<GarameGameState> {
+  static applyCardPlay(gameState: GarameGameState, playerId: string, card: Card): Partial<GarameGameState> {
     const updates: Partial<GarameGameState> = {
       lastPlayedCard: card,
       currentSuit: card.suit
@@ -96,80 +72,106 @@ export class GarameRules {
     // Add card to discard pile
     gameState.discardPile.push(card);
 
+    // Check if this completes a trick (both players have played)
+    if (gameState.discardPile.length % 2 === 0) {
+      // Determine trick winner
+      const player1Card = gameState.discardPile[gameState.discardPile.length - 2];
+      const player2Card = gameState.discardPile[gameState.discardPile.length - 1];
+      
+      const player1Id = Array.from(gameState.players.keys())[0];
+      const player2Id = Array.from(gameState.players.keys())[1];
+      
+      const winnerId = this.determineTrickWinner(
+        player1Id,
+        player1Card,
+        player2Id,
+        player2Card,
+        gameState
+      );
+
+      // Transfer Kora to trick winner
+      for (const [id, player] of gameState.players) {
+        const garamePlayer = player as GaramePlayerState;
+        garamePlayer.hasKora = (id === winnerId);
+        if (id === winnerId) {
+          garamePlayer.wonTricks++;
+        }
+      }
+
+      // Reset for next trick
+      updates.lastPlayedCard = null;
+      updates.currentSuit = undefined;
+    }
+
     return updates;
   }
 
-  // Check if game has ended
-  static checkEndCondition(
+  static determineTrickWinner(
+    player1Id: string,
+    player1Card: Card,
+    player2Id: string,
+    player2Card: Card,
     gameState: GarameGameState
-  ): { ended: boolean; winners?: string[] } {
-    // Check if any player has no cards left
-    for (const [playerId, playerState] of gameState.players) {
-      const garamePlayer = playerState as GaramePlayerState;
-      if (garamePlayer.cards.length === 0 && garamePlayer.isActive) {
-        return {
-          ended: true,
-          winners: [playerId]
-        };
-      }
+  ): string {
+    // If both cards are same suit, higher rank wins
+    if (player1Card.suit === player2Card.suit) {
+      return this.compareRanks(player1Card.rank, player2Card.rank) > 0 
+        ? player1Id 
+        : player2Id;
     }
 
-    // Check if deck is empty and no one can play
-    if (gameState.deck.length === 0) {
-      // Find player with least cards
-      let minCards = Infinity;
-      let winners: string[] = [];
-      
-      for (const [playerId, playerState] of gameState.players) {
-        const garamePlayer = playerState as GaramePlayerState;
-        if (!garamePlayer.isActive) continue;
-        
-        if (garamePlayer.cards.length < minCards) {
-          minCards = garamePlayer.cards.length;
-          winners = [playerId];
-        } else if (garamePlayer.cards.length === minCards) {
-          winners.push(playerId);
-        }
-      }
-      
-      return {
-        ended: true,
-        winners
-      };
-    }
+    // If different suits, the card matching the led suit wins
+    const ledSuit = gameState.discardPile[gameState.discardPile.length - 2].suit;
+    if (player1Card.suit === ledSuit) return player1Id;
+    if (player2Card.suit === ledSuit) return player2Id;
 
-    return { ended: false };
+    // Neither matches led suit (shouldn't happen in valid play)
+    return player1Id;
   }
 
-  // Calculate card value for AI evaluation
-  static getCardValue(card: Card): number {
+  static compareRanks(rank1: string, rank2: string): number {
     const rankValues: Record<string, number> = {
       'A': 14, 'K': 13, 'Q': 12, 'J': 11,
       '10': 10, '9': 9, '8': 8, '7': 7,
       '6': 6, '5': 5, '4': 4, '3': 3, '2': 2
     };
-    return rankValues[card.rank] || 0;
+    
+    return rankValues[rank1] - rankValues[rank2];
   }
 
-  // Determine trick winner
-  static getTrickWinner(
-    firstCard: Card,
-    secondCard: Card,
-    firstPlayerHasKora: boolean,
-    secondPlayerHasKora: boolean
-  ): 'first' | 'second' {
-    // If both cards are same suit, highest wins
-    if (firstCard.suit === secondCard.suit) {
-      return this.getCardValue(firstCard) > this.getCardValue(secondCard) ? 'first' : 'second';
+  static checkEndCondition(gameState: GarameGameState): { ended: boolean; winners?: string[] } {
+    // Game ends when a player has no cards left
+    for (const [playerId, playerState] of gameState.players) {
+      const garamePlayer = playerState as GaramePlayerState;
+      if (garamePlayer.cards.length === 0) {
+        // Player with Kora at end wins
+        if (garamePlayer.hasKora) {
+          garamePlayer.score = 10; // Winner gets 10 points
+          return { ended: true, winners: [playerId] };
+        }
+      }
     }
 
-    // If first player set the suit and second didn't follow, first wins
-    // (unless second player has Kora)
-    if (!secondPlayerHasKora) {
-      return 'first';
+    // Check if deck is exhausted and no one can play
+    const allPlayersStuck = Array.from(gameState.players.values()).every(player => {
+      const garamePlayer = player as GaramePlayerState;
+      return garamePlayer.cards.length > 0 && 
+             this.getPlayableCards(gameState, player.id).length === 0;
+    });
+
+    if (allPlayersStuck) {
+      // Player with Kora wins
+      const winnerEntry = Array.from(gameState.players.entries()).find(([_, player]) => {
+        const garamePlayer = player as GaramePlayerState;
+        return garamePlayer.hasKora;
+      });
+      
+      if (winnerEntry) {
+        winnerEntry[1].score = 10;
+        return { ended: true, winners: [winnerEntry[0]] };
+      }
     }
 
-    // If second player has Kora and played different suit, compare values
-    return this.getCardValue(secondCard) > this.getCardValue(firstCard) ? 'second' : 'first';
+    return { ended: false };
   }
 }
