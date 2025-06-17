@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { IconH1, IconLoader } from "@tabler/icons-react";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 import { authClient } from "@/lib/auth-client";
 
@@ -46,67 +47,73 @@ export default function Page() {
       <Skeleton className="w-full h-[30px] rounded-full" />
     </div>
   ) : (
-    <>
-      <div className="px-4 lg:px-6">
-        <h1 className="text-lg font-medium">Paramètres du compte</h1>
-        <p className="text-sm text-muted-foreground mb-2">
-          Modifiez vos informations de compte
-        </p>
-        <Separator className="mb-4" />
-        <form className="lg:w-1/2">
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-3">
-              <Label htmlFor="email">Nom complet</Label>
-              <Input
-                onChange={(e) => setFullname(e.target.value)}
-                value={fullname}
-                id="name"
-                type="text"
-                placeholder="Achour Meguenni"
-                required
-              />
+    <div className="flex justify-center px-4 lg:px-6 py-8">
+      <Card className="w-full max-w-xl rounded-lg shadow-sm border">
+        <CardHeader>
+          <h1 className="text-lg font-semibold">Paramètres du compte</h1>
+          <p className="text-sm text-muted-foreground mb-2">
+            Modifiez vos informations de compte
+          </p>
+          <Separator className="mb-4" />
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-6">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nom complet</Label>
+                <Input
+                  onChange={(e) => setFullname(e.target.value)}
+                  value={fullname}
+                  id="name"
+                  type="text"
+                  placeholder="Achour Meguenni"
+                  required
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="username">Nom d'utilisateur</Label>
+                <Input
+                  onChange={(e) => setUsername(e.target.value)}
+                  value={username}
+                  id="username"
+                  type="text"
+                  placeholder="achour_meguenni"
+                  required
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Adresse email</Label>
+                <Input
+                  onChange={(e) => setEmail(e.target.value)}
+                  value={email}
+                  id="email"
+                  type="email"
+                  placeholder="me@example.com"
+                  required
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
+                />
+              </div>
             </div>
-            <div className="grid gap-3">
-              <Label htmlFor="email">Nom d'utilisateur</Label>
-              <Input
-                onChange={(e) => setUsername(e.target.value)}
-                value={username}
-                id="username"
-                type="text"
-                placeholder="achour_meguenni"
-                required
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="email">Adresse email</Label>
-              <Input
-                onChange={(e) => setEmail(e.target.value)}
-                value={email}
-                id="email"
-                type="email"
-                placeholder="me@example.com"
-                required
-              />
-            </div>
-
             <div className="flex flex-col gap-3">
-              <Button disabled={loading} type="submit" className="w-full">
+              <Button disabled={loading} type="submit" className="w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
                 {loading ? (
-                  <IconLoader className="animate-spin" stroke={2} />
+                  <IconLoader className="animate-spin align-middle inline-block" stroke={2} />
                 ) : (
                   "Enregistrer"
                 )}
               </Button>
             </div>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Mot de passe oublié?{" "}
-            <a href="/login" className="underline underline-offset-4">
-              Réinitialiser le mot de passe
-            </a>
-          </div>
-        </form>
-      </div>
-    </>
+            <div className="mt-4 text-center text-sm">
+              Mot de passe oublié?{" "}
+              <a href="/login" className="underline underline-offset-4">
+                Réinitialiser le mot de passe
+              </a>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
