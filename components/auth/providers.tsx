@@ -1,6 +1,7 @@
 import { ThemeProvider } from "next-themes";
 import { RouteAuthGuard } from "./route-auth-gard";
 import { SidebarProvider } from "../ui/sidebar";
+import { UserProvider } from "@/providers/user-provider";
 
 export const BaseProviders = ({ children }: { children: React.ReactNode }) => {
   return (<ThemeProvider
@@ -9,7 +10,9 @@ export const BaseProviders = ({ children }: { children: React.ReactNode }) => {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <UserProvider>
+            {children}
+          </UserProvider>
         </ThemeProvider> 
         )
 };
