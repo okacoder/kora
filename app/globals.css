@@ -191,17 +191,6 @@
       radial-gradient(circle at 75% 75%, oklch(0.68 0.10 65 / 0.03) 0%, transparent 50%);
   }
   
-  /* Add viewport height fixes for mobile */
-  .h-viewport {
-    height: 100vh;
-    height: 100dvh; /* Dynamic viewport height */
-  }
-  
-  .min-h-viewport {
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-  
   /* Safe area insets for mobile */
   .safe-top {
     padding-top: env(safe-area-inset-top);
@@ -664,7 +653,7 @@
   
   /* Game-specific component styles */
   .game-container {
-    @apply h-viewport flex flex-col overflow-hidden;
+    @apply h-screen flex flex-col overflow-hidden;
   }
   
   .game-header {

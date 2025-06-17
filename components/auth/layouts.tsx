@@ -24,7 +24,7 @@ export const AuthenticatedLayout = async ({ children }: { children: React.ReactN
         <AuthenticatedProviders>
             {isGameRoute ? (
                 // Full-screen game layout
-                <div className="h-viewport w-full">
+                <div className="h-screen w-full">
                     {children}
                 </div>
             ) : (
