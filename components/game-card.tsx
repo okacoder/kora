@@ -645,5 +645,36 @@ const FullDeck: React.FC = () => {
   );
 };
 
+// New GameCard component with size variants
+interface GameCardProps {
+  suit?: 'hearts' | 'diamonds' | 'clubs' | 'spades';
+  rank?: string;
+  size?: 'small' | 'medium' | 'large';
+  faceDown?: boolean;
+  className?: string;
+}
+
+export function GameCard({ 
+  suit = 'hearts', 
+  rank = 'A', 
+  size = 'medium',
+  faceDown = false,
+  className 
+}: GameCardProps) {
+  const sizes = {
+    small: { width: 32, height: 45 },
+    medium: { width: 50, height: 70 },
+    large: { width: 70, height: 98 }
+  };
+
+  const { width, height } = sizes[size];
+
+  if (faceDown) {
+    return <CardBack width={width} height={height} className={className} />;
+  }
+
+  return <PlayingCard suit={suit} rank={rank as Rank} width={width} height={height} className={className} />;
+}
+
 export { PlayingCard, CardBack, FullDeck };
 export default FullDeck;

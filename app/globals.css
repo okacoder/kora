@@ -41,6 +41,34 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Add new game-specific variables */
+  --game-card-width: 32px;
+  --game-card-height: 45px;
+  --game-card-width-md: 40px;
+  --game-card-height-md: 56px;
+  --game-card-width-lg: 60px;
+  --game-card-height-lg: 84px;
+  
+  /* Animation durations */
+  --animation-fast: 150ms;
+  --animation-normal: 300ms;
+  --animation-slow: 500ms;
+  
+  /* Z-index layers */
+  --z-base: 0;
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-fixed: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-notification: 500;
+  
+  /* Custom breakpoints for gaming */
+  --breakpoint-xs: 475px;
+  --breakpoint-game-sm: 360px;
+  --breakpoint-game-md: 768px;
+  --breakpoint-game-lg: 1024px;
 }
 
 :root {
@@ -161,6 +189,26 @@
     background-image: 
       radial-gradient(circle at 25% 25%, oklch(0.58 0.22 25 / 0.05) 0%, transparent 50%),
       radial-gradient(circle at 75% 75%, oklch(0.68 0.10 65 / 0.03) 0%, transparent 50%);
+  }
+  
+  /* Add viewport height fixes for mobile */
+  .h-viewport {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height */
+  }
+  
+  .min-h-viewport {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  /* Safe area insets for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
   /* Typography mobile-first */
@@ -612,5 +660,179 @@
   
   .animate-float-fast {
     animation: float-fast 3s ease-in-out infinite;
+  }
+  
+  /* Game-specific component styles */
+  .game-container {
+    @apply h-viewport flex flex-col overflow-hidden;
+  }
+  
+  .game-header {
+    @apply flex-shrink-0 px-4 py-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  }
+  
+  .game-content {
+    @apply flex-1 overflow-y-auto;
+  }
+  
+  .game-list-item {
+    @apply flex items-center justify-between px-3 py-2 hover:bg-muted/50 transition-colors active:scale-[0.98];
+  }
+  
+  /* Card animations */
+  .card-hover {
+    @apply transition-all duration-[var(--animation-fast)] hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md;
+  }
+  
+  /* Button enhancements for gaming */
+  .btn-game-primary {
+    @apply bg-primary text-primary-foreground shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-[var(--animation-fast)];
+    @apply relative overflow-hidden;
+  }
+  
+  .btn-game-primary::after {
+    content: '';
+    @apply absolute inset-0 bg-white/20 translate-y-full transition-transform duration-[var(--animation-normal)];
+  }
+  
+  .btn-game-primary:hover::after {
+    @apply translate-y-0;
+  }
+  
+  /* Chip/token styles for currency display */
+  .currency-chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full;
+    @apply bg-gradient-to-br from-secondary/90 to-secondary;
+    @apply text-secondary-foreground font-semibold text-sm;
+    @apply shadow-md border border-secondary/20;
+  }
+  
+  /* Loading states */
+  .skeleton-game {
+    @apply animate-pulse bg-muted/50 rounded;
+  }
+  
+  /* Mobile tap highlights */
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  /* Utility classes for common game UI patterns */
+  .text-game-xs {
+    @apply text-[10px] leading-3;
+  }
+  
+  .text-game-sm {
+    @apply text-xs leading-4;
+  }
+  
+  .text-game-base {
+    @apply text-sm leading-5;
+  }
+  
+  .text-game-lg {
+    @apply text-base leading-6;
+  }
+  
+  /* Responsive padding utilities */
+  .px-game {
+    @apply px-3 sm:px-4 lg:px-6;
+  }
+  
+  .py-game {
+    @apply py-2 sm:py-3 lg:py-4;
+  }
+  
+  /* Game-specific animations */
+  @keyframes float-slow {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    33% {
+      transform: translateY(-10px) translateX(5px);
+    }
+    66% {
+      transform: translateY(5px) translateX(-5px);
+    }
+  }
+  
+  @keyframes float-medium {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    50% {
+      transform: translateY(-15px) translateX(-10px);
+    }
+  }
+  
+  @keyframes float-fast {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-5px) translateX(5px);
+    }
+    50% {
+      transform: translateY(-10px) translateX(-5px);
+    }
+    75% {
+      transform: translateY(-5px) translateX(5px);
+    }
+  }
+  
+  @keyframes card-flip {
+    0% {
+      transform: rotateY(0deg);
+    }
+    100% {
+      transform: rotateY(180deg);
+    }
+  }
+  
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
+  
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  .animate-float-slow {
+    animation: float-slow 8s ease-in-out infinite;
+  }
+  
+  .animate-float-medium {
+    animation: float-medium 6s ease-in-out infinite;
+  }
+  
+  .animate-float-fast {
+    animation: float-fast 4s ease-in-out infinite;
+  }
+  
+  .animate-card-flip {
+    animation: card-flip 0.6s ease-in-out;
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
   }
 }
