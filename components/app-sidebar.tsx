@@ -24,41 +24,38 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Session } from "@/lib/auth";
+import { routes } from "@/lib/routes";
+import Link from "next/link";
 
 
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Tableau de bord",
+      url: routes.base,
       icon: IconDashboard,
     },
     {
-      title: "Jouer à Garame",
-      url: "/dashboard/garame",
-      icon: IconCards,
-    },
-    {
       title: "Mes Koras",
-      url: "/dashboard/koras",
+      url: routes.koras,
       icon: IconCoin,
     },
     {
-      title: "Mon compte",
-      url: "/dashboard/account",
-      icon: IconUserCircle,
-    },
-    {
-      title: "Paramètres",
-      url: "/dashboard/setting",
-      icon: IconSettings,
+      title: "Mes jeux",
+      url: routes.games,
+      icon: IconCards,
     },
   ],
   navSecondary: [
     {
-      title: "Home",
-      url: "/",
-      icon: IconHome,
+      title: "Mon compte",
+      url: routes.account,
+      icon: IconUserCircle,
+    },
+    {
+      title: "Paramètres",
+      url: routes.setting,
+      icon: IconSettings,
     },
   ],
 };
@@ -80,17 +77,16 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link href={routes.games}>
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Tableau de bord</span>
-              </a>
+                <span className="text-base font-semibold">LaMap241</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

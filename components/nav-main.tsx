@@ -11,6 +11,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { games } from "@/lib/games";
+import { routes } from "@/lib/routes";
 
 export function NavMain({
   items,
@@ -29,9 +32,9 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="Quick Create"
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+              asChild
             >
-              <IconCirclePlusFilled />
-              <span>Quick Create</span>
+              <QuickGameButton />
             </SidebarMenuButton>
             <Button
               size="icon"
@@ -57,5 +60,30 @@ export function NavMain({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+  );
+}
+
+function QuickGameButton() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button>
+          <IconCirclePlusFilled />
+          <span>Lancer une partie</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[160px] p-0">
+        <div className="flex flex-col gap-2">
+          {games.map((game) => (
+            <Button variant="ghost" key={game.id} asChild>
+              <Link href={routes.gameRoom(game.id)}>
+                <game.icon className="size-5" />
+                <span>{game.name}</span>
+              </Link>
+            </Button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

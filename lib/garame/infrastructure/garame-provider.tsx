@@ -1,4 +1,3 @@
-// lib/garame/infrastructure/garame-provider.tsx
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
@@ -63,20 +62,4 @@ export function useGarameServices() {
     paymentService: context.paymentService!,
     eventHandler: context.eventHandler!,
   };
-}
-
-// Hooks spécifiques pour chaque service
-export function useGameService() {
-  const { gameService } = useGarameServices();
-  return gameService;
-}
-
-export function usePaymentService() {
-  const { paymentService } = useGarameServices();
-  return paymentService;
-}
-
-export function useGameEventHandler() {
-  const { eventHandler } = useGarameServices();
-  return eventHandler;
 }

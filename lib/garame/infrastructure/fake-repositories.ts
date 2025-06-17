@@ -13,6 +13,7 @@ import {
   IPlayerGameState,
   GameNotFoundError,
   InsufficientBalanceError,
+  IGameCard,
 } from "../domain/interfaces";
 
 // Fake data store
@@ -40,23 +41,20 @@ class FakeDataStore {
     // Joueur actuel
     this.players.set("current-user", {
       id: "current-user",
-      name: "OkaTest",
-      username: "player1",
+      username: "OkaTest",
       balance: 50000,
     });
     
     // Autres joueurs
     this.players.set("player2", {
       id: "player2",
-      name: "Jean241",
-      username: "jean241",
+      username: "Jean241",
       balance: 15000,
     });
     
     this.players.set("player3", {
       id: "player3",
-      name: "MariePro",
-      username: "mariepro",
+      username: "MariePro",
       balance: 30000,
     });
     
@@ -146,7 +144,7 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
       id: roomId,
       stake,
       creatorId,
-      creatorName: creator.name,
+      creatorName: creator.username,
       status: "waiting",
       players: 1,
       maxPlayers: 2,
@@ -183,7 +181,7 @@ export class FakeGameRoomRepository implements IGameRoomRepository {
     
     // Mettre à jour la room
     room.opponentId = playerId;
-    room.opponentName = player.name;
+    room.opponentName = player.username;
     room.players = 2;
     room.totalPot = room.stake * 2;
     room.status = "starting";
@@ -259,9 +257,19 @@ export class FakeGameStateRepository implements IGameStateRepository {
     
     // Distribuer 5 cartes à chaque joueur
     players.forEach((playerId, index) => {
-      const playerCards = deck.splice(0, 5);
+      const player = this.store.players.get(playerId);
+      if (!player) return;
+
+      const playerCards: IGameCard[] = deck.splice(0, 5).map(card => ({
+        ...card,
+        playerId,
+        gameId: gameState.id,
+        canBePlayed: gameState.currentTurnPlayerId === playerId,
+      }));
       const playerState: IPlayerGameState = {
         playerId,
+        username: player.username,
+        avatar: player.avatar,
         cards: playerCards,
         hasKora: index === 0, // Le premier joueur a la kora
         score: 0,
@@ -284,43 +292,77 @@ export class FakeGameStateRepository implements IGameStateRepository {
   
   async playCard(gameId: string, playerId: string, cardIndex: number): Promise<IGameState> {
     await this.simulateDelay();
-    
+
     const gameState = this.store.gameStates.get(gameId);
     if (!gameState) throw new GameNotFoundError();
-    
+
+    if (gameState.currentTurnPlayerId !== playerId) {
+      throw new Error("Ce n'est pas votre tour de jouer");
+    }
+
     const playerState = gameState.players.get(playerId);
     if (!playerState) throw new Error("Joueur introuvable dans la partie");
-    
+
     const card = playerState.cards[cardIndex];
     if (!card) throw new Error("Carte invalide");
-    
+
+    if (!card.canBePlayed) {
+      throw new Error("Cette carte ne peut pas être jouée pour le moment");
+    }
+
     // Retirer la carte de la main du joueur
     playerState.cards.splice(cardIndex, 1);
-    
+
     // Mettre à jour l'état du jeu
     gameState.lastPlayedCard = card;
     gameState.currentSuit = card.suit;
-    
+
     // Passer au joueur suivant
     const playerIds = Array.from(gameState.players.keys());
     const currentIndex = playerIds.indexOf(playerId);
     const nextIndex = (currentIndex + 1) % playerIds.length;
     gameState.currentTurnPlayerId = playerIds[nextIndex];
-    
+
     // Vérifier si le joueur a gagné
     if (playerState.cards.length === 0) {
       gameState.status = "finished";
       gameState.winnerId = playerId;
       gameState.endedAt = new Date();
-      
+
       // Distribuer les gains (en FCFA)
       const winner = this.store.players.get(playerId);
       if (winner) {
         const korasWon = Math.floor(gameState.pot * 0.9);
         winner.balance += korasWon * 10; // Convertir en FCFA
       }
+
+      // Aucune carte n'est jouable
+      gameState.players.forEach(pState => {
+        pState.cards.forEach(c => c.canBePlayed = false);
+      });
+    } else {
+      // Mettre à jour canBePlayed pour toutes les cartes de tous les joueurs
+      gameState.players.forEach((pState) => {
+        const isNextPlayer = pState.playerId === gameState.currentTurnPlayerId;
+
+        // Si ce n'est pas le tour du joueur, aucune de ses cartes n'est jouable.
+        if (!isNextPlayer) {
+          pState.cards.forEach(c => { c.canBePlayed = false; });
+          return;
+        }
+
+        const canFollowSuit = pState.cards.some(c => c.suit === gameState.currentSuit);
+
+        pState.cards.forEach(c => {
+          if (gameState.currentSuit) {
+            c.canBePlayed = canFollowSuit ? c.suit === gameState.currentSuit : true;
+          } else {
+            c.canBePlayed = true;
+          }
+        });
+      });
     }
-    
+
     return gameState;
   }
   

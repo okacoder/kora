@@ -1,12 +1,11 @@
 "use client";
 
 import { useDashboardStats } from "@/lib/garame/hooks/useDashboardStats";
-import { DashboardSummaryCards } from "@/components/dashboard-summary-cards";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { TransactionsTable } from "@/components/transactions-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "./ui/skeleton";
+import { DashboardSummaryCards } from "./dashboard-summary-cards";
+import { TransactionsTable } from "./transactions-table";
 
-export default function DashboardPage() {
+export function Dashboard() {
   const {
     loading,
     korasBalance,
@@ -32,11 +31,6 @@ export default function DashboardPage() {
           winRate={winRate}
         />
       )}
-
-      {/* Graph */}
-      <div className="px-4 lg:px-6">
-        <ChartAreaInteractive />
-      </div>
 
       {/* Table des transactions */}
       <div className="px-4 lg:px-6">

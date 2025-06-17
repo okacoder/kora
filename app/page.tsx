@@ -7,13 +7,13 @@ import { PlayingCard, CardBack } from "@/components/game-card";
 import {
   IconCards,
   IconCoin,
-  IconTrophy,
-  IconDeviceMobile,
-  IconShieldCheck,
-  IconUsersGroup,
   IconSparkles,
   IconChevronRight,
   IconMenu2,
+  IconDeviceMobile,
+  IconShieldCheck,
+  IconTrophy,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 import {
   Sheet,
@@ -22,12 +22,28 @@ import {
 } from "@/components/ui/sheet";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { Metadata } from "next";
+import { AuthenticatedLayout } from "@/components/auth/layouts";
+import { Dashboard } from "@/components/dashboard";
+
+export const metadata: Metadata = {
+  title: "LaMap241",
+  description: "Le duel de cartes épique vous attend !",
+};
 
 export default async function HomePage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
+  if (session) {
+    return (
+      <AuthenticatedLayout>
+        <Dashboard />
+      </AuthenticatedLayout>
+    );
+  } 
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Navigation */}

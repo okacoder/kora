@@ -43,7 +43,7 @@ export class GameService implements IGameService {
     this.eventHandler.emit({
       type: 'player_joined',
       gameId: room.id,
-      data: { playerId: currentPlayer.id, playerName: currentPlayer.name },
+      data: { playerId: currentPlayer.id, playerName: currentPlayer.username },
       timestamp: new Date(),
     });
     
@@ -69,7 +69,7 @@ export class GameService implements IGameService {
     this.eventHandler.emit({
       type: 'player_joined',
       gameId: roomId,
-      data: { playerId: currentPlayer.id, playerName: currentPlayer.name },
+      data: { playerId: currentPlayer.id, playerName: currentPlayer.username },
       timestamp: new Date(),
     });
     
@@ -131,83 +131,37 @@ export class GameService implements IGameService {
   async playCard(gameId: string, cardIndex: number): Promise<IGameState> {
     const currentPlayer = await this.playerRepo.getCurrentPlayer();
     const gameState = await this.gameStateRepo.playCard(gameId, currentPlayer.id, cardIndex);
+
+    // Si la partie est terminée, gérer les gains et le statut
+    if (gameState.status === 'finished' && gameState.winnerId) {
+      const winAmount = Math.floor(gameState.pot * 0.9);
+      
+      // Créer la transaction de gain
+      await this.transactionRepo.createTransaction({
+        userId: gameState.winnerId,
+        type: 'game_win',
+        amount: winAmount,
+        gameId: gameState.id,
+        status: 'completed',
+      });
+      
+      // Mettre à jour le statut de la room
+      await this.gameRoomRepo.updateRoomStatus(gameState.roomId, 'completed');
+    }
     
-    // Émettre l'événement
+    // Émettre l'événement de mise à jour du state
     this.eventHandler.emit({
-      type: 'card_played',
+      type: 'game_state_updated',
       gameId: gameState.roomId,
-      data: {
-        playerId: currentPlayer.id,
-        card: gameState.lastPlayedCard,
-        nextTurnPlayerId: gameState.currentTurnPlayerId,
-      },
+      data: gameState,
       timestamp: new Date(),
     });
-    
-    // Si la partie est terminée
-    if (gameState.status === 'finished' && gameState.winnerId) {
-      await this.handleGameEnd(gameState);
-    }
     
     return gameState;
   }
   
-  async passKora(gameId: string): Promise<void> {
-    const currentPlayer = await this.playerRepo.getCurrentPlayer();
-    const gameState = await this.gameStateRepo.getGameState(gameId);
-    
-    if (!gameState) throw new Error("Partie introuvable");
-    
-    const playerIds = Array.from(gameState.players.keys());
-    const otherPlayerId = playerIds.find(id => id !== currentPlayer.id);
-    
-    if (!otherPlayerId) throw new Error("Adversaire introuvable");
-    
-    await this.gameStateRepo.passKora(gameId, currentPlayer.id, otherPlayerId);
-    
-    // Émettre l'événement
-    this.eventHandler.emit({
-      type: 'kora_passed',
-      gameId: gameState.roomId,
-      data: {
-        fromPlayerId: currentPlayer.id,
-        toPlayerId: otherPlayerId,
-      },
-      timestamp: new Date(),
-    });
-  }
-  
   async getGameState(gameId: string): Promise<IGameState | null> {
     return await this.gameStateRepo.getGameState(gameId);
-  }
-  
-  private async handleGameEnd(gameState: IGameState): Promise<void> {
-    if (!gameState.winnerId) return;
-    
-    const winAmount = Math.floor(gameState.pot * 0.9);
-    
-    // Créer la transaction de gain
-    await this.transactionRepo.createTransaction({
-      userId: gameState.winnerId,
-      type: 'game_win',
-      amount: winAmount,
-      gameId: gameState.id,
-      status: 'completed',
-    });
-    
-    // Mettre à jour le statut de la room
-    await this.gameRoomRepo.updateRoomStatus(gameState.roomId, 'completed');
-    
-    // Émettre l'événement
-    this.eventHandler.emit({
-      type: 'game_ended',
-      gameId: gameState.roomId,
-      data: {
-        winnerId: gameState.winnerId,
-        winAmount,
-      },
-      timestamp: new Date(),
-    });
   }
 }
 
