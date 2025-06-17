@@ -58,10 +58,10 @@ export function useGarameGame(roomId: string) {
       setGameState(newState as GarameGameState);
     };
 
-    globalEventBus.subscribe(`game.${room.gameStateId}.updated`, handleGameUpdate);
+    globalEventBus.on(`game.${room.gameStateId}.updated`, handleGameUpdate);
 
     return () => {
-      globalEventBus.unsubscribe(`game.${room.gameStateId}.updated`, handleGameUpdate);
+      globalEventBus.off(`game.${room.gameStateId}.updated`, handleGameUpdate);
     };
   }, [room?.gameStateId]);
 
