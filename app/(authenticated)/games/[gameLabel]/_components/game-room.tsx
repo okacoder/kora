@@ -73,9 +73,13 @@ const getGameRenderer = (gameId: string): GameRenderer => {
   }
 };
 
-export default function GameRoomPage() {
+type GameRoomPageProps = {
+  gameLabel: string;
+  roomId: string;
+}
+
+export default function GameRoomPage({ gameLabel, roomId }: GameRoomPageProps) {
   const router = useRouter();
-  const { gameLabel, roomId } = useParams<{ gameLabel: string; roomId: string }>();
   const currentUser = useCurrentUser();
   const { engine, addAIPlayer } = useGameEngine(gameLabel);
 

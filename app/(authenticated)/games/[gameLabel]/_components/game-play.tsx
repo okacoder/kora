@@ -20,9 +20,13 @@ import Link from "next/link";
 import { routes } from "@/lib/routes";
 import GameTable from "@/lib/garame/components/gameboard";
 
-export default function GamePlayPage() {
+type GamePlayPageProps = {
+  gameLabel: string;
+  gameId: string;
+}
+
+export default function GamePlayPage({ gameLabel, gameId }: GamePlayPageProps) {
   const router = useRouter();
-  const { gameLabel, gameId } = useParams<{ gameLabel: string, gameId: string }>();
   const currentPlayer = useCurrentUser();
   
   const [showEndGameModal, setShowEndGameModal] = useState(false);

@@ -25,12 +25,47 @@ import { gameStore } from "@/lib/garame/core/game-store";
 import { gameRegistry } from "@/lib/garame/core/game-registry";
 import { GameRoom } from "@/lib/garame/core/types";
 import { routes } from "@/lib/routes";
+import GamePlayPage from "./_components/game-play";
+import GameRoomPage from "./_components/game-room";
+
+
+type GamePageContentProps = {
+  searchParams: {
+    roomId?: string;
+    gameId?: string;
+  };
+  params: {
+    gameLabel: string;
+  };
+}
+
+export default function GamePageContent({ searchParams, params }: GamePageContentProps) {
+  const { gameLabel } = params;
+  const { roomId, gameId } = searchParams;
+  
+  if (gameId) {
+    return <GamePlayPage gameLabel={gameLabel} gameId={gameId} />;
+  }
+
+  if (roomId) {
+    return <GameRoomPage gameLabel={gameLabel} roomId={roomId} />;
+  }
+
+  return <GamePage gameLabel={gameLabel} />;
+}
+
+
+
+
 
 const predefinedStakes = [50, 100, 200, 500, 1000];
 
-export default function GamePage() {
+type GamePageProps = {
+  gameLabel: string;
+}
+
+function GamePage({ gameLabel }: GamePageProps) {
   const router = useRouter();
-  const { gameLabel } = useParams<{ gameLabel: string }>();
   const currentUser = useCurrentUser();
   const { createRoom, joinRoom, loading } = useGameEngine(gameLabel);
   const gameInfo = gameRegistry.get(gameLabel);
@@ -41,8 +76,7 @@ export default function GamePage() {
   const [availableGames, setAvailableGames] = useState<GameRoom[]>([]);
   const [loadingGames, setLoadingGames] = useState(true);
 
-  const userBalance = currentUser?.balance || 0;
-  const userKoras = Math.floor(userBalance / 10);
+  const userBalance = currentUser?.koras || 5000;
 
   // Load available games
   useEffect(() => {
@@ -74,7 +108,7 @@ export default function GamePage() {
       return;
     }
 
-    if (stake > userKoras) {
+    if (stake > userBalance) {
       toast.error("Solde insuffisant");
       return;
     }
@@ -122,8 +156,8 @@ export default function GamePage() {
         <div className="flex items-center gap-2 bg-card rounded-lg px-4 py-2 border">
           <IconCoin className="size-5 text-primary" />
           <div className="flex flex-col">
-            <p className="text-sm font-semibold">{userKoras.toLocaleString()} koras</p>
-            <p className="text-xs text-muted-foreground">≈ {(userKoras * 10).toLocaleString()} FCFA</p>
+            <p className="text-sm font-semibold">{userBalance.toLocaleString()} koras</p>
+            <p className="text-xs text-muted-foreground">≈ {(userBalance * 10).toLocaleString()} FCFA</p>
           </div>
         </div>
       </div>
@@ -230,7 +264,7 @@ export default function GamePage() {
                         setSelectedStake(stake.toString());
                         setCustomStake("");
                       }}
-                      disabled={stake > userKoras}
+                      disabled={stake > userBalance}
                       className="w-full"
                     >
                       {stake}
@@ -253,7 +287,7 @@ export default function GamePage() {
                       setSelectedStake("custom");
                     }}
                     min="50"
-                    max={userKoras}
+                    max={userBalance}
                   />
                 </div>
                 <div className="flex items-end">
