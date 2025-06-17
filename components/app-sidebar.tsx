@@ -39,7 +39,12 @@ const data = {
       title: "Mes Koras",
       url: routes.koras,
       icon: IconCoin,
-    }
+    },
+    {
+      title: "Mes jeux",
+      url: routes.games,
+      icon: IconCards,
+    },
   ],
   navSecondary: [
     {
