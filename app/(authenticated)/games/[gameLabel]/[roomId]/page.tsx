@@ -17,14 +17,16 @@ import {
 } from "@tabler/icons-react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
-import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
-import { IGameRoom, IPlayer, IGameEvent } from "@/lib/garame/domain/interfaces";
-import { games } from "@/lib/games";
-import { routes } from "@/lib/routes";
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useGameEngine } from '@/lib/garame/hooks/use-game-engine';
+import { gameRegistry } from '@/lib/garame/core/game-registry';
+import { gameStore } from '@/lib/garame/core/game-store';
+import { globalEventBus, GameEvents } from '@/lib/garame/core/event-bus';
+import type { GameRoom, RoomPlayer } from '@/lib/garame/core/types';
 import { PlayerList } from '@/components/game/player-list';
 
 interface GameRenderer {
-  renderPlayerArea: (player: IPlayer | null, isCurrentPlayer: boolean, gameRoom: IGameRoom) => React.ReactNode;
+  renderPlayerArea: (player: RoomPlayer | null, isCurrentPlayer: boolean, gameRoom: GameRoom) => React.ReactNode;
   getGameIcon: () => React.ReactNode;
   getMaxPlayers: () => number;
 }
@@ -74,157 +76,87 @@ const getGameRenderer = (gameId: string): GameRenderer => {
 export default function GameRoomPage() {
   const router = useRouter();
   const { gameLabel, roomId } = useParams<{ gameLabel: string; roomId: string }>();
-  const { gameService, paymentService, eventHandler } = useGarameServices();
-  
-  const [gameRoom, setGameRoom] = useState<IGameRoom | null>(null);
-  const [currentPlayer, setCurrentPlayer] = useState<IPlayer | null>(null);
-  const [opponent, setOpponent] = useState<IPlayer | null>(null);
+  const currentUser = useCurrentUser();
+  const { engine, addAIPlayer } = useGameEngine(gameLabel);
+
+  const [gameRoom, setGameRoom] = useState<GameRoom | null>(null);
+  const [loading, setLoading] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [gameStateId, setGameStateId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  
+
   // Get game info and renderer
-  const gameInfo = games.find(g => g.id === gameLabel);
-  const gameRenderer = getGameRenderer(gameLabel);
-  
-  // Charger les données de la salle
+  const gameInfo = gameRegistry.get(gameLabel);
+  const gameRenderer = gameInfo ? {
+    renderPlayerArea: () => <div />,
+    getGameIcon: () => <gameInfo.icon className="h-5 w-5" />, // fallback
+    getMaxPlayers: () => gameInfo.maxPlayers,
+  } : null;
+
+  // Load room data
   useEffect(() => {
     if (!roomId) return;
-    loadRoomData();
+    setLoading(true);
+    gameStore.getRoom(roomId)
+      .then(room => {
+        setGameRoom(room);
+        setLoading(false);
+      })
+      .catch(() => {
+        toast.error('Salle introuvable');
+        setLoading(false);
+        router.push('/games');
+      });
   }, [roomId]);
-  
-  // S'abonner aux événements de la salle
+
+  // Subscribe to room events
   useEffect(() => {
-    if (!gameRoom) return;
-    
-    const handleGameEvent = (event: IGameEvent) => {
-      console.log("Événement reçu:", event);
-      
-      switch (event.type) {
-        case 'player_joined':
-          // Recharger les données de la salle
-          loadRoomData();
-          break;
-          
-        case 'player_left':
-          setOpponent(null);
-          loadRoomData();
-          break;
-          
-        case 'game_started':
-          // Sauvegarder l'identifiant de la partie et démarrer le compte à rebours
-          setGameStateId(event.data.gameStateId);
-          setCountdown(5);
-          break;
+    if (!roomId) return;
+    const handleRoomEvent = (data: any) => {
+      if (data.room && data.room.id === roomId) {
+        setGameRoom({ ...data.room });
+      }
+      if (data.gameStateId) {
+        setGameStateId(data.gameStateId);
+        setCountdown(5);
       }
     };
-    
-    if (!roomId) return;
-    eventHandler.subscribe(roomId, handleGameEvent);
-    
+    globalEventBus.on(GameEvents.ROOM_JOINED, handleRoomEvent);
+    globalEventBus.on(GameEvents.ROOM_UPDATED, handleRoomEvent);
+    globalEventBus.on(GameEvents.GAME_STARTED, handleRoomEvent);
     return () => {
-      if (roomId) eventHandler.unsubscribe(roomId);
+      globalEventBus.off(GameEvents.ROOM_JOINED, handleRoomEvent);
+      globalEventBus.off(GameEvents.ROOM_UPDATED, handleRoomEvent);
+      globalEventBus.off(GameEvents.GAME_STARTED, handleRoomEvent);
     };
-  }, [gameRoom, roomId]);
-  
-  // Gérer le compte à rebours
+  }, [roomId]);
+
+  // Countdown for game start
   useEffect(() => {
     if (countdown === null || countdown <= 0) return;
-    
     const timer = setTimeout(() => {
       if (countdown === 1) {
-        // Rediriger vers la partie (utiliser gameStateId si disponible, sinon l'id de la room)
-        router.push(routes.gamePlay(gameLabel, gameStateId ?? gameRoom?.id!));
+        router.push(`/games/${gameLabel}/play/${gameStateId ?? gameRoom?.id}`);
       } else {
         setCountdown(countdown - 1);
       }
     }, 1000);
-    
     return () => clearTimeout(timer);
-  }, [countdown, gameRoom, gameStateId, router]);
-  
-  // Charger les données actuelles du joueur
-  useEffect(() => {
-    loadCurrentPlayer();
-  }, []);
-  
-  const loadCurrentPlayer = async () => {
-    try {
-      const balance = await paymentService.getBalance();
-      // Simuler la récupération du joueur actuel
-      setCurrentPlayer({
-        id: 'current-user',
-        username: 'player1',
-        balance,
-      });
-    } catch (error) {
-      console.error("Erreur lors du chargement du joueur:", error);
-    }
-  };
-  
-  const loadRoomData = async () => {
-    try {
-      setLoading(true);
-      const room = await gameService.getGameRoom(roomId!);
-      
-      if (!room) {
-        toast.error("Salle introuvable");
-        router.push(routes.gameRoom(roomId));
-        return;
-      }
-      
-      setGameRoom(room);
-      
-      // Si la salle a un adversaire, le charger
-      if (room.opponentId && room.opponentName && room.status !== 'waiting') {
-        // Dans un vrai système, on récupérerait les infos de l'adversaire
-        setOpponent({
-          id: room.opponentId,
-          username: room.opponentName,
-          balance: 0,
-        });
-        
-        // Le compte à rebours démarrera après réception de l'événement "game_started"
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement de la salle:", error);
-      toast.error("Impossible de charger la salle");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleLeaveRoom = async () => {
-    try {
-      await gameService.leaveGame(roomId!);
-      toast.info("Vous avez quitté la partie");
-      router.push(routes.gameRoom(roomId));
-    } catch (error) {
-      console.error("Erreur lors de la sortie:", error);
-      toast.error("Impossible de quitter la partie");
-    }
-  };
+  }, [countdown, gameRoom, gameStateId, router, gameLabel]);
 
-  // Add handler to add AI player
+  // Add AI player
   const handleAddAI = async (difficulty: 'easy' | 'medium' | 'hard') => {
+    if (!roomId) return;
     try {
-      await gameService.addAIPlayer(roomId!, difficulty);
+      await addAIPlayer(roomId, difficulty);
       toast.success(`Bot ${difficulty} ajouté!`);
-      loadRoomData();
     } catch (error) {
       toast.error('Erreur lors de l\'ajout du bot');
     }
   };
 
-  // Add handler to kick AI player
+  // Kick AI player (not implemented in base engine, placeholder)
   const handleKickPlayer = async (playerId: string) => {
-    try {
-      await gameService.kickPlayer(roomId!, playerId);
-      toast.success('Bot retiré!');
-      loadRoomData();
-    } catch (error) {
-      toast.error('Erreur lors du retrait du bot');
-    }
+    toast.error('Retrait de bot non implémenté');
   };
 
   if (loading || !gameRoom) {
@@ -252,15 +184,15 @@ export default function GameRoomPage() {
     );
   }
 
-  const isCreator = currentPlayer?.id === gameRoom.creatorId;
+  const isCreator = currentUser?.id === gameRoom.creatorId;
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 px-4 pb-8 max-w-6xl mx-auto">
-      {/* Header - Mobile optimized */}
+      {/* Header */}
       <div className="flex items-center justify-between py-2">
         <Button 
           variant="ghost" 
-          onClick={handleLeaveRoom}
+          onClick={() => router.push('/games')}
           className="gap-1 sm:gap-2 px-2 sm:px-4 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
           size="sm"
         >
@@ -268,17 +200,17 @@ export default function GameRoomPage() {
           <span className="hidden sm:inline">Retour</span>
         </Button>
         <div className="flex items-center gap-2">
-          {gameRenderer.getGameIcon()}
+          {gameRenderer?.getGameIcon()}
           <Badge variant="outline" className="text-xs sm:text-sm min-h-[28px] flex items-center">
             {gameInfo.name} - Salle #{gameRoom.id}
           </Badge>
         </div>
       </div>
-      {/* État de la partie - Mobile optimized */}
+      {/* Room status */}
       <Card className="border-primary/20 rounded-lg shadow-sm mb-2">
         <CardHeader className="text-center p-4 sm:p-6">
           <CardTitle className="text-lg sm:text-xl md:text-2xl">
-            {gameRoom.status === 'waiting' && 'En attente d\'un adversaire...'}
+            {gameRoom.status === 'waiting' && 'En attente de joueurs...'}
             {gameRoom.status === 'starting' && 'La partie va commencer !'}
             {gameRoom.status === 'in_progress' && 'Partie en cours'}
           </CardTitle>
@@ -290,16 +222,15 @@ export default function GameRoomPage() {
           </CardDescription>
         </CardHeader>
       </Card>
-      {/* Zone de jeu - Mobile first grid */}
+      {/* Player List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {/* Player List Integration */}
         <Card className="col-span-2">
           <CardHeader>
             <CardTitle>Joueurs dans la salle</CardTitle>
           </CardHeader>
           <CardContent>
             <PlayerList
-              players={gameRoom.players}
+              players={gameRoom.players as RoomPlayer[]}
               maxPlayers={gameRoom.maxPlayers}
               isHost={isCreator}
               onAddAI={isCreator ? handleAddAI : undefined}
@@ -307,110 +238,8 @@ export default function GameRoomPage() {
             />
           </CardContent>
         </Card>
-        {/* Joueur 1 (créateur) - Mobile optimized */}
-        <Card className={`${isCreator ? 'border-green-500/50 shadow-green-500/10 shadow-lg' : ''} transition-all bg-card rounded-lg shadow-sm border`}>
-          <CardHeader className="p-3 sm:p-4 md:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                  <AvatarFallback className="text-xs sm:text-sm">
-                    {isCreator ? currentPlayer?.username.slice(0, 2).toUpperCase() : gameRoom.creatorName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-sm sm:text-base truncate max-w-[100px]">
-                    {isCreator ? currentPlayer?.username : gameRoom.creatorName}
-                  </h3>
-                  <div className="flex items-center gap-1">
-                    <Badge variant="default" className="text-xs min-h-[28px] flex items-center">
-                      Prêt
-                    </Badge>
-                    {isCreator && (
-                      <Badge variant="secondary" className="text-xs min-h-[28px] flex items-center">
-                        Vous
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="text-xs sm:text-sm text-muted-foreground">Mise</p>
-                <p className="font-semibold text-sm sm:text-base">{gameRoom.stake.toLocaleString()} FCFA</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 md:p-6">
-            {gameRenderer.renderPlayerArea(
-              isCreator ? currentPlayer : { id: gameRoom.creatorId, username: gameRoom.creatorName, balance: 0 },
-              isCreator,
-              gameRoom
-            )}
-          </CardContent>
-        </Card>
-        {/* Joueur 2 (adversaire) - Mobile optimized */}
-        {opponent ? (
-          <Card className={`${!isCreator ? 'border-green-500/50 shadow-green-500/10 shadow-lg' : ''} transition-all bg-card rounded-lg shadow-sm border`}>
-            <CardHeader className="p-3 sm:p-4 md:p-6">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                    <AvatarFallback className="text-xs sm:text-sm">
-                      {!isCreator ? currentPlayer?.username.slice(0, 2).toUpperCase() : opponent.username.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-sm sm:text-base truncate max-w-[100px]">
-                      {!isCreator ? currentPlayer?.username : opponent.username}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="default" className="text-xs min-h-[28px] flex items-center">
-                        Prêt
-                      </Badge>
-                      {!isCreator && (
-                        <Badge variant="secondary" className="text-xs min-h-[28px] flex items-center">
-                          Vous
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">Mise</p>
-                  <p className="font-semibold text-sm sm:text-base">{gameRoom.stake.toLocaleString()} FCFA</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-4 md:p-6">
-              {gameRenderer.renderPlayerArea(opponent, !isCreator, gameRoom)}
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="border-dashed border-2 rounded-lg shadow-sm bg-card">
-            <CardContent className="flex flex-col items-center justify-center h-full py-8 sm:py-12 min-h-[200px]">
-              <IconLoader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-muted-foreground mb-3 sm:mb-4 align-middle inline-block" />
-              <p className="text-sm sm:text-base text-muted-foreground text-center font-medium">
-                En attente d'un adversaire...
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2 text-center">
-                La partie commencera automatiquement
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
-      {/* Compte à rebours - Mobile optimized */}
-      {countdown !== null && (
-        <Card className="border-primary bg-primary/5 animate-in slide-in-from-bottom duration-300 rounded-lg shadow-md mt-4">
-          <CardContent className="py-6 sm:py-8 text-center">
-            <div className="animate-pulse">
-              {gameRenderer.getGameIcon()}
-            </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 mt-4">La partie commence dans...</h2>
-            <p className="text-4xl sm:text-5xl md:text-6xl font-bold text-primary animate-pulse">{countdown}</p>
-          </CardContent>
-        </Card>
-      )}
-      {/* Informations - Collapsible on mobile */}
+      {/* Info */}
       <Card className="rounded-lg shadow-sm mt-4">
         <CardHeader className="p-3 sm:p-4 md:p-6">
           <CardTitle className="text-base sm:text-lg flex items-center gap-2">
@@ -445,7 +274,7 @@ export default function GameRoomPage() {
           </div>
         </CardContent>
       </Card>
-      {/* Avertissement - Mobile optimized */}
+      {/* Warning */}
       {gameRoom.status === 'waiting' && (
         <div className="flex gap-2 sm:gap-3 p-3 sm:p-4 bg-amber-500/10 rounded-lg border-2 border-amber-500/40 mt-4 shadow-sm">
           <IconAlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 shrink-0 mt-0.5 align-middle inline-block" />
@@ -459,6 +288,18 @@ export default function GameRoomPage() {
             </p>
           </div>
         </div>
+      )}
+      {/* Countdown */}
+      {countdown !== null && (
+        <Card className="border-primary bg-primary/5 animate-in slide-in-from-bottom duration-300 rounded-lg shadow-md mt-4">
+          <CardContent className="py-6 sm:py-8 text-center">
+            <div className="animate-pulse">
+              {gameRenderer?.getGameIcon()}
+            </div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 mt-4">La partie commence dans...</h2>
+            <p className="text-4xl sm:text-5xl md:text-6xl font-bold text-primary animate-pulse">{countdown}</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

@@ -91,7 +91,7 @@ export default function GamePage() {
     setLoading(true);
     try {
       const gameRoom = await gameService.createGame(stake * 10);
-      router.push(routes.gameRoom(gameRoom.id));
+      router.push(routes.gameRoom(gameLabel, gameRoom.id));
     } catch (error) {
       toast.error("Erreur lors de la création de la partie");
     } finally {
@@ -103,7 +103,7 @@ export default function GamePage() {
     setLoading(true);
     try {
       await gameService.joinGame(roomId);
-      router.push(routes.gameRoom(roomId));
+      router.push(routes.gameRoom(gameLabel, roomId));
     } catch (error) {
       toast.error("Impossible de rejoindre cette partie");
     } finally {
