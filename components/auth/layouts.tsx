@@ -15,18 +15,35 @@ export const AuthenticatedLayout = async ({ children }: { children: React.ReactN
         return;
     }
 
-  return (<AuthenticatedProviders>
-    <AppSidebar
-          user={{ ...session.user, image: session.user.image ?? null }}
-          variant="inset"
-        />
-        <SidebarInset className="bg-background overflow-hidden">
-          <SiteHeader />
-          <div className="flex-1 relative">
-            <div className="absolute py-6 inset-0 overflow-y-scroll @container/main">
-              {children}
-            </div>
-          </div>
-        </SidebarInset>
-  </AuthenticatedProviders>);
+    // Check if we're in a game route
+    const headersList = await headers();
+    const pathname = headersList.get('x-pathname') || '';
+    const isGameRoute = pathname.includes('/games/') && (pathname.includes('/play/') || pathname.includes('/roomId'));
+
+    return (
+        <AuthenticatedProviders>
+            {isGameRoute ? (
+                // Full-screen game layout
+                <div className="h-screen w-full">
+                    {children}
+                </div>
+            ) : (
+                // Regular app layout with sidebar
+                <>
+                    <AppSidebar
+                        user={{ ...session.user, image: session.user.image ?? null }}
+                        variant="inset"
+                    />
+                    <SidebarInset className="bg-background overflow-hidden">
+                        <SiteHeader />
+                        <div className="flex-1 relative">
+                            <div className="absolute py-6 inset-0 overflow-y-scroll @container/main">
+                                {children}
+                            </div>
+                        </div>
+                    </SidebarInset>
+                </>
+            )}
+        </AuthenticatedProviders>
+    );
 };
