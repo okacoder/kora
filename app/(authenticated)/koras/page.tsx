@@ -24,8 +24,10 @@ import {
   IconReceipt
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
-import { ITransaction } from "@/lib/garame/domain/interfaces";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { paymentService } from "@/lib/garame/core/payment-service";
+import { gameStore } from "@/lib/garame/core/game-store";
+import type { Player } from "@/lib/garame/core/types";
 
 // Taux de conversion
 const FCFA_TO_KORAS_RATE = 10; // 100 FCFA = 10 koras
@@ -41,57 +43,33 @@ const rechargeOptions = [
 ];
 
 export default function KorasPage() {
-  const { paymentService } = useGarameServices();
-  
-  const [balance, setBalance] = useState<number>(0);
-  const [korasBalance, setKorasBalance] = useState<number>(0);
-  const [transactions, setTransactions] = useState<ITransaction[]>([]);
+  const currentUser = useCurrentUser();
+  const [player, setPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingTransactions, setLoadingTransactions] = useState(true);
   
-  // Onglet actif
   const [activeTab, setActiveTab] = useState("buy");
   
-  // Formulaire d'achat
   const [selectedAmount, setSelectedAmount] = useState<string>("");
   const [customAmount, setCustomAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"airtel" | "moov">("airtel");
   const [phoneNumber, setPhoneNumber] = useState("");
   
-  // Formulaire de retrait
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawMethod, setWithdrawMethod] = useState<"airtel" | "moov">("airtel");
   const [withdrawPhone, setWithdrawPhone] = useState("");
 
-  // Charger les données au montage
   useEffect(() => {
-    loadUserData();
-    loadTransactions();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      const userBalance = await paymentService.getBalance();
-      setBalance(userBalance);
-      // Calculer les koras depuis le solde (simulation)
-      setKorasBalance(Math.floor(userBalance / FCFA_TO_KORAS_RATE));
-    } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
-    }
-  };
-
-  const loadTransactions = async () => {
-    try {
-      const history = await paymentService.getTransactionHistory();
-      setTransactions(history);
-    } catch (error) {
-      console.error("Erreur lors du chargement des transactions:", error);
-    } finally {
-      setLoadingTransactions(false);
-    }
-  };
+    const fetchPlayer = async () => {
+      if (currentUser?.id) {
+        const p = await gameStore.getPlayer(currentUser.id);
+        setPlayer(p);
+      }
+    };
+    fetchPlayer();
+  }, [currentUser]);
 
   const handleBuyKoras = async () => {
+    if (!currentUser) return;
     const amount = selectedAmount === "custom" ? parseInt(customAmount) : parseInt(selectedAmount);
     
     if (!amount || amount < 500) {
@@ -106,15 +84,14 @@ export default function KorasPage() {
     
     setLoading(true);
     try {
-      // Calculer les koras avec bonus
+      // This is a simulation. In a real app, this would be a backend call.
+      await paymentService.processStake(currentUser.id, -amount, 'deposit'); // Use negative for deposit
+      
       const option = rechargeOptions.find(opt => opt.fcfa === amount);
       const baseKoras = Math.floor(amount / FCFA_TO_KORAS_RATE);
       const bonusKoras = option?.bonus || 0;
       const totalKoras = baseKoras + bonusKoras;
-      
-      // Simuler le paiement
-      await paymentService.deposit(amount, paymentMethod);
-      
+
       toast.success(
         <div>
           <p className="font-semibold">Achat réussi !</p>
@@ -125,11 +102,8 @@ export default function KorasPage() {
         </div>
       );
       
-      // Recharger les données
-      await loadUserData();
-      await loadTransactions();
-      
-      // Réinitialiser le formulaire
+      const p = await gameStore.getPlayer(currentUser.id);
+      setPlayer(p);
       setSelectedAmount("");
       setCustomAmount("");
       setPhoneNumber("");
@@ -141,6 +115,8 @@ export default function KorasPage() {
   };
 
   const handleWithdraw = async () => {
+    if (!currentUser || !player) return;
+
     const amount = parseInt(withdrawAmount);
     const korasToWithdraw = Math.floor(amount / FCFA_TO_KORAS_RATE);
     
@@ -149,7 +125,7 @@ export default function KorasPage() {
       return;
     }
     
-    if (korasToWithdraw > korasBalance) {
+    if (korasToWithdraw > player.balance) {
       toast.error("Solde de koras insuffisant");
       return;
     }
@@ -161,8 +137,8 @@ export default function KorasPage() {
     
     setLoading(true);
     try {
-      await paymentService.withdraw(amount, withdrawMethod);
-      
+      await paymentService.processWinning(currentUser.id, -amount, 'withdraw'); // Use negative for withdraw
+
       toast.success(
         <div>
           <p className="font-semibold">Retrait effectué !</p>
@@ -170,11 +146,8 @@ export default function KorasPage() {
         </div>
       );
       
-      // Recharger les données
-      await loadUserData();
-      await loadTransactions();
-      
-      // Réinitialiser le formulaire
+      const p = await gameStore.getPlayer(currentUser.id);
+      setPlayer(p);
       setWithdrawAmount("");
       setWithdrawPhone("");
     } catch (error: any) {
@@ -184,419 +157,186 @@ export default function KorasPage() {
     }
   };
 
-  const getTransactionIcon = (type: ITransaction['type']) => {
-    switch (type) {
-      case 'deposit':
-        return <IconArrowDownLeft className="size-4 text-green-600" />;
-      case 'withdrawal':
-        return <IconArrowUpRight className="size-4 text-red-600" />;
-      case 'game_stake':
-        return <IconCoin className="size-4 text-orange-600" />;
-      case 'game_win':
-        return <IconTrendingUp className="size-4 text-green-600" />;
-      default:
-        return <IconReceipt className="size-4" />;
-    }
-  };
-
-  const getTransactionLabel = (type: ITransaction['type']) => {
-    switch (type) {
-      case 'deposit':
-        return 'Dépôt';
-      case 'withdrawal':
-        return 'Retrait';
-      case 'game_stake':
-        return 'Mise de jeu';
-      case 'game_win':
-        return 'Gain de partie';
-      default:
-        return 'Transaction';
-    }
-  };
+  const korasBalance = player?.balance || 0;
 
   return (
-    <div className="flex flex-col gap-6 px-4 lg:px-6">
-      {/* Header avec soldes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-primary/20 rounded-lg shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Solde en Koras</p>
-                <p className="text-3xl font-bold text-primary">{korasBalance.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  ≈ {(korasBalance * FCFA_TO_KORAS_RATE).toLocaleString()} FCFA
-                </p>
-              </div>
-              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <IconCoin className="size-6 text-primary align-middle inline-block" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="rounded-lg shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Solde FCFA</p>
-                <p className="text-3xl font-bold">{balance.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Disponible pour retrait
-                </p>
-              </div>
-              <div className="size-12 rounded-full bg-secondary/10 flex items-center justify-center">
-                <IconDeviceMobile className="size-6 text-secondary align-middle inline-block" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs pour acheter/retirer/historique */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 mb-3">
-          <TabsTrigger value="buy" className="min-h-[44px]">Acheter des Koras</TabsTrigger>
-          <TabsTrigger value="withdraw" className="min-h-[44px]">Retirer</TabsTrigger>
-          <TabsTrigger value="history" className="min-h-[44px]">Historique</TabsTrigger>
+    <div className="container mx-auto px-4 py-8">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <IconCoin className="size-6 text-primary" />
+            Mon solde de Koras
+          </CardTitle>
+          <CardDescription>
+            Utilisez vos Koras pour jouer aux jeux ou retirez vos gains.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-baseline gap-2">
+            <p className="text-4xl font-bold">{korasBalance.toLocaleString()}</p>
+            <span className="text-muted-foreground">Koras</span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            ≈ {(korasBalance * FCFA_TO_KORAS_RATE).toLocaleString()} FCFA
+          </p>
+        </CardContent>
+      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="buy">Acheter des Koras</TabsTrigger>
+          <TabsTrigger value="withdraw">Retirer mes gains</TabsTrigger>
         </TabsList>
-
-        {/* Acheter des Koras */}
-        <TabsContent value="buy" className="space-y-4">
-          <Card className="rounded-lg shadow-sm border">
+        <TabsContent value="buy">
+          <Card>
             <CardHeader>
-              <CardTitle>Acheter des Koras</CardTitle>
+              <CardTitle>Recharger votre compte</CardTitle>
               <CardDescription>
-                Rechargez votre compte avec Mobile Money et recevez des bonus !
+                Sélectionnez un montant ou entrez une valeur personnalisée.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Options de recharge */}
-              <div className="space-y-3">
-                <Label>Choisir un montant</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {rechargeOptions.map((option) => (
-                    <Card 
-                      key={option.fcfa}
-                      className={`cursor-pointer transition-all hover:shadow-md relative rounded-lg border ${
-                        selectedAmount === option.fcfa.toString() 
-                          ? 'border-primary shadow-md' 
-                          : 'hover:border-primary/50'
-                      }`}
-                      onClick={() => {
-                        setSelectedAmount(option.fcfa.toString());
-                        setCustomAmount("");
-                      }}
-                    >
-                      {option.bonus > 0 && (
-                        <Badge className="absolute -top-2 -right-2 text-xs min-h-[24px] flex items-center">
-                          +{Math.round((option.bonus / option.koras) * 100)}%
-                        </Badge>
-                      )}
-                      <CardContent className="p-4 text-center">
-                        <p className="text-2xl font-bold">{option.fcfa.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">FCFA</p>
-                        <Separator className="my-2" />
-                        <p className="text-lg font-semibold text-primary">
-                          {(option.koras + option.bonus).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">koras</p>
-                        {option.bonus > 0 && (
-                          <p className="text-xs text-green-600 mt-1">
-                            +{option.bonus} bonus
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                  
-                  {/* Montant personnalisé */}
-                  <Card 
-                    className={`cursor-pointer transition-all hover:shadow-md rounded-lg border ${
-                      selectedAmount === 'custom' 
-                        ? 'border-primary shadow-md' 
-                        : 'hover:border-primary/50'
-                    }`}
-                    onClick={() => setSelectedAmount('custom')}
+               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {rechargeOptions.map((option) => (
+                  <Button
+                    key={option.fcfa}
+                    variant={selectedAmount === option.fcfa.toString() ? "default" : "outline"}
+                    className="h-auto flex flex-col items-center p-3"
+                    onClick={() => {
+                      setSelectedAmount(option.fcfa.toString());
+                      setCustomAmount("");
+                    }}
                   >
-                    <CardContent className="p-4 text-center h-full flex flex-col justify-center">
-                      <IconCoin className="size-8 mx-auto mb-2 align-middle inline-block" />
-                      <p className="text-sm font-medium">Autre montant</p>
-                    </CardContent>
-                  </Card>
+                    <span className="font-semibold text-lg">{option.koras} Koras</span>
+                    <span className="text-xs text-muted-foreground">{option.fcfa} FCFA</span>
+                    {option.bonus > 0 && (
+                      <Badge variant="secondary" className="mt-1">
+                        <IconGift className="size-3 mr-1" />
+                        + {option.bonus} Koras
+                      </Badge>
+                    )}
+                  </Button>
+                ))}
+              </div>
+              <Separator />
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="custom-amount">Montant personnalisé (FCFA)</Label>
+                  <Input
+                    id="custom-amount"
+                    type="number"
+                    placeholder="Ex: 1500"
+                    value={customAmount}
+                    onChange={(e) => {
+                      setCustomAmount(e.target.value);
+                      setSelectedAmount("custom");
+                    }}
+                    min="500"
+                  />
                 </div>
-                
-                {selectedAmount === 'custom' && (
-                  <div className="mt-4">
-                    <Label htmlFor="custom-amount">Montant personnalisé (min. 500 FCFA)</Label>
-                    <Input
-                      id="custom-amount"
-                      type="number"
-                      min="500"
-                      step="100"
-                      value={customAmount}
-                      onChange={(e) => setCustomAmount(e.target.value)}
-                      placeholder="Entrez un montant"
-                      className="mt-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Méthode de paiement */}
-              <div className="space-y-3">
-                <Label>Méthode de paiement</Label>
-                <Select value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
-                  <SelectTrigger className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="airtel" className="min-h-[44px] flex items-center">
-                      <div className="size-4 rounded-full bg-red-600 align-middle inline-block" />
-                      Airtel Money
-                    </SelectItem>
-                    <SelectItem value="moov" className="min-h-[44px] flex items-center">
-                      <div className="size-4 rounded-full bg-blue-600 align-middle inline-block" />
-                      Moov Money
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Numéro de téléphone */}
-              <div className="space-y-3">
-                <Label htmlFor="phone">Numéro de téléphone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="077 XX XX XX"
-                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
-                />
-              </div>
-
-              {/* Résumé */}
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Montant</span>
-                  <span className="font-semibold">
-                    {selectedAmount === 'custom' 
-                      ? (customAmount ? `${parseInt(customAmount).toLocaleString()} FCFA` : '—')
-                      : `${parseInt(selectedAmount || '0').toLocaleString()} FCFA`
-                    }
-                  </span>
+                <div className="space-y-2">
+                  <Label htmlFor="phone-number">Numéro de téléphone</Label>
+                  <Input
+                    id="phone-number"
+                    type="tel"
+                    placeholder="Votre numéro"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Koras à recevoir</span>
-                  <span className="font-semibold text-primary">
-                    {(() => {
-                      const amount = selectedAmount === 'custom' ? parseInt(customAmount || '0') : parseInt(selectedAmount || '0');
-                      const option = rechargeOptions.find(opt => opt.fcfa === amount);
-                      const baseKoras = Math.floor(amount / FCFA_TO_KORAS_RATE);
-                      const bonusKoras = option?.bonus || 0;
-                      return `${(baseKoras + bonusKoras).toLocaleString()} koras`;
-                    })()}
-                  </span>
+                <div className="space-y-2">
+                  <Label>Opérateur</Label>
+                  <Select value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="airtel">Airtel Money</SelectItem>
+                      <SelectItem value="moov">Moov Money</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              {/* Bouton d'achat */}
-              <Button 
-                size="lg" 
-                className="w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
-                onClick={handleBuyKoras}
-                disabled={!selectedAmount || (selectedAmount === 'custom' && !customAmount) || !phoneNumber || loading}
-              >
-                {loading ? (
-                  <IconLoader2 className="mr-2 animate-spin align-middle inline-block" />
-                ) : (
-                  <IconCoin className="mr-2 align-middle inline-block" />
-                )}
-                Acheter des Koras
-              </Button>
+               <div className="flex justify-end">
+                <Button
+                  onClick={handleBuyKoras}
+                  disabled={loading || (!selectedAmount && !customAmount) || !phoneNumber}
+                  size="lg"
+                >
+                  {loading ? (
+                    <IconLoader2 className="animate-spin mr-2" />
+                  ) : (
+                    <IconArrowDownLeft className="mr-2" />
+                  )}
+                  Acheter {selectedAmount === "custom" ? customAmount : selectedAmount} FCFA
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Retirer */}
-        <TabsContent value="withdraw" className="space-y-4">
-          <Card className="rounded-lg shadow-sm border">
+        <TabsContent value="withdraw">
+          <Card>
             <CardHeader>
-              <CardTitle>Retirer vos gains</CardTitle>
+              <CardTitle>Retirer vos gains en FCFA</CardTitle>
               <CardDescription>
-                Convertissez vos koras en argent réel sur votre compte Mobile Money
+                Les retraits sont traités sous 24h.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Montant à retirer */}
-              <div className="space-y-3">
-                <Label htmlFor="withdraw-amount">Montant à retirer (min. 1000 FCFA)</Label>
-                <Input
-                  id="withdraw-amount"
-                  type="number"
-                  min="1000"
-                  step="100"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  placeholder="Entrez le montant"
-                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Koras nécessaires : {withdrawAmount ? Math.floor(parseInt(withdrawAmount) / FCFA_TO_KORAS_RATE) : 0}
-                </p>
-              </div>
-
-              {/* Méthode de retrait */}
-              <div className="space-y-3">
-                <Label>Recevoir sur</Label>
-                <Select value={withdrawMethod} onValueChange={(value: any) => setWithdrawMethod(value)}>
-                  <SelectTrigger className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="airtel" className="min-h-[44px] flex items-center">
-                      <div className="size-4 rounded-full bg-red-600 align-middle inline-block" />
-                      Airtel Money
-                    </SelectItem>
-                    <SelectItem value="moov" className="min-h-[44px] flex items-center">
-                      <div className="size-4 rounded-full bg-blue-600 align-middle inline-block" />
-                      Moov Money
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Numéro de téléphone */}
-              <div className="space-y-3">
-                <Label htmlFor="withdraw-phone">Numéro de téléphone</Label>
-                <Input
-                  id="withdraw-phone"
-                  type="tel"
-                  value={withdrawPhone}
-                  onChange={(e) => setWithdrawPhone(e.target.value)}
-                  placeholder="077 XX XX XX"
-                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
-                />
-              </div>
-
-              {/* Avertissement */}
-              <div className="flex gap-2 p-3 bg-amber-500/10 rounded-lg border-2 border-amber-500/40 shadow-sm">
-                <IconAlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5 align-middle inline-block" />
-                <div className="text-sm text-amber-900 dark:text-amber-400">
-                  <p className="font-semibold mb-1">Informations importantes</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Les retraits sont traités sous 24h</li>
-                    <li>Des frais de 2% sont appliqués</li>
-                    <li>Minimum de retrait : 1000 FCFA</li>
-                  </ul>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="withdraw-amount">Montant à retirer (FCFA)</Label>
+                  <Input
+                    id="withdraw-amount"
+                    type="number"
+                    placeholder="Ex: 5000"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    min="1000"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="withdraw-phone">Numéro de téléphone</Label>
+                  <Input
+                    id="withdraw-phone"
+                    type="tel"
+                    placeholder="Numéro pour le dépôt"
+                    value={withdrawPhone}
+                    onChange={(e) => setWithdrawPhone(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Opérateur</Label>
+                  <Select value={withdrawMethod} onValueChange={(v: any) => setWithdrawMethod(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="airtel">Airtel Money</SelectItem>
+                      <SelectItem value="moov">Moov Money</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-
-              {/* Bouton de retrait */}
-              <Button 
-                size="lg" 
-                className="w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
-                onClick={handleWithdraw}
-                disabled={!withdrawAmount || parseInt(withdrawAmount) < 1000 || !withdrawPhone || loading}
-              >
-                {loading ? (
-                  <IconLoader2 className="mr-2 animate-spin align-middle inline-block" />
-                ) : (
-                  <IconArrowUpRight className="mr-2 align-middle inline-block" />
-                )}
-                Effectuer le retrait
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Historique */}
-        <TabsContent value="history" className="space-y-4">
-          <Card className="rounded-lg shadow-sm border">
-            <CardHeader>
-              <CardTitle>Historique des transactions</CardTitle>
-              <CardDescription>
-                Toutes vos transactions des 30 derniers jours
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingTransactions ? (
-                <div className="flex justify-center py-8">
-                  <IconLoader2 className="size-8 animate-spin text-muted-foreground align-middle inline-block" />
-                </div>
-              ) : transactions.length === 0 ? (
-                <div className="text-center py-8">
-                  <IconHistory className="size-12 mx-auto text-muted-foreground mb-4 align-middle inline-block" />
-                  <p className="text-muted-foreground">Aucune transaction</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {transactions.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between p-3 rounded-lg border shadow-sm hover:bg-muted/50 transition-colors min-h-[56px]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-full bg-muted flex items-center justify-center">
-                          {getTransactionIcon(transaction.type)}
-                        </div>
-                        <div>
-                          <p className="font-medium truncate max-w-[120px]">{getTransactionLabel(transaction.type)}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(transaction.createdAt).toLocaleDateString('fr-FR', {
-                              day: 'numeric',
-                              month: 'long',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-semibold ${
-                          transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {transaction.amount > 0 ? '+' : ''}{transaction.amount.toLocaleString()} FCFA
-                        </p>
-                        <Badge variant={
-                          transaction.status === 'completed' ? 'default' : 
-                          transaction.status === 'pending' ? 'secondary' : 
-                          'destructive'
-                        } className="text-xs min-h-[28px] flex items-center">
-                          {transaction.status === 'completed' && <IconCheck className="size-3 mr-1 align-middle inline-block" />}
-                          {transaction.status === 'failed' && <IconX className="size-3 mr-1 align-middle inline-block" />}
-                          {transaction.status === 'pending' && <IconLoader2 className="size-3 mr-1 animate-spin align-middle inline-block" />}
-                          {transaction.status === 'completed' ? 'Complété' : 
-                           transaction.status === 'pending' ? 'En cours' : 
-                           'Échoué'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleWithdraw}
+                  disabled={loading || !withdrawAmount || !withdrawPhone}
+                  size="lg"
+                  variant="secondary"
+                >
+                  {loading ? (
+                    <IconLoader2 className="animate-spin mr-2" />
+                  ) : (
+                    <IconArrowUpRight className="mr-2" />
+                  )}
+                  Retirer {withdrawAmount} FCFA
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Carte bonus */}
-      <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-sm mt-4">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center">
-              <IconGift className="size-6 text-primary align-middle inline-block" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold">Bonus de bienvenue</h3>
-              <p className="text-sm text-muted-foreground">
-                Recevez 50 koras gratuits lors de votre premier dépôt de 1000 FCFA ou plus !
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

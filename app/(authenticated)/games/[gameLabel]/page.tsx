@@ -4,15 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlayingCard, CardBack } from "@/components/game-card";
-import { 
-  IconCoin, 
-  IconUsers, 
-  IconTrophy, 
+import { CardBack } from "@/components/game-card";
+import {
+  IconCoin,
+  IconUsers,
   IconPlus,
   IconCards,
   IconClock,
@@ -21,8 +19,11 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
-import { IGameRoom } from "@/lib/garame/domain/interfaces";
-import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
+import { useGameEngine } from "@/lib/garame/hooks/use-game-engine";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { gameStore } from "@/lib/garame/core/game-store";
+import { gameRegistry } from "@/lib/garame/core/game-registry";
+import { GameRoom } from "@/lib/garame/core/types";
 import { routes } from "@/lib/routes";
 
 const predefinedStakes = [50, 100, 200, 500, 1000];
@@ -30,52 +31,42 @@ const predefinedStakes = [50, 100, 200, 500, 1000];
 export default function GamePage() {
   const router = useRouter();
   const { gameLabel } = useParams<{ gameLabel: string }>();
-  const { gameService, paymentService } = useGarameServices();
+  const currentUser = useCurrentUser();
+  const { createRoom, joinRoom, loading } = useGameEngine(gameLabel);
+  const gameInfo = gameRegistry.get(gameLabel);
+
   const [selectedTab, setSelectedTab] = useState("join");
   const [selectedStake, setSelectedStake] = useState<string>("");
   const [customStake, setCustomStake] = useState("");
-  const [userBalance, setUserBalance] = useState<number>(0);
-  const [userKoras, setUserKoras] = useState<number>(0);
-  const [availableGames, setAvailableGames] = useState<IGameRoom[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [availableGames, setAvailableGames] = useState<GameRoom[]>([]);
   const [loadingGames, setLoadingGames] = useState(true);
 
-  // Charger le solde de l'utilisateur
-  useEffect(() => {
-    const loadUserBalance = async () => {
-      try {
-        const balance = await paymentService.getBalance();
-        setUserBalance(balance);
-        setUserKoras(Math.floor(balance / 10));
-      } catch (error) {
-        console.error("Erreur lors du chargement du solde:", error);
-        toast.error("Impossible de charger votre solde");
-      }
-    };
-    loadUserBalance();
-  }, [paymentService]);
+  const userBalance = currentUser?.balance || 0;
+  const userKoras = Math.floor(userBalance / 10);
 
-  // Charger les parties disponibles
+  // Load available games
   useEffect(() => {
+    const loadAvailableGames = () => {
+      gameStore.getAvailableRooms(gameLabel)
+        .then(games => {
+          setAvailableGames(games);
+        })
+        .catch(error => {
+          console.error("Erreur lors du chargement des parties:", error);
+        })
+        .finally(() => {
+          setLoadingGames(false);
+        });
+    };
+
     loadAvailableGames();
     const interval = setInterval(loadAvailableGames, 5000);
     return () => clearInterval(interval);
-  }, []);
-
-  const loadAvailableGames = async () => {
-    try {
-      const games = await gameService.getAvailableGames();
-      setAvailableGames(games);
-    } catch (error) {
-      console.error("Erreur lors du chargement des parties:", error);
-    } finally {
-      setLoadingGames(false);
-    }
-  };
+  }, [gameLabel]);
 
   const handleCreateGame = async () => {
-    const stake = selectedStake === "custom" ? 
-      parseInt(customStake) : 
+    const stake = selectedStake === "custom" ?
+      parseInt(customStake) :
       parseInt(selectedStake);
 
     if (!stake || stake < 50) {
@@ -83,41 +74,48 @@ export default function GamePage() {
       return;
     }
 
-    if (stake * 10 > userBalance) {
+    if (stake > userKoras) {
       toast.error("Solde insuffisant");
       return;
     }
 
-    setLoading(true);
     try {
-      const gameRoom = await gameService.createGame(stake * 10);
+      const gameRoom = await createRoom(stake);
       router.push(routes.gameRoom(gameLabel, gameRoom.id));
     } catch (error) {
-      toast.error("Erreur lors de la création de la partie");
-    } finally {
-      setLoading(false);
+      // toast is handled inside useGameEngine
     }
   };
 
   const handleJoinGame = async (roomId: string) => {
-    setLoading(true);
     try {
-      await gameService.joinGame(roomId);
-      router.push(routes.gameRoom(gameLabel, roomId));
+      const room = await joinRoom(roomId);
+      router.push(routes.gameRoom(gameLabel, room.id));
     } catch (error) {
-      toast.error("Impossible de rejoindre cette partie");
-    } finally {
-      setLoading(false);
+      // toast is handled inside useGameEngine
     }
   };
+  
+  if (!gameInfo) {
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4">
+          <IconAlertCircle className="size-12 mb-4 text-destructive" />
+          <h2 className="text-xl font-semibold">Jeu Introuvable</h2>
+          <p className="mb-4">Le jeu "{gameLabel}" n'existe pas ou n'est pas enregistré.</p>
+          <Button onClick={() => router.push(routes.games)} variant="outline">
+            Retour à la liste des jeux
+          </Button>
+        </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full px-4 lg:px-6">
       {/* Header with title and balance - more compact */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Garame - Jeu de cartes</h1>
-          <p className="text-sm text-muted-foreground">Affrontez d'autres joueurs et remportez la mise</p>
+          <h1 className="text-2xl font-bold">{gameInfo.name}</h1>
+          <p className="text-sm text-muted-foreground">{gameInfo.description}</p>
         </div>
         
         {/* Balance display - inline and compact */}
@@ -125,7 +123,7 @@ export default function GamePage() {
           <IconCoin className="size-5 text-primary" />
           <div className="flex flex-col">
             <p className="text-sm font-semibold">{userKoras.toLocaleString()} koras</p>
-            <p className="text-xs text-muted-foreground">≈ {userBalance.toLocaleString()} FCFA</p>
+            <p className="text-xs text-muted-foreground">≈ {(userKoras * 10).toLocaleString()} FCFA</p>
           </div>
         </div>
       </div>
@@ -180,7 +178,7 @@ export default function GamePage() {
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
                                   <IconClock className="size-3 align-middle inline-block" />
-                                  Il y a {Math.round((Date.now() - game.createdAt.getTime()) / 60000)} min
+                                  Il y a {Math.round((Date.now() - new Date(game.createdAt).getTime()) / 60000)} min
                                 </span>
                               </>
                             )}
@@ -190,7 +188,7 @@ export default function GamePage() {
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs min-h-[28px] flex items-center">
                           <IconUsers className="size-3 mr-1 align-middle inline-block" />
-                          {game.players}/{game.maxPlayers} joueurs
+                          {game.players.length}/{game.maxPlayers} joueurs
                         </Badge>
                         <Button 
                           size="sm"
@@ -232,7 +230,7 @@ export default function GamePage() {
                         setSelectedStake(stake.toString());
                         setCustomStake("");
                       }}
-                      disabled={stake * 10 > userBalance}
+                      disabled={stake > userKoras}
                       className="w-full"
                     >
                       {stake}
@@ -255,7 +253,7 @@ export default function GamePage() {
                       setSelectedStake("custom");
                     }}
                     min="50"
-                    max={Math.floor(userBalance / 10)}
+                    max={userKoras}
                   />
                 </div>
                 <div className="flex items-end">

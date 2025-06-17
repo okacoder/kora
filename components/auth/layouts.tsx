@@ -1,7 +1,6 @@
-import { GarameProvider } from "@/lib/garame/infrastructure/garame-provider";
 import { AppSidebar } from "../app-sidebar";
 import { SiteHeader } from "../site-header";
-import { SidebarProvider, SidebarInset } from "../ui/sidebar";
+import { SidebarInset } from "../ui/sidebar";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { AuthenticatedProviders } from "./providers";
