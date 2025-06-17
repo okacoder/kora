@@ -14,6 +14,7 @@ export function useGameEngine(gameType: string) {
     setLoading(true);
     try {
       const room = await engine.createRoom(stake, settings);
+      console.log('Partie créée:', room);
       toast.success('Partie créée!');
       return room;
     } catch (error) {

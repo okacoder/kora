@@ -1,17 +1,42 @@
-import { Player, GameRoom, BaseGameState, RoomPlayer } from './types';
+import { Player, GameRoom, BaseGameState } from './types';
 
-// This is a simplified in-memory store for development
-// In production, this would be replaced with proper database operations
+// Helper to handle Maps with JSON stringify/parse
+const replacer = (key: string, value: any) => {
+  if(value instanceof Map) {
+    return {
+      dataType: 'Map',
+      value: Array.from(value.entries()),
+    };
+  } else {
+    return value;
+  }
+}
+
+const reviver = (key: string, value: any) => {
+  if(typeof value === 'object' && value !== null) {
+    if (value.dataType === 'Map') {
+      return new Map(value.value);
+    }
+  }
+  return value;
+}
+
+const STORAGE_KEYS = {
+  PLAYERS: 'kora-store-players',
+  ROOMS: 'kora-store-rooms',
+  GAME_STATES: 'kora-store-game-states',
+  CURRENT_PLAYER: 'kora-store-current-player',
+};
+
 class GameStore {
   private static instance: GameStore;
-  private players = new Map<string, Player>();
-  private rooms = new Map<string, GameRoom>();
-  private gameStates = new Map<string, BaseGameState>();
+  private players!: Map<string, Player>;
+  private rooms!: Map<string, GameRoom>;
+  private gameStates!: Map<string, BaseGameState>;
   private currentPlayer: Player | null = null;
 
   private constructor() {
-    // Initialize with test data
-    this.initializeTestData();
+    this._loadFromSession();
   }
 
   static getInstance(): GameStore {
@@ -21,20 +46,46 @@ class GameStore {
     return GameStore.instance;
   }
 
-  private initializeTestData() {
-    // Create a test player
-    this.currentPlayer = {
-      id: 'current-user',
-      username: 'TestPlayer',
-      balance: 50000,
-      avatar: undefined
-    };
-    this.players.set(this.currentPlayer.id, this.currentPlayer);
+  private _loadFromSession() {
+    if (typeof window === 'undefined') {
+      this.players = new Map();
+      this.rooms = new Map();
+      this.gameStates = new Map();
+      this.currentPlayer = null;
+      return;
+    }
+    
+    const playersData = sessionStorage.getItem(STORAGE_KEYS.PLAYERS);
+    this.players = playersData ? JSON.parse(playersData, reviver) : new Map();
+
+    const roomsData = sessionStorage.getItem(STORAGE_KEYS.ROOMS);
+    this.rooms = roomsData ? JSON.parse(roomsData, reviver) : new Map();
+
+    const gameStatesData = sessionStorage.getItem(STORAGE_KEYS.GAME_STATES);
+    this.gameStates = gameStatesData ? JSON.parse(gameStatesData, reviver) : new Map();
+
+    const currentPlayerDate = sessionStorage.getItem(STORAGE_KEYS.CURRENT_PLAYER);
+    this.currentPlayer = currentPlayerDate ? JSON.parse(currentPlayerDate) : null;
+  }
+
+  private _save() {
+    if (typeof window === 'undefined') return;
+    
+    sessionStorage.setItem(STORAGE_KEYS.PLAYERS, JSON.stringify(this.players, replacer));
+    sessionStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(this.rooms, replacer));
+    sessionStorage.setItem(STORAGE_KEYS.GAME_STATES, JSON.stringify(this.gameStates, replacer));
+    sessionStorage.setItem(STORAGE_KEYS.CURRENT_PLAYER, JSON.stringify(this.currentPlayer));
+  }
+
+  async setCurrentUser(player: Player): Promise<void> {
+    this.currentPlayer = player;
+    this.players.set(player.id, player);
+    this._save();
   }
 
   async getCurrentPlayer(): Promise<Player> {
     if (!this.currentPlayer) {
-      throw new Error('No current player');
+      throw new Error('No current player set in store');
     }
     return this.currentPlayer;
   }
@@ -60,6 +111,7 @@ class GameStore {
     };
 
     this.rooms.set(room.id, room);
+    this._save();
     return room;
   }
 
@@ -75,11 +127,13 @@ class GameStore {
 
     Object.assign(room, updates);
     room.updatedAt = new Date();
+    this._save();
     return room;
   }
 
   async saveGameState(gameState: BaseGameState): Promise<void> {
     this.gameStates.set(gameState.id, gameState);
+    this._save();
   }
 
   async getGameState(gameId: string): Promise<BaseGameState | null> {
@@ -91,9 +145,9 @@ class GameStore {
     if (player) {
       player.balance += amount;
     }
+    this._save();
   }
 
-  // Get all available rooms
   async getAvailableRooms(gameType?: string): Promise<GameRoom[]> {
     const rooms = Array.from(this.rooms.values());
     return rooms.filter(room => 

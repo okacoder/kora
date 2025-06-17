@@ -97,15 +97,21 @@ export default function GameRoomPage() {
     if (!roomId) return;
     setLoading(true);
     gameStore.getRoom(roomId)
-      .then(room => {
-        setGameRoom(room);
-        setLoading(false);
-      })
-      .catch(() => {
-        toast.error('Salle introuvable');
-        setLoading(false);
-        router.push('/games');
-      });
+    .then(room => {
+    if (!room) {
+      toast.error('Salle introuvable');
+      setLoading(false);
+      router.push('/games');
+      return;
+    }
+    setGameRoom(room);
+    setLoading(false);
+  })
+  .catch(() => {
+    toast.error('Salle introuvable');
+    setLoading(false);
+    router.push('/games');
+  });
   }, [roomId]);
 
   // Subscribe to room events
@@ -158,6 +164,8 @@ export default function GameRoomPage() {
   const handleKickPlayer = async (playerId: string) => {
     toast.error('Retrait de bot non implémenté');
   };
+
+  console.log({gameRoom, loading, roomId});
 
   if (loading || !gameRoom) {
     return (
