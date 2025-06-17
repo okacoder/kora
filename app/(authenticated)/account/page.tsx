@@ -4,17 +4,19 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IconH1, IconLoader } from "@tabler/icons-react";
+import { IconLoader } from "@tabler/icons-react";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-
-import { authClient } from "@/lib/auth-client";
-
 import { useRouter } from "next/navigation";
+import { useUser } from "@/providers/user-provider";
+import { useUserService } from "@/hooks/useInjection";
+import { toast } from "sonner";
 
 export default function Page() {
   const router = useRouter();
+  const { user, loading: userLoading, refreshUser } = useUser();
+  const userService = useUserService();
 
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
@@ -22,31 +24,53 @@ export default function Page() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function getUser() {
-    const { data: session } = await authClient.getSession();
-    return session;
+  useEffect(() => {
+    if (user) {
+      setFullname(user.name || "");
+      setEmail(user.email || "");
+      setUsername(user.username || "");
+    }
+  }, [user]);
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      setError("");
+      
+      await userService.updateUserProfile(user.id, {
+        name: fullname,
+        username: username,
+      });
+      
+      await refreshUser();
+      toast.success("Profil mis à jour avec succès");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      toast.error("Erreur lors de la mise à jour du profil");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (userLoading || !user) {
+    return (
+      <div className="px-4 lg:px-6 lg:w-1/2 grid gap-4">
+        <Skeleton className="w-1/2 h-[20px] rounded-full" />
+        <Skeleton className="w-2/3 h-[20px] rounded-full" />
+        <Separator className="mb-4" />
+        <Skeleton className="w-full h-[20px] rounded-full" />
+        <Skeleton className="w-full h-[30px] rounded-full" />
+        <Skeleton className="w-full h-[20px] rounded-full" />
+        <Skeleton className="w-full h-[30px] rounded-full" />
+        <Skeleton className="w-full h-[30px] rounded-full" />
+      </div>
+    );
   }
 
-  useEffect(() => {
-    getUser().then((data) => {
-      setFullname(data?.user?.name ?? ""); // Use empty string as fallback
-      setEmail(data?.user?.email ?? "");
-      setUsername(data?.user?.username ?? "");
-    });
-  }, []);
-
-  return !email ? (
-    <div className="px-4 lg:px-6 lg:w-1/2 grid gap-4">
-      <Skeleton className="w-1/2 h-[20px] rounded-full" />
-      <Skeleton className="w-2/3 h-[20px] rounded-full" />
-      <Separator className="mb-4" />
-      <Skeleton className="w-full h-[20px] rounded-full" />
-      <Skeleton className="w-full h-[30px] rounded-full" />
-      <Skeleton className="w-full h-[20px] rounded-full" />
-      <Skeleton className="w-full h-[30px] rounded-full" />
-      <Skeleton className="w-full h-[30px] rounded-full" />
-    </div>
-  ) : (
+  return (
     <div className="flex justify-center px-4 lg:px-6 py-8">
       <Card className="w-full max-w-xl rounded-lg shadow-sm border">
         <CardHeader>
@@ -57,7 +81,7 @@ export default function Page() {
           <Separator className="mb-4" />
         </CardHeader>
         <CardContent>
-          <form className="space-y-6">
+          <form onSubmit={handleUpdate} className="space-y-6">
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Nom complet</Label>
@@ -68,6 +92,7 @@ export default function Page() {
                   type="text"
                   placeholder="Achour Meguenni"
                   required
+                  disabled={loading}
                   className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 />
               </div>
@@ -80,26 +105,54 @@ export default function Page() {
                   type="text"
                   placeholder="achour_meguenni"
                   required
+                  disabled={loading}
                   className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Adresse email</Label>
                 <Input
-                  onChange={(e) => setEmail(e.target.value)}
                   value={email}
                   id="email"
                   type="email"
                   placeholder="me@example.com"
-                  required
-                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
+                  disabled
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40 bg-muted"
                 />
               </div>
             </div>
+
+            <Separator />
+
+            <div className="bg-muted p-4 rounded-lg">
+              <h3 className="font-semibold mb-2">Statistiques</h3>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold">{user.koras}</p>
+                  <p className="text-sm text-muted-foreground">Koras</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{user.totalWins}</p>
+                  <p className="text-sm text-muted-foreground">Victoires</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{user.totalGames}</p>
+                  <p className="text-sm text-muted-foreground">Parties</p>
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
             <div className="flex flex-col gap-3">
               <Button disabled={loading} type="submit" className="w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
                 {loading ? (
-                  <IconLoader className="animate-spin align-middle inline-block" stroke={2} />
+                  <>
+                    <IconLoader className="mr-2 h-4 w-4 animate-spin" />
+                    Mise à jour...
+                  </>
                 ) : (
                   "Enregistrer"
                 )}

@@ -1,6 +1,6 @@
 import { BaseGameState, BasePlayerState, Card } from '../../core/types';
 
-export interface GarameGameState extends BaseGameState {
+export interface GarameState extends BaseGameState {
   lastPlayedCard: Card | null;
   currentSuit?: Card['suit'];
   deck: Card[]; // Remaining deck
@@ -8,10 +8,13 @@ export interface GarameGameState extends BaseGameState {
 }
 
 export interface GaramePlayerState extends BasePlayerState {
-  cards: Card[];
+  hand: Card[]; // Changed from 'cards' to 'hand' for consistency
   hasKora: boolean;
   wonTricks: number;
 }
+
+// Keep backward compatibility
+export interface GarameGameState extends GarameState {}
 
 export interface GarameAction {
   type: 'play_card';
