@@ -11,3 +11,12 @@ export interface IAIService {
   
   shouldBluff(gameState: BaseGameState, playerId: string, difficulty: string): boolean;
 }
+
+export interface IGarameAIService {
+  setDifficulty(difficulty: 'boa' | 'normal' | 'sensei'): void;
+  
+  getNextAction(
+    gameState: BaseGameState,
+    playerId: string
+  ): Promise<GameAction>;
+}

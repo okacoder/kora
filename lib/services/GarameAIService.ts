@@ -39,7 +39,7 @@ export class GarameAIService implements IAIService {
     }
 
     const randomIndex = Math.floor(Math.random() * validCards.length);
-    const cardIndex = player.cards.indexOf(validCards[randomIndex]);
+    const cardIndex = player.hand.indexOf(validCards[randomIndex]);
 
     return {
       type: 'play_card',
@@ -63,7 +63,7 @@ export class GarameAIService implements IAIService {
     const highCards = validCards.filter(card => this.getCardValue(card) >= 10);
     if (highCards.length > 0 && Math.random() > 0.3) {
       const card = highCards[0];
-      const cardIndex = player.cards.indexOf(card);
+      const cardIndex = player.hand.indexOf(card);
       return {
         type: 'play_card',
         playerId,
@@ -75,7 +75,7 @@ export class GarameAIService implements IAIService {
     // Sinon, jouer une carte de faible valeur
     const lowCards = validCards.filter(card => this.getCardValue(card) <= 5);
     const card = lowCards.length > 0 ? lowCards[0] : validCards[0];
-    const cardIndex = player.cards.indexOf(card);
+    const cardIndex = player.hand.indexOf(card);
     
     return {
       type: 'play_card',
@@ -100,7 +100,7 @@ export class GarameAIService implements IAIService {
       const lowCards = validCards.filter(card => this.getCardValue(card) <= 5);
       if (lowCards.length > 0) {
         const card = lowCards[0];
-        const cardIndex = player.cards.indexOf(card);
+        const cardIndex = player.hand.indexOf(card);
         return {
           type: 'play_card',
           playerId,
@@ -121,7 +121,7 @@ export class GarameAIService implements IAIService {
     if (!player) return 0;
 
     // Évaluer la position basée sur les cartes et le score
-    const handValue = player.cards
+    const handValue = player.hand
       .reduce((sum, card) => sum + this.getCardValue(card), 0);
     
     return player.score + (handValue * 0.1) + (player.wonTricks * 5);
@@ -147,7 +147,7 @@ export class GarameAIService implements IAIService {
   private getValidCards(state: GarameGameState, player: GaramePlayerState): Card[] {
     // Pour simplifier, toutes les cartes sont valides
     // Dans un vrai jeu, il faudrait vérifier les règles
-    return player.cards;
+    return player.hand;
   }
 
   private getCardValue(card: Card): number {
@@ -173,7 +173,7 @@ export class GarameAIService implements IAIService {
     // Jouer la meilleure carte si on est en fin de partie
     if (state.turn > 20) {
       const card = sortedCards[0];
-      const cardIndex = player.cards.indexOf(card);
+      const cardIndex = player.hand.indexOf(card);
       return {
         type: 'play_card',
         playerId,
@@ -184,7 +184,7 @@ export class GarameAIService implements IAIService {
 
     // Sinon, garder les bonnes cartes pour plus tard
     const mediumCard = sortedCards[Math.floor(sortedCards.length / 2)];
-    const cardIndex = player.cards.indexOf(mediumCard);
+    const cardIndex = player.hand.indexOf(mediumCard);
     return {
       type: 'play_card',
       playerId,

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@prisma/client";
-import { useUserService } from "@/hooks/useInjection";
+import { authClient } from "@/lib/auth-client";
 
 interface UserContextType {
   user: User | null;
@@ -17,14 +17,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const userService = useUserService();
 
   const loadUser = async () => {
     try {
       setLoading(true);
-      const currentUser = await userService.getCurrentUser();
-      setUser(currentUser);
-      setError(null);
+      const { data: session } = await authClient.getSession();
+      if (session?.user) {
+        setUser(session.user as User);
+        setError(null);
+      } else {
+        setUser(null);
+      }
     } catch (err) {
       setError(err as Error);
       setUser(null);

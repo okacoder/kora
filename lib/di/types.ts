@@ -14,5 +14,6 @@ export const TYPES = {
   PaymentService: Symbol.for('PaymentService'),
   EventBusService: Symbol.for('EventBusService'),
   AIService: Symbol.for('AIService'),
+  GarameAIService: Symbol.for('GarameAIService'),
   MobileMoneyService: Symbol.for('MobileMoneyService'),
 };
