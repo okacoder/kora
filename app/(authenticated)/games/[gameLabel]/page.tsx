@@ -18,7 +18,7 @@ import {
   IconLoader2
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useGameEngine } from "@/lib/garame/hooks/use-game-engine";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { gameStore } from "@/lib/garame/core/game-store";
@@ -28,20 +28,11 @@ import { routes } from "@/lib/routes";
 import GamePlayPage from "./_components/game-play";
 import GameRoomPage from "./_components/game-room";
 
-
-type GamePageContentProps = {
-  searchParams: {
-    roomId?: string;
-    gameId?: string;
-  };
-  params: {
-    gameLabel: string;
-  };
-}
-
-export default function GamePageContent({ searchParams, params }: GamePageContentProps) {
-  const { gameLabel } = params;
-  const { roomId, gameId } = searchParams;
+export default function GamePageContent() {
+  const { gameLabel } = useParams<{ gameLabel: string }>();
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId");
+  const gameId = searchParams.get("gameId");
   
   if (gameId) {
     return <GamePlayPage gameLabel={gameLabel} gameId={gameId} />;
@@ -115,6 +106,7 @@ function GamePage({ gameLabel }: GamePageProps) {
 
     try {
       const gameRoom = await createRoom(stake);
+      console.log("gameRoom", gameRoom);
       router.push(routes.gameRoom(gameLabel, gameRoom.id));
     } catch (error) {
       // toast is handled inside useGameEngine
