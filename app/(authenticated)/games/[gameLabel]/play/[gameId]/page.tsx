@@ -59,33 +59,33 @@ export default function GamePlayPage() {
 
   // Responsive layout: grid for desktop, flex-col for mobile, no scroll
   return (
-    <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center bg-background">
+    <div className="relative w-full h-screen overflow-hidden flex flex-col items-center justify-center bg-background space-y-4">
       {/* Header: infos, timer, pot, retour */}
-      <div className="absolute top-0 left-0 w-full flex items-center justify-between px-4 py-2 z-20">
-        <Link href={`/games/${gameLabel}`} className="p-2 rounded-full hover:bg-muted">
-          <IconCards className="size-6" />
+      <div className="absolute top-0 left-0 w-full flex items-center justify-between px-4 py-2 z-20 gap-4">
+        <Link href={`/games/${gameLabel}`} className="p-2 rounded-full hover:bg-muted min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
+          <IconCards className="size-6 align-middle inline-block" />
         </Link>
         <div className="flex items-center gap-4">
           <Card className={cn(
-            "border-2 h-12 flex items-center justify-center px-3 transition-colors",
+            "border-2 h-12 flex items-center justify-center px-3 transition-colors rounded-lg shadow-sm",
             gameState.currentTurnPlayerId === currentPlayer.id ? "border-primary animate-pulse" : "border-muted"
           )}>
             <CardContent className="flex items-center gap-2 p-0">
-              <IconClock className="size-5" />
+              <IconClock className="size-5 align-middle inline-block" />
               <span className="font-mono font-bold text-lg">
                 {timer.toString().padStart(2, '0')}s
               </span>
             </CardContent>
           </Card>
-          <Card className="h-12 flex items-center justify-center px-3">
+          <Card className="h-12 flex items-center justify-center px-3 rounded-lg shadow-sm">
             <CardContent className="flex items-center gap-2 p-0">
-              <IconCoin className="size-5 text-primary" />
+              <IconCoin className="size-5 text-primary align-middle inline-block" />
               <span className="font-bold">{gameState.pot.toLocaleString()} FCFA</span>
             </CardContent>
           </Card>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setShowRules(true)}>
-          <IconHandStop className="size-6 text-primary" />
+        <Button variant="ghost" size="icon" onClick={() => setShowRules(true)} className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
+          <IconHandStop className="size-6 text-primary align-middle inline-block" />
         </Button>
       </div>
 
@@ -100,20 +100,20 @@ export default function GamePlayPage() {
 
       {/* Modal de règles rapides */}
       {showRules && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowRules(false)}>
-          <Card className="max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full rounded-lg shadow-lg" onClick={e => e.stopPropagation()}>
             <CardHeader className="text-center">
-              <IconHandStop className="size-12 mx-auto mb-2 text-primary" />
+              <IconHandStop className="size-12 mx-auto mb-2 text-primary align-middle inline-block" />
               <CardTitle className="text-xl">Règles rapides de la Garame</CardTitle>
             </CardHeader>
             <CardContent className="text-left space-y-2 text-muted-foreground">
                 <p>• Le but est de se débarrasser de toutes ses cartes.</p>
-                <p>• Le joueur qui a la "Kora" (indiquée par <IconHandStop className="inline-block size-4" />) commence.</p>
+                <p>• Le joueur qui a la "Kora" (indiquée par <IconHandStop className="inline-block size-4 align-middle" />) commence.</p>
                 <p>• Le premier joueur peut jouer n'importe quelle carte.</p>
                 <p>• Les joueurs suivants doivent jouer une carte de la même famille (couleur) si possible.</p>
                 <p>• Si un joueur ne peut pas suivre, il peut jouer n'importe quelle carte.</p>
                 <p>• Le premier joueur à vider sa main gagne le pot (moins une commission).</p>
-              <Button className="mt-4 w-full" onClick={() => setShowRules(false)}>Compris !</Button>
+              <Button className="mt-4 w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40" onClick={() => setShowRules(false)}>Compris !</Button>
             </CardContent>
           </Card>
         </div>
@@ -122,13 +122,13 @@ export default function GamePlayPage() {
       {/* Modal de fin de partie */}
       {showEndGameModal && winnerId && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
+          <Card className="max-w-md w-full rounded-lg shadow-lg">
             <CardHeader className="text-center">
               <IconTrophy className={cn(
                 "size-16 mx-auto mb-4",
-                winnerId === currentPlayer.id ? "text-yellow-500" : "text-muted-foreground"
+                winnerId === currentPlayer.id ? "text-green-500" : "text-muted-foreground"
               )} />
-              <CardTitle className="text-2xl">
+              <CardTitle className={cn("text-2xl", winnerId === currentPlayer.id ? "text-green-700" : "text-muted-foreground") }>
                 {winnerId === currentPlayer.id ? "Victoire !" : "Défaite"}
               </CardTitle>
             </CardHeader>
@@ -139,10 +139,10 @@ export default function GamePlayPage() {
                   : `Le joueur gagnant est ${gameState.players.get(winnerId)?.username}. Tentez votre chance à nouveau !`}
               </p>
               <div className="flex gap-2 justify-center">
-                <Button onClick={() => router.push(`/games/${gameLabel}`)}>
+                <Button onClick={() => router.push(`/games/${gameLabel}`)} className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
                   Nouvelle partie
                 </Button>
-                <Button variant="outline" onClick={() => router.push('/koras')}>
+                <Button variant="outline" onClick={() => router.push('/koras')} className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
                   Retour à l'accueil
                 </Button>
               </div>

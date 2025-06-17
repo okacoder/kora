@@ -1,144 +1,117 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useGameEngine } from '../../../hooks/use-game-engine';
+import { GarameGameState, GaramePlayerState } from '../garame-types';
+import { GameRoom } from '../../../core/types';
 import { globalEventBus } from '../../../core/event-bus';
 import { gameStore } from '../../../core/game-store';
-import { GarameGameState } from '../garame-types';
-import { GarameRules } from '../garame-rules';
-import { GameRoom, BaseGameState } from '../../../core/types';
+import { useGameEngine } from '../../../hooks/use-game-engine';
 
-interface UseGarameGameProps {
-  roomId?: string;
-  gameId?: string;
-}
-
-export function useGarameGame({ roomId, gameId }: UseGarameGameProps) {
+export function useGarameGame(roomId: string) {
   const { engine, executeAction } = useGameEngine('garame');
   const [gameState, setGameState] = useState<GarameGameState | null>(null);
   const [room, setRoom] = useState<GameRoom | null>(null);
-  const [currentPlayer, setCurrentPlayer] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [currentPlayer, setCurrentPlayer] = useState<GaramePlayerState | null>(null);
+  const [opponentPlayer, setOpponentPlayer] = useState<GaramePlayerState | null>(null);
+  const [isMyTurn, setIsMyTurn] = useState(false);
 
-  // Load initial data
+  // Load room and game state
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
+    const loadGame = async () => {
+      const roomData = await gameStore.getRoom(roomId);
+      if (roomData) {
+        setRoom(roomData);
         
-        // Get current player
-        const player = await gameStore.getCurrentPlayer();
-        setCurrentPlayer(player);
-
-        // Load room if roomId provided
-        if (roomId) {
-          const roomData = await gameStore.getRoom(roomId);
-          setRoom(roomData);
-        }
-
-        // Load game state if gameId provided
-        if (gameId) {
-          const state = await gameStore.getGameState(gameId);
+        if (roomData.gameStateId) {
+          const state = await gameStore.getGameState(roomData.gameStateId);
           if (state) {
             setGameState(state as GarameGameState);
           }
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erreur de chargement');
-      } finally {
-        setLoading(false);
       }
     };
 
-    loadData();
-  }, [roomId, gameId]);
+    loadGame();
+  }, [roomId]);
+
+  // Update player states when game state changes
+  useEffect(() => {
+    if (!gameState) return;
+
+    const updatePlayerStates = async () => {
+      const player = await gameStore.getCurrentPlayer();
+      const myPlayerState = gameState.players.get(player.id) as GaramePlayerState;
+      const opponentId = Array.from(gameState.players.keys()).find(id => id !== player.id);
+      const opponentState = opponentId ? gameState.players.get(opponentId) as GaramePlayerState : null;
+
+      setCurrentPlayer(myPlayerState);
+      setOpponentPlayer(opponentState);
+      setIsMyTurn(gameState.currentPlayerId === player.id);
+    };
+
+    updatePlayerStates();
+  }, [gameState]);
 
   // Subscribe to game updates
   useEffect(() => {
-    if (!gameId) return;
+    if (!room?.gameStateId) return;
 
-    const handleGameUpdate = (data: { gameState: BaseGameState }) => {
-      setGameState(data.gameState as GarameGameState);
+    const handleGameUpdate = ({ gameState: newState }: any) => {
+      setGameState(newState as GarameGameState);
     };
 
-    globalEventBus.on(`game.${gameId}.updated`, handleGameUpdate);
+    globalEventBus.subscribe(`game.${room.gameStateId}.updated`, handleGameUpdate);
 
     return () => {
-      globalEventBus.off(`game.${gameId}.updated`, handleGameUpdate);
+      globalEventBus.unsubscribe(`game.${room.gameStateId}.updated`, handleGameUpdate);
     };
-  }, [gameId]);
+  }, [room?.gameStateId]);
 
-  // Play a card
   const playCard = useCallback(async (cardIndex: number) => {
-    if (!gameState || !currentPlayer) return;
+    if (!gameState || !currentPlayer || !isMyTurn) return;
 
-    try {
-      const newState = await executeAction(gameState.id, {
-        type: 'play_card',
-        playerId: currentPlayer.id,
-        data: {
-          cardIndex,
-          card: (gameState.players.get(currentPlayer.id) as any)?.cards[cardIndex]
-        }
-      });
+    const card = currentPlayer.cards[cardIndex];
+    const action = {
+      type: 'play_card',
+      playerId: currentPlayer.id,
+      data: {
+        cardIndex,
+        card
+      },
+      timestamp: new Date()
+    };
 
-      setGameState(newState as GarameGameState);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du coup');
-    }
-  }, [gameState, currentPlayer, executeAction]);
+    const newState = await executeAction(gameState.id, action);
+    setGameState(newState as GarameGameState);
+  }, [gameState, currentPlayer, isMyTurn, executeAction]);
 
-  // Pass Kora to another player
-  const passKora = useCallback(async (targetPlayerId: string) => {
-    if (!gameState || !currentPlayer) return;
+  const canPlayCard = useCallback((cardIndex: number): boolean => {
+    if (!gameState || !currentPlayer || !isMyTurn) return false;
 
-    try {
-      const newState = await executeAction(gameState.id, {
-        type: 'pass_kora',
-        playerId: currentPlayer.id,
-        data: {
-          targetPlayerId
-        }
-      });
+    // If player has Kora, they can play any card
+    if (currentPlayer.hasKora) return true;
 
-      setGameState(newState as GarameGameState);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du passage de Kora');
-    }
-  }, [gameState, currentPlayer, executeAction]);
+    const card = currentPlayer.cards[cardIndex];
+    if (!card) return false;
 
-  // Get valid moves for current player
-  const getValidMoves = useCallback(() => {
-    if (!gameState || !currentPlayer) return [];
+    // If no card has been played this turn, any card is valid
+    if (!gameState.lastPlayedCard) return true;
 
-    return GarameRules.getPlayableCards(gameState, currentPlayer.id);
-  }, [gameState, currentPlayer]);
-
-  // Check if it's current player's turn
-  const isMyTurn = gameState?.currentPlayerId === currentPlayer?.id;
-
-  // Get player names map
-  const getPlayerNames = useCallback(() => {
-    const names = new Map<string, string>();
-    
-    if (room) {
-      room.players.forEach(player => {
-        names.set(player.id, player.name);
-      });
+    // Must follow suit if possible
+    const hasSuit = currentPlayer.cards.some(c => c.suit === gameState.currentSuit);
+    if (hasSuit) {
+      return card.suit === gameState.currentSuit;
     }
 
-    return names;
-  }, [room]);
+    // If no cards of the required suit, any card is valid
+    return true;
+  }, [gameState, currentPlayer, isMyTurn]);
 
   return {
-    gameState,
     room,
+    gameState,
     currentPlayer,
-    loading,
-    error,
+    opponentPlayer,
     isMyTurn,
     playCard,
-    passKora,
-    getValidMoves,
-    getPlayerNames
+    canPlayCard
   };
 }
