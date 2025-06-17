@@ -60,10 +60,9 @@ model user {
   updatedAt           DateTime
   account             account[]
   session             session[]
-  createdGames        game[]        @relation("GameCreator")
-  joinedGames         game[]        @relation("GameOpponent")
   transactions        transaction[]
-  gameHistories       gameHistory[]
+  GameRoom            GameRoom[]
+  RoomPlayer          RoomPlayer[]
 
   @@index([email])
   @@index([phoneNumber])
@@ -79,45 +78,92 @@ model verification {
   updatedAt  DateTime?
 }
 
-// Modèles spécifiques à LaMap241
+// --- NOUVEAUX MODELES POUR LE SYSTEME DE JEU MULTI-JOUEURS ---
 
-enum GameType {
-  GARAM // Jeu de cartes Garame
-  // D'autres jeux pourront être ajoutés ici plus tard
+enum GameRoomStatus {
+  WAITING
+  STARTING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
-model game {
-  id            String     @id @default(cuid())
-  gameType      GameType   @default(GARAM)
-  creatorId     String
-  opponentId    String?
-  status        GameStatus @default(WAITING)
-  korasStake    Int // Mise en koras
-  totalKorasPot Int // Total des koras en jeu
-  winnerId      String?
-  currentTurn   String? // ID du joueur dont c'est le tour
-  gameData      Json? // État du jeu (cartes, scores, etc.)
-  startedAt     DateTime?
-  endedAt       DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+enum AIDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
 
-  creator       user          @relation("GameCreator", fields: [creatorId], references: [id])
-  opponent      user?         @relation("GameOpponent", fields: [opponentId], references: [id])
-  gameHistories gameHistory[]
+model GameRoom {
+  id          String         @id @default(cuid())
+  gameType    String // 'garame', 'poker', etc.
+  stake       Int
+  creatorId   String
+  creatorName String
+  status      GameRoomStatus @default(WAITING)
+  maxPlayers  Int
+  minPlayers  Int
+  totalPot    Int
+  gameStateId String?        @unique
+  settings    Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  @@index([status])
+  creator   user         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  players   RoomPlayer[]
+  gameState GameState?
+
   @@index([gameType])
+  @@index([status])
   @@index([creatorId])
-  @@index([opponentId])
 }
 
-enum GameStatus {
-  WAITING // En attente d'un adversaire
-  IN_PROGRESS // Partie en cours
-  COMPLETED // Partie terminée
-  CANCELLED // Partie annulée
+model RoomPlayer {
+  id           String        @id @default(cuid())
+  name         String
+  position     Int
+  isReady      Boolean       @default(false)
+  isAI         Boolean       @default(false)
+  aiDifficulty AIDifficulty?
+  joinedAt     DateTime      @default(now())
+
+  gameRoomId String
+  gameRoom   GameRoom @relation(fields: [gameRoomId], references: [id], onDelete: Cascade)
+
+  // Relation optionnelle à un vrai utilisateur si ce n'est pas un AI
+  userId String?
+  user   user?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([gameRoomId])
+  @@index([userId])
 }
+
+enum GameStateStatus {
+  PLAYING
+  PAUSED
+  FINISHED
+  ABANDONED
+}
+
+model GameState {
+  id              String          @id @default(cuid())
+  gameType        String
+  currentPlayerId String
+  players         Json // Map<string, BasePlayerState>
+  pot             Int
+  status          GameStateStatus @default(PLAYING)
+  winnerId        String?
+  winners         String[]
+  turn            Int
+  startedAt       DateTime        @default(now())
+  endedAt         DateTime?
+  metadata        Json?
+
+  roomId String   @unique
+  room   GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+// Modèles spécifiques à LaMap241
 
 model transaction {
   id          String            @id @default(cuid())
@@ -156,19 +202,4 @@ enum TransactionStatus {
   COMPLETED
   FAILED
   CANCELLED
-}
-
-model gameHistory {
-  id        String   @id @default(cuid())
-  gameId    String
-  userId    String
-  action    String // Type d'action (PLAY_CARD, PASS_TURN, etc.)
-  data      Json? // Données de l'action
-  createdAt DateTime @default(now())
-
-  game game @relation(fields: [gameId], references: [id])
-  user user @relation(fields: [userId], references: [id])
-
-  @@index([gameId])
-  @@index([userId])
 }

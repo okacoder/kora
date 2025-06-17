@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
-import { ITransaction } from "@/lib/garame/domain/interfaces";
+import { paymentService } from "@/lib/garame/core/payment-service";
+import { gameStore } from "@/lib/garame/core/game-store";
 
 interface DashboardStats {
   loading: boolean;
@@ -10,7 +10,7 @@ interface DashboardStats {
   totalGames: number;
   winRate: number; // 0-100
   totalGains: number; // FCFA
-  transactions: ITransaction[];
+  transactions: any[];
 }
 
 /**
@@ -18,54 +18,36 @@ interface DashboardStats {
  * Il centralise la récupération des données afin de respecter le principe DRY.
  */
 export function useDashboardStats(): DashboardStats {
-  const {paymentService} = useGarameServices();
-
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState<ITransaction[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
         setLoading(true);
-        const [bal, tx] = await Promise.all([
-          paymentService.getBalance(),
-          paymentService.getTransactionHistory(),
-        ]);
-        if (!cancelled) {
-          setBalance(bal);
-          setTransactions(tx);
-        }
+        // Simulate fetching balance and transactions from gameStore
+        const currentPlayer = await gameStore.getCurrentPlayer();
+        setBalance(currentPlayer.balance);
+        // TODO: Replace with real transaction history if available
+        setTransactions([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-
     load();
-
-    // Rafraîchissement toutes les 30 s pour garder les infos à jour.
-    const interval = setInterval(load, 30_000);
+    const interval = setInterval(load, 30000);
     return () => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [paymentService]);
+  }, []);
 
   const stats = useMemo(() => {
     const korasBalance = Math.floor(balance / 10);
-
-    const wins = transactions.filter((t) => t.type === "game_win");
-    const stakes = transactions.filter((t) => t.type === "game_stake");
-
-    const totalWins = wins.length;
-    const totalGames = stakes.length; // game_stake == parties jouées
-    const winRate = totalGames === 0 ? 0 : Math.round((totalWins / totalGames) * 100);
-
-    const totalGains = wins.reduce((acc, tx) => acc + tx.amount, 0);
-
-    return { korasBalance, totalWins, totalGames, winRate, totalGains } as const;
+    // No real transactions yet, so stats are zero
+    return { korasBalance, totalWins: 0, totalGames: 0, winRate: 0, totalGains: 0 } as const;
   }, [balance, transactions]);
 
   return {

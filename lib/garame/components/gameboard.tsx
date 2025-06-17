@@ -4,18 +4,18 @@ import { Badge } from '@/components/ui/badge';
 import { PlayingCard, CardBack } from '@/components/game-card';
 import { IconHandStop, IconCoin } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
-import type { IGameState, IPlayerGameState } from '../domain/interfaces';
+import type { BaseGameState, BasePlayerState } from '@/lib/garame/core/types';
 
 interface GameBoardPlayer {
   id: string;
   name: string;
   avatar?: string;
-  playerState: IPlayerGameState;
+  playerState: BasePlayerState & { cards?: any[]; hasKora?: boolean };
   isCurrentTurn: boolean;
 }
 
 interface GameTableProps {
-  gameState: IGameState;
+  gameState: BaseGameState;
   currentPlayerId: string;
   playerNames: Map<string, string>;
   playerAvatars?: Map<string, string>;
@@ -59,12 +59,13 @@ const GameTable = ({
     id: playerId,
     name: playerNames.get(playerId) || 'Joueur',
     avatar: playerAvatars?.get(playerId),
-    playerState,
-    isCurrentTurn: playerId === gameState.currentTurnPlayerId
+    playerState: playerState as BasePlayerState & { cards?: any[]; hasKora?: boolean },
+    isCurrentTurn: playerId === gameState.currentPlayerId
   }));
   
   const positions = getPlayerPositions(players.length);
-  const centerCard = gameState.lastPlayedCard;
+  // Try to get lastPlayedCard if present in metadata or state
+  const centerCard = (gameState as any).lastPlayedCard || gameState.metadata?.lastPlayedCard;
   
   return (
     <div className={cn("relative w-full h-full min-h-[400px] flex items-center justify-center", className)}>
@@ -193,14 +194,14 @@ const GameTable = ({
               <p className="text-sm font-semibold">{player.name}</p>
               <div className="flex items-center gap-1 justify-center">
                 <IconCoin className="size-3 text-primary" />
-                <span className="text-xs text-muted-foreground">{player.playerState.score.toLocaleString()} FCFA</span>
+                <span className="text-xs text-muted-foreground">{player.playerState.score?.toLocaleString?.() ?? 0} FCFA</span>
               </div>
             </div>
           </div>
           
           {/* Cartes du joueur */}
           <div className="flex -space-x-4 mt-1">
-            {player.playerState.cards.map((card, cardIndex) => (
+            {(player.playerState.cards || []).map((card, cardIndex) => (
               <div 
                 key={cardIndex} 
                 className={cn(
@@ -235,7 +236,7 @@ const GameTable = ({
               </Badge>
             )}
             <Badge variant="outline" className="text-xs">
-              {player.playerState.cards.length} cartes
+              {(player.playerState.cards?.length ?? 0)} cartes
             </Badge>
           </div>
         </div>

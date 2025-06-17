@@ -2,6 +2,7 @@ import { LoginForm } from "@/components/auth/login-form";
 import { PlayingCard, CardBack } from "@/components/game-card";
 import Link from "next/link";
 import { IconCards } from "@tabler/icons-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Page() {
   return (
@@ -57,7 +58,7 @@ export default function Page() {
 
       {/* Formulaire de connexion */}
       <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 relative z-10">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-md">
           <LoginForm />
         </div>
       </div>

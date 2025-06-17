@@ -1,22 +1,15 @@
-import { AuthenticatedLayout } from "@/components/auth/layouts";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { AuthenticatedLayout } from '@/components/auth/layouts';
+import { GameStoreUserSync } from '@/components/game-store-user-sync';
 
-export default async function layout({
+
+export default function AuthenticatedRootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    return;
-  }
-
+}) {
   return (
     <AuthenticatedLayout>
+      <GameStoreUserSync />
       {children}
     </AuthenticatedLayout>
   );
