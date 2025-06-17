@@ -21,6 +21,7 @@ import { useGarameServices } from "@/lib/garame/infrastructure/garame-provider";
 import { IGameRoom, IPlayer, IGameEvent } from "@/lib/garame/domain/interfaces";
 import { games } from "@/lib/games";
 import { routes } from "@/lib/routes";
+import { PlayerList } from '@/components/game/player-list';
 
 interface GameRenderer {
   renderPlayerArea: (player: IPlayer | null, isCurrentPlayer: boolean, gameRoom: IGameRoom) => React.ReactNode;
@@ -204,6 +205,28 @@ export default function GameRoomPage() {
     }
   };
 
+  // Add handler to add AI player
+  const handleAddAI = async (difficulty: 'easy' | 'medium' | 'hard') => {
+    try {
+      await gameService.addAIPlayer(roomId!, difficulty);
+      toast.success(`Bot ${difficulty} ajouté!`);
+      loadRoomData();
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout du bot');
+    }
+  };
+
+  // Add handler to kick AI player
+  const handleKickPlayer = async (playerId: string) => {
+    try {
+      await gameService.kickPlayer(roomId!, playerId);
+      toast.success('Bot retiré!');
+      loadRoomData();
+    } catch (error) {
+      toast.error('Erreur lors du retrait du bot');
+    }
+  };
+
   if (loading || !gameRoom) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] px-4">
@@ -269,6 +292,21 @@ export default function GameRoomPage() {
       </Card>
       {/* Zone de jeu - Mobile first grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        {/* Player List Integration */}
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle>Joueurs dans la salle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PlayerList
+              players={gameRoom.players}
+              maxPlayers={gameRoom.maxPlayers}
+              isHost={isCreator}
+              onAddAI={isCreator ? handleAddAI : undefined}
+              onKickPlayer={isCreator ? handleKickPlayer : undefined}
+            />
+          </CardContent>
+        </Card>
         {/* Joueur 1 (créateur) - Mobile optimized */}
         <Card className={`${isCreator ? 'border-green-500/50 shadow-green-500/10 shadow-lg' : ''} transition-all bg-card rounded-lg shadow-sm border`}>
           <CardHeader className="p-3 sm:p-4 md:p-6">

@@ -218,7 +218,7 @@ export default function KorasPage() {
     <div className="flex flex-col gap-6 px-4 lg:px-6">
       {/* Header avec soldes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-primary/20">
+        <Card className="border-primary/20 rounded-lg shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -229,13 +229,13 @@ export default function KorasPage() {
                 </p>
               </div>
               <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <IconCoin className="size-6 text-primary" />
+                <IconCoin className="size-6 text-primary align-middle inline-block" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="rounded-lg shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -246,7 +246,7 @@ export default function KorasPage() {
                 </p>
               </div>
               <div className="size-12 rounded-full bg-secondary/10 flex items-center justify-center">
-                <IconDeviceMobile className="size-6 text-secondary" />
+                <IconDeviceMobile className="size-6 text-secondary align-middle inline-block" />
               </div>
             </div>
           </CardContent>
@@ -254,16 +254,16 @@ export default function KorasPage() {
       </div>
 
       {/* Tabs pour acheter/retirer/historique */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="buy">Acheter des Koras</TabsTrigger>
-          <TabsTrigger value="withdraw">Retirer</TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 mb-3">
+          <TabsTrigger value="buy" className="min-h-[44px]">Acheter des Koras</TabsTrigger>
+          <TabsTrigger value="withdraw" className="min-h-[44px]">Retirer</TabsTrigger>
+          <TabsTrigger value="history" className="min-h-[44px]">Historique</TabsTrigger>
         </TabsList>
 
         {/* Acheter des Koras */}
         <TabsContent value="buy" className="space-y-4">
-          <Card>
+          <Card className="rounded-lg shadow-sm border">
             <CardHeader>
               <CardTitle>Acheter des Koras</CardTitle>
               <CardDescription>
@@ -278,7 +278,7 @@ export default function KorasPage() {
                   {rechargeOptions.map((option) => (
                     <Card 
                       key={option.fcfa}
-                      className={`cursor-pointer transition-all hover:shadow-md relative ${
+                      className={`cursor-pointer transition-all hover:shadow-md relative rounded-lg border ${
                         selectedAmount === option.fcfa.toString() 
                           ? 'border-primary shadow-md' 
                           : 'hover:border-primary/50'
@@ -289,7 +289,7 @@ export default function KorasPage() {
                       }}
                     >
                       {option.bonus > 0 && (
-                        <Badge className="absolute -top-2 -right-2 text-xs">
+                        <Badge className="absolute -top-2 -right-2 text-xs min-h-[24px] flex items-center">
                           +{Math.round((option.bonus / option.koras) * 100)}%
                         </Badge>
                       )}
@@ -312,7 +312,7 @@ export default function KorasPage() {
                   
                   {/* Montant personnalisé */}
                   <Card 
-                    className={`cursor-pointer transition-all hover:shadow-md ${
+                    className={`cursor-pointer transition-all hover:shadow-md rounded-lg border ${
                       selectedAmount === 'custom' 
                         ? 'border-primary shadow-md' 
                         : 'hover:border-primary/50'
@@ -320,7 +320,7 @@ export default function KorasPage() {
                     onClick={() => setSelectedAmount('custom')}
                   >
                     <CardContent className="p-4 text-center h-full flex flex-col justify-center">
-                      <IconCoin className="size-8 mx-auto mb-2" />
+                      <IconCoin className="size-8 mx-auto mb-2 align-middle inline-block" />
                       <p className="text-sm font-medium">Autre montant</p>
                     </CardContent>
                   </Card>
@@ -337,7 +337,7 @@ export default function KorasPage() {
                       value={customAmount}
                       onChange={(e) => setCustomAmount(e.target.value)}
                       placeholder="Entrez un montant"
-                      className="mt-2"
+                      className="mt-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                     />
                   </div>
                 )}
@@ -347,21 +347,17 @@ export default function KorasPage() {
               <div className="space-y-3">
                 <Label>Méthode de paiement</Label>
                 <Select value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="airtel">
-                      <div className="flex items-center gap-2">
-                        <div className="size-4 rounded-full bg-red-600" />
-                        Airtel Money
-                      </div>
+                    <SelectItem value="airtel" className="min-h-[44px] flex items-center">
+                      <div className="size-4 rounded-full bg-red-600 align-middle inline-block" />
+                      Airtel Money
                     </SelectItem>
-                    <SelectItem value="moov">
-                      <div className="flex items-center gap-2">
-                        <div className="size-4 rounded-full bg-blue-600" />
-                        Moov Money
-                      </div>
+                    <SelectItem value="moov" className="min-h-[44px] flex items-center">
+                      <div className="size-4 rounded-full bg-blue-600 align-middle inline-block" />
+                      Moov Money
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -376,6 +372,7 @@ export default function KorasPage() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="077 XX XX XX"
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 />
               </div>
 
@@ -407,14 +404,14 @@ export default function KorasPage() {
               {/* Bouton d'achat */}
               <Button 
                 size="lg" 
-                className="w-full"
+                className="w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 onClick={handleBuyKoras}
                 disabled={!selectedAmount || (selectedAmount === 'custom' && !customAmount) || !phoneNumber || loading}
               >
                 {loading ? (
-                  <IconLoader2 className="mr-2 animate-spin" />
+                  <IconLoader2 className="mr-2 animate-spin align-middle inline-block" />
                 ) : (
-                  <IconCoin className="mr-2" />
+                  <IconCoin className="mr-2 align-middle inline-block" />
                 )}
                 Acheter des Koras
               </Button>
@@ -424,7 +421,7 @@ export default function KorasPage() {
 
         {/* Retirer */}
         <TabsContent value="withdraw" className="space-y-4">
-          <Card>
+          <Card className="rounded-lg shadow-sm border">
             <CardHeader>
               <CardTitle>Retirer vos gains</CardTitle>
               <CardDescription>
@@ -443,6 +440,7 @@ export default function KorasPage() {
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   placeholder="Entrez le montant"
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 />
                 <p className="text-sm text-muted-foreground">
                   Koras nécessaires : {withdrawAmount ? Math.floor(parseInt(withdrawAmount) / FCFA_TO_KORAS_RATE) : 0}
@@ -453,21 +451,17 @@ export default function KorasPage() {
               <div className="space-y-3">
                 <Label>Recevoir sur</Label>
                 <Select value={withdrawMethod} onValueChange={(value: any) => setWithdrawMethod(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="airtel">
-                      <div className="flex items-center gap-2">
-                        <div className="size-4 rounded-full bg-red-600" />
-                        Airtel Money
-                      </div>
+                    <SelectItem value="airtel" className="min-h-[44px] flex items-center">
+                      <div className="size-4 rounded-full bg-red-600 align-middle inline-block" />
+                      Airtel Money
                     </SelectItem>
-                    <SelectItem value="moov">
-                      <div className="flex items-center gap-2">
-                        <div className="size-4 rounded-full bg-blue-600" />
-                        Moov Money
-                      </div>
+                    <SelectItem value="moov" className="min-h-[44px] flex items-center">
+                      <div className="size-4 rounded-full bg-blue-600 align-middle inline-block" />
+                      Moov Money
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -482,12 +476,13 @@ export default function KorasPage() {
                   value={withdrawPhone}
                   onChange={(e) => setWithdrawPhone(e.target.value)}
                   placeholder="077 XX XX XX"
+                  className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 />
               </div>
 
               {/* Avertissement */}
-              <div className="flex gap-2 p-3 bg-amber-500/10 rounded-lg">
-                <IconAlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex gap-2 p-3 bg-amber-500/10 rounded-lg border-2 border-amber-500/40 shadow-sm">
+                <IconAlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5 align-middle inline-block" />
                 <div className="text-sm text-amber-900 dark:text-amber-400">
                   <p className="font-semibold mb-1">Informations importantes</p>
                   <ul className="list-disc list-inside space-y-1">
@@ -501,14 +496,14 @@ export default function KorasPage() {
               {/* Bouton de retrait */}
               <Button 
                 size="lg" 
-                className="w-full"
+                className="w-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40"
                 onClick={handleWithdraw}
                 disabled={!withdrawAmount || parseInt(withdrawAmount) < 1000 || !withdrawPhone || loading}
               >
                 {loading ? (
-                  <IconLoader2 className="mr-2 animate-spin" />
+                  <IconLoader2 className="mr-2 animate-spin align-middle inline-block" />
                 ) : (
-                  <IconArrowUpRight className="mr-2" />
+                  <IconArrowUpRight className="mr-2 align-middle inline-block" />
                 )}
                 Effectuer le retrait
               </Button>
@@ -518,7 +513,7 @@ export default function KorasPage() {
 
         {/* Historique */}
         <TabsContent value="history" className="space-y-4">
-          <Card>
+          <Card className="rounded-lg shadow-sm border">
             <CardHeader>
               <CardTitle>Historique des transactions</CardTitle>
               <CardDescription>
@@ -528,11 +523,11 @@ export default function KorasPage() {
             <CardContent>
               {loadingTransactions ? (
                 <div className="flex justify-center py-8">
-                  <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+                  <IconLoader2 className="size-8 animate-spin text-muted-foreground align-middle inline-block" />
                 </div>
               ) : transactions.length === 0 ? (
                 <div className="text-center py-8">
-                  <IconHistory className="size-12 mx-auto text-muted-foreground mb-4" />
+                  <IconHistory className="size-12 mx-auto text-muted-foreground mb-4 align-middle inline-block" />
                   <p className="text-muted-foreground">Aucune transaction</p>
                 </div>
               ) : (
@@ -540,14 +535,14 @@ export default function KorasPage() {
                   {transactions.map((transaction) => (
                     <div
                       key={transaction.id}
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg border shadow-sm hover:bg-muted/50 transition-colors min-h-[56px]"
                     >
                       <div className="flex items-center gap-3">
                         <div className="size-10 rounded-full bg-muted flex items-center justify-center">
                           {getTransactionIcon(transaction.type)}
                         </div>
                         <div>
-                          <p className="font-medium">{getTransactionLabel(transaction.type)}</p>
+                          <p className="font-medium truncate max-w-[120px]">{getTransactionLabel(transaction.type)}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(transaction.createdAt).toLocaleDateString('fr-FR', {
                               day: 'numeric',
@@ -568,10 +563,10 @@ export default function KorasPage() {
                           transaction.status === 'completed' ? 'default' : 
                           transaction.status === 'pending' ? 'secondary' : 
                           'destructive'
-                        } className="text-xs">
-                          {transaction.status === 'completed' && <IconCheck className="size-3 mr-1" />}
-                          {transaction.status === 'failed' && <IconX className="size-3 mr-1" />}
-                          {transaction.status === 'pending' && <IconLoader2 className="size-3 mr-1 animate-spin" />}
+                        } className="text-xs min-h-[28px] flex items-center">
+                          {transaction.status === 'completed' && <IconCheck className="size-3 mr-1 align-middle inline-block" />}
+                          {transaction.status === 'failed' && <IconX className="size-3 mr-1 align-middle inline-block" />}
+                          {transaction.status === 'pending' && <IconLoader2 className="size-3 mr-1 animate-spin align-middle inline-block" />}
                           {transaction.status === 'completed' ? 'Complété' : 
                            transaction.status === 'pending' ? 'En cours' : 
                            'Échoué'}
@@ -587,11 +582,11 @@ export default function KorasPage() {
       </Tabs>
 
       {/* Carte bonus */}
-      <Card className="bg-gradient-to-r from-primary/10 to-secondary/10">
+      <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-sm mt-4">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
             <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center">
-              <IconGift className="size-6 text-primary" />
+              <IconGift className="size-6 text-primary align-middle inline-block" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">Bonus de bienvenue</h3>
