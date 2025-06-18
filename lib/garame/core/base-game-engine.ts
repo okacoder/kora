@@ -230,20 +230,21 @@ export abstract class BaseGameEngine {
       hard: 3000 + Math.random() * 4000
     };
 
-    const room = this.store.getRoom(gameState.roomId);
-    const aiPlayer = room?.players.find(p => p.id === gameState.currentPlayerId);
-    const delay = thinkingTime[aiPlayer?.aiDifficulty || 'medium'];
-
-    setTimeout(async () => {
-      try {
-        const aiAction = await this.getAIAction(gameState, gameState.currentPlayerId);
-        if (aiAction) {
-          await this.executeAction(gameState.id, aiAction);
+    this.store.getRoom(gameState.roomId).then(room => {
+      if (!room) return;
+      const aiPlayer = room.players.find(p => p.id === gameState.currentPlayerId);
+      const delay = thinkingTime[aiPlayer?.aiDifficulty || 'medium'];
+      setTimeout(async () => {
+        try {
+          const aiAction = await this.getAIAction(gameState, gameState.currentPlayerId);
+          if (aiAction) {
+            await this.executeAction(gameState.id, aiAction);
+          }
+        } catch (error) {
+          console.error('AI turn error:', error);
         }
-      } catch (error) {
-        console.error('AI turn error:', error);
-      }
-    }, delay);
+      }, delay);
+    });
   }
 
   protected async getAIAction(gameState: BaseGameState, aiPlayerId: string): Promise<GameAction | null> {
