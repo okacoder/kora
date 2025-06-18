@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { User } from "@prisma/client";
+import { user as User } from "@prisma/client";
 import { useUserService, useAuthService } from "@/hooks/useInjection";
 
 interface UserContextType {
