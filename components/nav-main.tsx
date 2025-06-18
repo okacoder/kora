@@ -76,7 +76,7 @@ function QuickGameButton() {
         <div className="flex flex-col gap-2">
           {games.map((game) => (
             <Button variant="ghost" key={game.id} asChild>
-              <Link href={routes.gameRoom(game.id)}>
+              <Link href={routes.gameCreate(game.id)}>
                 <game.icon className="size-5" />
                 <span>{game.name}</span>
               </Link>

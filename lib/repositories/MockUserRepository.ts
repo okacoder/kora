@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { User } from '@prisma/client';
+import { user as User } from '@prisma/client';
 import { IUserRepository, CreateUserDto, UpdateUserDto } from '@/lib/interfaces/repositories/IUserRepository';
 
 @injectable()
@@ -20,9 +20,9 @@ export class MockUserRepository implements IUserRepository {
       phoneNumber: '+1234567890',
       phoneNumberVerified: true,
       image: null,
-      koras: 1000,
-      totalWins: 0,
-      totalGames: 0,
+      koras: 5000,
+      totalWins: 10,
+      totalGames: 10,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -53,9 +53,9 @@ export class MockUserRepository implements IUserRepository {
       phoneNumber: data.phoneNumber,
       phoneNumberVerified: false,
       image: null,
-      koras: data.koras ?? 500,
-      totalWins: 0,
-      totalGames: 0,
+      koras: data.koras ?? 5000,
+      totalWins: 10,
+      totalGames: 10,
       createdAt: new Date(),
       updatedAt: new Date()
     };

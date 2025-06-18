@@ -24,7 +24,7 @@ export default function GamesPage() {
             <Card 
               key={game.id}
               className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => router.push(routes.gameLobby(game.id))}
+              onClick={() => router.push(routes.gameCreate(game.id))}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -36,7 +36,7 @@ export default function GamesPage() {
               </CardHeader>
               <CardContent>
                 <Button className="w-full" asChild>
-                  <Link href={routes.gameLobby(game.id)}>Jouer</Link>
+                  <Link href={routes.gameCreate(game.id)}>Jouer</Link>
                 </Button>
               </CardContent>
             </Card>
