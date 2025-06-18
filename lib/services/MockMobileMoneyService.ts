@@ -3,7 +3,10 @@ import {
   IMobileMoneyService, 
   MobileMoneyTransaction, 
   MobileMoneyStatus,
-  MobileMoneyProvider 
+  MobileMoneyProvider,
+  DepositRequest,
+  WithdrawRequest,
+  MobileMoneyResponse
 } from '@/lib/interfaces/services/IMobileMoneyService';
 
 @injectable()
@@ -15,34 +18,20 @@ export class MockMobileMoneyService implements IMobileMoneyService {
 
   private transactions: Map<string, MobileMoneyTransaction> = new Map();
 
-  async initiateDeposit(phoneNumber: string, amount: number): Promise<MobileMoneyTransaction> {
-    const transaction: MobileMoneyTransaction = {
-      id: `mock-dep-${Date.now()}`,
-      reference: `MOCK-REF${Date.now()}`,
-      amount,
-      phoneNumber,
-      provider: 'mock-provider',
-      status: 'completed', // Mock toujours réussi
-      createdAt: new Date()
+  async deposit(data: DepositRequest): Promise<MobileMoneyResponse> {
+    console.log('Mock deposit:', data);
+    return {
+      success: true,
+      transactionId: `mock-dep-${Date.now()}`
     };
-
-    this.transactions.set(transaction.id, transaction);
-    return transaction;
   }
 
-  async initiateWithdrawal(phoneNumber: string, amount: number): Promise<MobileMoneyTransaction> {
-    const transaction: MobileMoneyTransaction = {
-      id: `mock-wit-${Date.now()}`,
-      reference: `MOCK-REF${Date.now()}`,
-      amount,
-      phoneNumber,
-      provider: 'mock-provider',
-      status: 'completed', // Mock toujours réussi
-      createdAt: new Date()
+  async withdraw(data: WithdrawRequest): Promise<MobileMoneyResponse> {
+    console.log('Mock withdraw:', data);
+    return {
+      success: true,
+      transactionId: `mock-wit-${Date.now()}`
     };
-
-    this.transactions.set(transaction.id, transaction);
-    return transaction;
   }
 
   async checkTransactionStatus(transactionId: string): Promise<MobileMoneyStatus> {

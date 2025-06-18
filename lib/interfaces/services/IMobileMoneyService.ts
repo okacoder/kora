@@ -1,6 +1,26 @@
+export interface DepositRequest {
+  userId: string;
+  phoneNumber: string;
+  amount: number;
+  provider: 'airtel' | 'moov';
+}
+
+export interface WithdrawRequest {
+  userId: string;
+  phoneNumber: string;
+  amount: number;
+  provider: 'airtel' | 'moov';
+}
+
+export interface MobileMoneyResponse {
+  success: boolean;
+  transactionId?: string;
+  message?: string;
+}
+
 export interface IMobileMoneyService {
-  initiateDeposit(phoneNumber: string, amount: number): Promise<MobileMoneyTransaction>;
-  initiateWithdrawal(phoneNumber: string, amount: number): Promise<MobileMoneyTransaction>;
+  deposit(data: DepositRequest): Promise<MobileMoneyResponse>;
+  withdraw(data: WithdrawRequest): Promise<MobileMoneyResponse>;
   checkTransactionStatus(transactionId: string): Promise<MobileMoneyStatus>;
   getProviders(): Promise<MobileMoneyProvider[]>;
 }

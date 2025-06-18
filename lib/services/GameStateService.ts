@@ -1,8 +1,8 @@
 import { injectable, inject } from 'inversify';
-import { IGameStateService } from '@/lib/interfaces/services/IGameStateService';
-import { IGameStateRepository } from '@/lib/interfaces/repositories/IGameStateRepository';
-import { IUserService } from '@/lib/interfaces/services/IUserService';
-import { BaseGameState, Player } from '@/lib/garame/core/types';
+import type { IGameStateService } from '@/lib/interfaces/services/IGameStateService';
+import type { IGameStateRepository } from '@/lib/interfaces/repositories/IGameStateRepository';
+import type { IUserService } from '@/lib/interfaces/services/IUserService';
+import type { BaseGameState, Player } from '@/lib/garame/core/types';
 import { TYPES } from '@/lib/di/types';
 
 @injectable()
@@ -21,7 +21,7 @@ export class GameStateService implements IGameStateService {
     }
   }
 
-  async loadState(gameId: string): Promise<BaseGameState | null> {
+  async getGameState(gameId: string): Promise<BaseGameState | null> {
     return this.gameStateRepository.findById(gameId);
   }
 
