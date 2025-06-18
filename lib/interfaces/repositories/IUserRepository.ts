@@ -16,7 +16,7 @@ export interface CreateUserDto {
   email: string;
   phoneNumber: string;
   role?: 'USER' | 'ADMIN' | 'MODERATOR';
-  koras?: number;
+  koras: number;
 }
 
 export interface UpdateUserDto {

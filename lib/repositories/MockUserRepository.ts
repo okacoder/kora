@@ -53,7 +53,7 @@ export class MockUserRepository implements IUserRepository {
       phoneNumber: data.phoneNumber,
       phoneNumberVerified: false,
       image: null,
-      koras: data.koras || 0,
+      koras: data.koras ?? 500,
       totalWins: 0,
       totalGames: 0,
       createdAt: new Date(),

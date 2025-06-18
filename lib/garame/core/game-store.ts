@@ -37,6 +37,9 @@ class GameStore {
 
   private constructor() {
     this._loadFromSession();
+    if (this.rooms.size === 0) {
+      this.createDefaultAIRooms();
+    }
   }
 
   static getInstance(): GameStore {
@@ -154,6 +157,36 @@ class GameStore {
       room.status === 'waiting' && 
       (!gameType || room.gameType === gameType)
     );
+  }
+
+  createDefaultAIRooms() {
+    // Crée une room publique Garame avec 1 IA (medium)
+    const now = Date.now();
+    const room: GameRoom = {
+      id: `room-ai-default-${now}`,
+      gameType: 'garame',
+      stake: 10,
+      creatorId: 'ai-system',
+      creatorName: 'KoraBot',
+      players: [
+        {
+          id: 'ai-bot-1',
+          name: 'Bot Medium',
+          position: 0,
+          isReady: true,
+          isAI: true,
+          aiDifficulty: 'medium',
+          joinedAt: new Date()
+        }
+      ],
+      status: 'waiting',
+      maxPlayers: 2,
+      minPlayers: 2,
+      totalPot: 10,
+      settings: {},
+      createdAt: new Date(now)
+    };
+    this.rooms.set(room.id, room);
   }
 }
 

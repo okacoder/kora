@@ -33,6 +33,7 @@ export class UserRepository implements IUserRepository {
     return this.prisma.user.create({
       data: {
         ...data,
+        koras: data.koras ?? 500,
         emailVerified: false,
         phoneNumberVerified: false,
         createdAt: new Date(),
