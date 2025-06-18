@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { routes } from '@/lib/routes';
 
 export default function GamesPage() {
   const router = useRouter();
@@ -22,7 +24,7 @@ export default function GamesPage() {
             <Card 
               key={game.id}
               className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => router.push(`/games/${game.id}`)}
+              onClick={() => router.push(routes.gameLobby(game.id))}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -33,8 +35,8 @@ export default function GamesPage() {
                 <CardDescription>{game.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full">
-                  Jouer
+                <Button className="w-full" asChild>
+                  <Link href={routes.gameLobby(game.id)}>Jouer</Link>
                 </Button>
               </CardContent>
             </Card>

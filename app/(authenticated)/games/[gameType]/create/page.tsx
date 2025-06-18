@@ -63,7 +63,7 @@ export default function CreateRoomPage({ params }: CreateRoomPageProps) {
 
       // Ajouter les joueurs IA si demandé
       for (let i = 0; i < settings.aiPlayers; i++) {
-        await gameRoomService.joinRoom(room.id, true, settings.aiDifficulty);
+        await gameRoomService.joinRoom(room.id, true, settings.aiDifficulty as 'easy' | 'medium' | 'hard');
       }
 
       toast.success('Salle créée avec succès !');
