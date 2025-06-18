@@ -27,7 +27,7 @@
         "better-auth": "^1.2.4",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "inversify": "^7.0.0-alpha.5",
+        "inversify": "^7.5.2",
         "lucide-react": "^0.483.0",
         "next": "15.2.3",
         "next-themes": "^0.4.6",
@@ -46,6 +46,7 @@
         "@types/node": "^20.17.25",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "@types/reflect-metadata": "^0.0.5",
         "prisma": "^6.9.0",
         "tailwindcss": "^4",
         "tsx": "^4.19.3",
@@ -174,9 +175,11 @@
 
     "@inversifyjs/common": ["@inversifyjs/common@1.5.0", "", {}, "sha512-Qj5BELk11AfI2rgZEAaLPmOftmQRLLmoCXgAjmaF0IngQN5vHomVT5ML7DZ3+CA5fgGcEVMcGbUDAun+Rz+oNg=="],
 
-    "@inversifyjs/container": ["@inversifyjs/container@1.5.2", "", { "dependencies": { "@inversifyjs/common": "1.5.0", "@inversifyjs/core": "4.0.0", "@inversifyjs/reflect-metadata-utils": "1.1.0" }, "peerDependencies": { "reflect-metadata": "~0.2.2" } }, "sha512-z0h5iwzA/Gv/1K1ZFHj4VAXpyShOez61g4vWMaWpY4gKidsIbnn01ArRbKbsTKzwW63DniAGMhtnUO+y3htcpQ=="],
+    "@inversifyjs/container": ["@inversifyjs/container@1.10.1", "", { "dependencies": { "@inversifyjs/common": "1.5.0", "@inversifyjs/core": "5.3.1", "@inversifyjs/plugin": "0.2.0", "@inversifyjs/reflect-metadata-utils": "1.1.0" }, "peerDependencies": { "reflect-metadata": "~0.2.2" } }, "sha512-wrgiCn4R50IJQO0QBqrobdyLpzYngQCHyTAnlvgzQIfxnKrAKGGEUdDQ2bLbZXq3313GVz/Jb5C4RuW7M55cvQ=="],
 
-    "@inversifyjs/core": ["@inversifyjs/core@4.0.0", "", { "dependencies": { "@inversifyjs/common": "1.5.0", "@inversifyjs/prototype-utils": "0.1.0", "@inversifyjs/reflect-metadata-utils": "1.1.0" } }, "sha512-uNK3aFEAn5mnQ1TbPqDDG/4BMNGPZ8Jb+cDW2ualjNCiMqtIDWP2gBQf0zahxSbZnc5iVrkk7ftjX3Raze8BLQ=="],
+    "@inversifyjs/core": ["@inversifyjs/core@5.3.1", "", { "dependencies": { "@inversifyjs/common": "1.5.0", "@inversifyjs/prototype-utils": "0.1.0", "@inversifyjs/reflect-metadata-utils": "1.1.0" } }, "sha512-cWVuKb6bsULng+1RlDx/Tuq8/u5wkpHx5sSjeLsHTbNrIhd8V0FLjhET00aSzovxJLMz1dkCIMhF8HUrnboAOQ=="],
+
+    "@inversifyjs/plugin": ["@inversifyjs/plugin@0.2.0", "", {}, "sha512-R/JAdkTSD819pV1zi0HP54mWHyX+H2m8SxldXRgPQarS3ySV4KPyRdosWcfB8Se0JJZWZLHYiUNiS6JvMWSPjw=="],
 
     "@inversifyjs/prototype-utils": ["@inversifyjs/prototype-utils@0.1.0", "", { "dependencies": { "@inversifyjs/common": "1.5.0" } }, "sha512-lNz1yyajMRDXBHLvJsYYX81FcmeD15e5Qz1zAZ/3zeYTl+u7ZF/GxNRKJzNOloeMPMtuR8BnvzHA1SZxjR+J9w=="],
 
@@ -378,6 +381,8 @@
 
     "@types/react-dom": ["@types/react-dom@19.0.4", "", { "peerDependencies": { "@types/react": "^19.0.0" } }, "sha512-4fSQ8vWFkg+TGhePfUzVmat3eC14TXYSsiiDSLI0dVLsrm9gZFABjPy/Qu6TKgl1tq1Bu1yDsuQgY3A3DOjCcg=="],
 
+    "@types/reflect-metadata": ["@types/reflect-metadata@0.0.5", "", {}, "sha512-+tH+0HWHs23S4h0dl0zG8ZXIo6O9YHWOtqcOWFcBSSFS93LqIi3xfv7XXQ0eABYxXBFQxKJR49xunLNnU5he9g=="],
+
     "aria-hidden": ["aria-hidden@1.2.4", "", { "dependencies": { "tslib": "^2.0.0" } }, "sha512-y+CcFFwelSXpLZk/7fMB2mUbGtX9lKycf1MWJ7CaTIERyitVlyQx6C+sxcROU2BAJ24OiZyK+8wj2i8AlBoS3A=="],
 
     "asn1js": ["asn1js@3.0.5", "", { "dependencies": { "pvtsutils": "^1.3.2", "pvutils": "^1.1.3", "tslib": "^2.4.0" } }, "sha512-FVnvrKJwpt9LP2lAMl8qZswRNm3T4q9CON+bxldk2iwk3FFpuwhx2FfinyitizWHsVYyaY+y5JzDR0rCMV5yTQ=="],
@@ -456,7 +461,7 @@
 
     "internmap": ["internmap@2.0.3", "", {}, "sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg=="],
 
-    "inversify": ["inversify@7.0.0-alpha.5", "", { "dependencies": { "@inversifyjs/common": "1.5.0", "@inversifyjs/container": "1.5.2", "@inversifyjs/core": "4.0.0" }, "peerDependencies": { "reflect-metadata": "~0.2.2" } }, "sha512-fl09CyoTZXUc26m0GK65Cxx8B3MNjVb2vhdD/o03Vn9yXGFiQuRInvc3WC64j4QZl2UtRD9kK3Spk1junADT8g=="],
+    "inversify": ["inversify@7.5.2", "", { "dependencies": { "@inversifyjs/common": "1.5.0", "@inversifyjs/container": "1.10.1", "@inversifyjs/core": "5.3.1" }, "peerDependencies": { "reflect-metadata": "~0.2.2" } }, "sha512-RpI97sBhBntaUzN2gLRbAyhXmEbBpTNKZKlJJ6qPW3xB4D6AwBt9SP85ehE+glgqBoan24Eu2SzTGbSpgkxuLw=="],
 
     "is-arrayish": ["is-arrayish@0.3.2", "", {}, "sha512-eVRqCvVlZbuw3GrM63ovNSNAeA1K16kaR/LRY/92w0zxQ5/1YzwblUX652i4Xs9RwAGjW9d9y6X88t8OaAJfWQ=="],
 
