@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,21 +13,11 @@ import {
   IconCoin,
   IconArrowUpRight,
   IconArrowDownLeft,
-  IconHistory,
-  IconDeviceMobile,
-  IconAlertCircle,
-  IconCheck,
-  IconX,
   IconLoader2,
-  IconGift,
-  IconTrendingUp,
-  IconReceipt
-} from "@tabler/icons-react";
+  IconGift} from "@tabler/icons-react";
 import { toast } from "sonner";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import { paymentService } from "@/lib/garame/core/payment-service";
-import { gameStore } from "@/lib/garame/core/game-store";
-import type { Player } from "@/lib/garame/core/types";
+import { useUser } from "@/providers/user-provider";
+import { usePaymentService, useMobileMoneyService } from "@/hooks/useInjection";
 
 // Taux de conversion
 const FCFA_TO_KORAS_RATE = 10; // 100 FCFA = 10 koras
@@ -43,10 +33,11 @@ const rechargeOptions = [
 ];
 
 export default function KorasPage() {
-  const currentUser = useCurrentUser();
-  const [player, setPlayer] = useState<Player | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { user, refreshUser } = useUser();
+  const paymentService = usePaymentService();
+  const mobileMoneyService = useMobileMoneyService();
   
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("buy");
   
   const [selectedAmount, setSelectedAmount] = useState<string>("");
@@ -58,18 +49,8 @@ export default function KorasPage() {
   const [withdrawMethod, setWithdrawMethod] = useState<"airtel" | "moov">("airtel");
   const [withdrawPhone, setWithdrawPhone] = useState("");
 
-  useEffect(() => {
-    const fetchPlayer = async () => {
-      if (currentUser?.id) {
-        const p = await gameStore.getPlayer(currentUser.id);
-        setPlayer(p);
-      }
-    };
-    fetchPlayer();
-  }, [currentUser]);
-
   const handleBuyKoras = async () => {
-    if (!currentUser) return;
+    if (!user) return;
     const amount = selectedAmount === "custom" ? parseInt(customAmount) : parseInt(selectedAmount);
     
     if (!amount || amount < 500) {
@@ -84,29 +65,37 @@ export default function KorasPage() {
     
     setLoading(true);
     try {
-      // This is a simulation. In a real app, this would be a backend call.
-      await paymentService.processStake(currentUser.id, -amount, 'deposit'); // Use negative for deposit
+      // Process deposit through mobile money service
+      const result = await mobileMoneyService.deposit({
+        userId: user.id,
+        phoneNumber: phoneNumber,
+        amount: amount,
+        provider: paymentMethod
+      });
       
-      const option = rechargeOptions.find(opt => opt.fcfa === amount);
-      const baseKoras = Math.floor(amount / FCFA_TO_KORAS_RATE);
-      const bonusKoras = option?.bonus || 0;
-      const totalKoras = baseKoras + bonusKoras;
+      if (result.success) {
+        const option = rechargeOptions.find(opt => opt.fcfa === amount);
+        const baseKoras = Math.floor(amount / FCFA_TO_KORAS_RATE);
+        const bonusKoras = option?.bonus || 0;
+        const totalKoras = baseKoras + bonusKoras;
 
-      toast.success(
-        <div>
-          <p className="font-semibold">Achat réussi !</p>
-          <p className="text-sm">
-            Vous avez reçu {totalKoras} koras
-            {bonusKoras > 0 && ` (dont ${bonusKoras} de bonus)`}
-          </p>
-        </div>
-      );
-      
-      const p = await gameStore.getPlayer(currentUser.id);
-      setPlayer(p);
-      setSelectedAmount("");
-      setCustomAmount("");
-      setPhoneNumber("");
+        toast.success(
+          <div>
+            <p className="font-semibold">Achat réussi !</p>
+            <p className="text-sm">
+              Vous avez reçu {totalKoras} koras
+              {bonusKoras > 0 && ` (dont ${bonusKoras} de bonus)`}
+            </p>
+          </div>
+        );
+        
+        await refreshUser();
+        setSelectedAmount("");
+        setCustomAmount("");
+        setPhoneNumber("");
+      } else {
+        toast.error("Échec de la transaction");
+      }
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de l'achat");
     } finally {
@@ -115,7 +104,7 @@ export default function KorasPage() {
   };
 
   const handleWithdraw = async () => {
-    if (!currentUser || !player) return;
+    if (!user) return;
 
     const amount = parseInt(withdrawAmount);
     const korasToWithdraw = Math.floor(amount / FCFA_TO_KORAS_RATE);
@@ -125,7 +114,7 @@ export default function KorasPage() {
       return;
     }
     
-    if (korasToWithdraw > player.balance) {
+    if (korasToWithdraw > user.koras) {
       toast.error("Solde de koras insuffisant");
       return;
     }
@@ -137,19 +126,28 @@ export default function KorasPage() {
     
     setLoading(true);
     try {
-      await paymentService.processWinning(currentUser.id, -amount, 'withdraw'); // Use negative for withdraw
+      // Process withdrawal through mobile money service
+      const result = await mobileMoneyService.withdraw({
+        userId: user.id,
+        phoneNumber: withdrawPhone,
+        amount: amount,
+        provider: withdrawMethod
+      });
 
-      toast.success(
-        <div>
-          <p className="font-semibold">Retrait effectué !</p>
-          <p className="text-sm">{amount} FCFA ont été envoyés sur votre compte {withdrawMethod}</p>
-        </div>
-      );
-      
-      const p = await gameStore.getPlayer(currentUser.id);
-      setPlayer(p);
-      setWithdrawAmount("");
-      setWithdrawPhone("");
+      if (result.success) {
+        toast.success(
+          <div>
+            <p className="font-semibold">Retrait effectué !</p>
+            <p className="text-sm">{amount} FCFA ont été envoyés sur votre compte {withdrawMethod}</p>
+          </div>
+        );
+        
+        await refreshUser();
+        setWithdrawAmount("");
+        setWithdrawPhone("");
+      } else {
+        toast.error("Échec du retrait");
+      }
     } catch (error: any) {
       toast.error(error.message || "Erreur lors du retrait");
     } finally {
@@ -157,7 +155,7 @@ export default function KorasPage() {
     }
   };
 
-  const korasBalance = player?.balance || 0;
+  const korasBalance = user?.koras || 0;
 
   return (
     <div className="container mx-auto px-4 py-8">

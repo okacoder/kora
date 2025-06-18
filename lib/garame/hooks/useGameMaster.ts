@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useGameEngine } from "../hooks/use-game-engine";
-import { globalEventBus } from "../core/event-bus";
-import { gameStore } from "../core/game-store";
+import { useGameStateService, useEventBus } from "@/hooks/useInjection";
 import { toast } from "sonner";
 
 interface UseGameMasterOptions {
@@ -17,13 +16,16 @@ export function useGameMaster({ gameId, playerId, onGameEnd }: UseGameMasterOpti
   const { engine, executeAction } = useGameEngine('garame');
   const [loading, setLoading] = useState(true);
   const [gameState, setGameState] = useState<any>(null);
+  
+  const gameStateService = useGameStateService();
+  const eventBus = useEventBus();
 
   // Fetch initial game state
   useEffect(() => {
     async function fetchGameState() {
       setLoading(true);
       try {
-        const state = await gameStore.getGameState(gameId);
+        const state = await gameStateService.getGameState(gameId);
         setGameState(state);
       } catch (error) {
         toast.error("Impossible de charger la partie.");
@@ -32,11 +34,12 @@ export function useGameMaster({ gameId, playerId, onGameEnd }: UseGameMasterOpti
       }
     }
     fetchGameState();
-  }, [gameId]);
+  }, [gameId, gameStateService]);
 
   // Subscribe to game events
   useEffect(() => {
     if (!gameId) return;
+    
     const handleGameEvent = (event: any) => {
       if (event.type === 'game_state_updated' && event.gameId === gameId) {
         const newState = event.data;
@@ -48,9 +51,10 @@ export function useGameMaster({ gameId, playerId, onGameEnd }: UseGameMasterOpti
         }
       }
     };
-    globalEventBus.on(`game.${gameId}.updated`, handleGameEvent);
-    return () => globalEventBus.off(`game.${gameId}.updated`, handleGameEvent);
-  }, [gameId, onGameEnd, playerId]);
+    
+    eventBus.on(`game.${gameId}.updated`, handleGameEvent);
+    return () => eventBus.off(`game.${gameId}.updated`, handleGameEvent);
+  }, [gameId, onGameEnd, playerId, eventBus]);
 
   async function playCard(cardIndex: number) {
     if (!gameState) {
@@ -67,7 +71,7 @@ export function useGameMaster({ gameId, playerId, onGameEnd }: UseGameMasterOpti
       toast.error("Cette carte n'est pas dans votre main");
       return;
     }
-    // L'état est mis à jour via l'event, pas besoin de setGameState ici.
+    
     try {
       await executeAction(gameState.id, {
         type: 'play_card',

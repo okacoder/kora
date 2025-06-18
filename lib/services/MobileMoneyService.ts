@@ -3,7 +3,10 @@ import {
   IMobileMoneyService, 
   MobileMoneyTransaction, 
   MobileMoneyStatus,
-  MobileMoneyProvider 
+  MobileMoneyProvider,
+  DepositRequest,
+  WithdrawRequest,
+  MobileMoneyResponse
 } from '@/lib/interfaces/services/IMobileMoneyService';
 
 @injectable()
@@ -13,45 +16,36 @@ export class MobileMoneyService implements IMobileMoneyService {
     { id: 'moov', name: 'Moov Money', logo: '/images/moov-logo.png', active: true },
   ];
 
-  async initiateDeposit(phoneNumber: string, amount: number): Promise<MobileMoneyTransaction> {
+  async deposit({ phoneNumber, amount, userId, provider }: DepositRequest): Promise<MobileMoneyResponse> {
     // Intégration avec l'API Mobile Money réelle
     // Pour le moment, simulation
-    const transaction: MobileMoneyTransaction = {
-      id: `dep-${Date.now()}`,
-      reference: `REF${Date.now()}`,
-      amount,
-      phoneNumber,
-      provider: this.detectProvider(phoneNumber),
-      status: 'pending',
-      createdAt: new Date()
-    };
+    console.log(`Deposit received for user ${userId} with amount ${amount} via ${provider}`);
+    const transactionId = `dep-${Date.now()}`;
 
     // Simuler l'appel API
-    setTimeout(() => {
-      // Marquer comme complété après 5 secondes
-      this.updateTransactionStatus(transaction.id, 'completed');
-    }, 5000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
-    return transaction;
+    // Simuler un succès
+    return {
+      success: true,
+      transactionId: transactionId,
+      message: 'Deposit initiated successfully.'
+    };
   }
 
-  async initiateWithdrawal(phoneNumber: string, amount: number): Promise<MobileMoneyTransaction> {
-    const transaction: MobileMoneyTransaction = {
-      id: `wit-${Date.now()}`,
-      reference: `REF${Date.now()}`,
-      amount,
-      phoneNumber,
-      provider: this.detectProvider(phoneNumber),
-      status: 'pending',
-      createdAt: new Date()
-    };
+  async withdraw({ phoneNumber, amount, userId, provider }: WithdrawRequest): Promise<MobileMoneyResponse> {
+    console.log(`Withdrawal received for user ${userId} with amount ${amount} via ${provider}`);
+    const transactionId = `wit-${Date.now()}`;
 
     // Simuler l'appel API
-    setTimeout(() => {
-      this.updateTransactionStatus(transaction.id, 'completed');
-    }, 7000);
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
-    return transaction;
+    // Simuler un succès
+    return {
+      success: true,
+      transactionId: transactionId,
+      message: 'Withdrawal initiated successfully.'
+    };
   }
 
   async checkTransactionStatus(transactionId: string): Promise<MobileMoneyStatus> {

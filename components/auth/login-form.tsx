@@ -47,7 +47,8 @@ export function LoginForm({
           setLoading(true);
         },
         onSuccess: (ctx) => {
-          router.push(callbackUrl || "/dashboard");
+          setLoading(false);
+          router.push(callbackUrl || "/");
         },
         onError: (ctx) => {
           // display the error message

@@ -4,15 +4,25 @@
   "private": true,
   "scripts": {
     "dev": "next dev --experimental-https --port 4000",
+    "dev:mock": "cross-env NEXT_PUBLIC_USE_MOCK=true next dev --experimental-https --port 4000",
     "dev:db": "cross-env NEXT_PUBLIC_USE_MOCK=false next dev --experimental-https --port 4000",
     "build": "next build",
+    "build:mock": "cross-env NEXT_PUBLIC_USE_MOCK=true next build",
+    "build:real": "cross-env NEXT_PUBLIC_USE_MOCK=false next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "postinstall": "prisma generate",
     "db:start": "docker-compose up -d",
     "db:stop": "docker-compose down",
     "db:restart": "docker-compose down && docker-compose up -d",
-    "db:logs": "docker-compose logs -f"
+    "db:logs": "docker-compose logs -f",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
