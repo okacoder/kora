@@ -14,25 +14,25 @@ class PaymentServiceImpl implements PaymentService {
   }
 
   async processStake(playerId: string, amount: number, roomId: string): Promise<void> {
-    // Deduct stake from player balance
+    // Déduire la mise du solde du joueur (en koras)
     await gameStore.updatePlayerBalance(playerId, -amount);
     
-    // In a real implementation, this would:
-    // 1. Create a transaction record
-    // 2. Update the room's pot
-    // 3. Handle payment gateway integration
-    console.log(`Processed stake: Player ${playerId} staked ${amount} FCFA in room ${roomId}`);
+    // Dans une vraie implémentation :
+    // 1. Créer un enregistrement de transaction
+    // 2. Mettre à jour le pot de la room
+    // 3. Gérer l'intégration avec la passerelle de paiement si besoin
+    console.log(`Processed stake: Player ${playerId} staked ${amount} koras in room ${roomId}`);
   }
 
   async processWinning(playerId: string, amount: number, gameId: string): Promise<void> {
-    // Add winnings to player balance
+    // Ajouter les gains au solde du joueur (en koras)
     await gameStore.updatePlayerBalance(playerId, amount);
     
-    // In a real implementation, this would:
-    // 1. Create a transaction record
-    // 2. Update player statistics
-    // 3. Handle tax calculations if needed
-    console.log(`Processed winning: Player ${playerId} won ${amount} FCFA from game ${gameId}`);
+    // Dans une vraie implémentation :
+    // 1. Créer un enregistrement de transaction
+    // 2. Mettre à jour les statistiques du joueur
+    // 3. Gérer la fiscalité si besoin
+    console.log(`Processed winning: Player ${playerId} won ${amount} koras from game ${gameId}`);
   }
 
   async getPlayerBalance(playerId: string): Promise<number> {

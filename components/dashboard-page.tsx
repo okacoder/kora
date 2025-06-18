@@ -75,7 +75,7 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">Solde</p>
               <p className="text-2xl font-bold">{user?.koras || 0} Koras</p>
               <p className="text-xs text-muted-foreground">
-                ≈ {(user?.koras || 0) * 10} FCFA
+                {user?.koras?.toLocaleString()} koras
               </p>
             </div>
             <Link href="/koras">

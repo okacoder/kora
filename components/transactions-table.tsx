@@ -59,7 +59,9 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                 <div className="text-right">
                   <p className={`font-semibold ${tx.amount > 0 ? "text-green-600" : "text-red-600"}`}>
                     {tx.amount > 0 ? "+" : ""}
-                    {tx.amount.toLocaleString()} FCFA
+                    {tx.type === 'deposit' || tx.type === 'withdrawal'
+                      ? `${tx.amount.toLocaleString()} FCFA`
+                      : `${tx.amount.toLocaleString()} koras`}
                   </p>
                   <Badge variant="outline" className="text-xs capitalize">
                     {tx.status}

@@ -67,7 +67,7 @@ function GamePage({ gameLabel }: GamePageProps) {
   const [availableGames, setAvailableGames] = useState<GameRoom[]>([]);
   const [loadingGames, setLoadingGames] = useState(true);
 
-  const userBalance = currentUser?.koras || 5000;
+  const userBalance = currentUser?.koras || 0;
 
   // Load available games
   useEffect(() => {
@@ -149,7 +149,7 @@ function GamePage({ gameLabel }: GamePageProps) {
           <IconCoin className="size-5 text-primary" />
           <div className="flex flex-col">
             <p className="text-sm font-semibold">{userBalance.toLocaleString()} koras</p>
-            <p className="text-xs text-muted-foreground">≈ {(userBalance * 10).toLocaleString()} FCFA</p>
+            <p className="text-xs text-muted-foreground">{userBalance.toLocaleString()} koras</p>
           </div>
         </div>
       </div>

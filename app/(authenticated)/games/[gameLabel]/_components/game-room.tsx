@@ -229,7 +229,7 @@ export default function GameRoomPage({ gameLabel, roomId }: GameRoomPageProps) {
           <CardDescription className="text-sm sm:text-base mt-2">
             <div className="flex items-center justify-center gap-2">
               <IconCoin className="h-4 w-4 align-middle inline-block" />
-              <span>Mise totale : {gameRoom.totalPot.toLocaleString()} FCFA</span>
+              <span>Mise totale : {gameRoom.totalPot.toLocaleString()} koras</span>
             </div>
           </CardDescription>
         </CardHeader>
@@ -263,25 +263,25 @@ export default function GameRoomPage({ gameLabel, roomId }: GameRoomPageProps) {
           <div className="grid grid-cols-2 gap-3 sm:block sm:space-y-3">
             <div className="sm:flex sm:items-center sm:justify-between">
               <span className="text-xs sm:text-sm text-muted-foreground block sm:inline">Mise par joueur</span>
-              <span className="font-semibold text-sm sm:text-base">{gameRoom.stake.toLocaleString()} FCFA</span>
+              <span className="font-semibold text-sm sm:text-base">{gameRoom.stake.toLocaleString()} koras</span>
             </div>
             <div className="sm:hidden"></div>
             <Separator className="col-span-2 sm:col-span-1" />
             <div className="sm:flex sm:items-center sm:justify-between">
               <span className="text-xs sm:text-sm text-muted-foreground block sm:inline">Pot total</span>
-              <span className="font-semibold text-base sm:text-lg">{gameRoom.totalPot.toLocaleString()} FCFA</span>
+              <span className="font-semibold text-base sm:text-lg">{gameRoom.totalPot.toLocaleString()} koras</span>
             </div>
             <div className="sm:hidden"></div>
             <Separator className="col-span-2 sm:col-span-1" />
             <div className="sm:flex sm:items-center sm:justify-between">
               <span className="text-xs sm:text-sm text-muted-foreground block sm:inline">Gain (90%)</span>
               <span className="font-semibold text-sm sm:text-base text-green-600">
-                {Math.floor(gameRoom.totalPot * 0.9).toLocaleString()} FCFA
+                {Math.floor(gameRoom.totalPot * 0.9).toLocaleString()} koras
               </span>
             </div>
             <div className="sm:flex sm:items-center sm:justify-between">
               <span className="text-xs sm:text-sm text-muted-foreground block sm:inline">Commission</span>
-              <span className="text-xs sm:text-sm">{Math.floor(gameRoom.totalPot * 0.1).toLocaleString()} FCFA</span>
+              <span className="text-xs sm:text-sm">{Math.floor(gameRoom.totalPot * 0.1).toLocaleString()} koras</span>
             </div>
           </div>
         </CardContent>

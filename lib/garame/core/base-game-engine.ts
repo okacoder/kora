@@ -39,8 +39,8 @@ export abstract class BaseGameEngine {
       throw new GameError(ErrorCodes.INVALID_STATE, 'Mise minimum: 10 koras');
     }
 
-    const stakeInFCFA = stake * 10;
-    if (player.balance < stakeInFCFA) {
+    // Vérifier que le joueur a assez de koras
+    if (player.balance < stake) {
       throw new GameError(ErrorCodes.INSUFFICIENT_BALANCE, 'Solde insuffisant');
     }
 
@@ -60,11 +60,11 @@ export abstract class BaseGameEngine {
       status: 'waiting',
       maxPlayers: gameDefinition.maxPlayers,
       minPlayers: gameDefinition.minPlayers,
-      totalPot: stakeInFCFA,
+      totalPot: stake,
       settings
     });
 
-    await this.payment.processStake(player.id, stakeInFCFA, room.id);
+    await this.payment.processStake(player.id, stake, room.id);
     await this.events.emit('room.created', { room, player });
 
     return room;
@@ -99,12 +99,12 @@ export abstract class BaseGameEngine {
       playerId = player.id;
       playerName = player.username;
 
-      const stakeInFCFA = room.stake * 10;
-      if (player.balance < stakeInFCFA) {
+      // Vérifier que le joueur a assez de koras
+      if (player.balance < room.stake) {
         throw new GameError(ErrorCodes.INSUFFICIENT_BALANCE, 'Solde insuffisant');
       }
 
-      await this.payment.processStake(playerId, stakeInFCFA, room.id);
+      await this.payment.processStake(playerId, room.stake, room.id);
     }
 
     // Find next available position
@@ -122,7 +122,8 @@ export abstract class BaseGameEngine {
       joinedAt: new Date()
     });
 
-    room.totalPot += room.stake * 10;
+    // Le pot est en koras, on ajoute simplement la mise
+    room.totalPot += room.stake;
 
     // Check if we can start
     if (room.players.length >= room.minPlayers) {

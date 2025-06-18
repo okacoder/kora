@@ -36,7 +36,7 @@ export default function GamePlayPage({ gameLabel, gameId }: GamePlayPageProps) {
     setWinnerId(theWinnerId);
     setShowEndGameModal(true);
     if (theWinnerId === currentPlayer?.id) {
-      toast.success(`Félicitations ! Vous avez gagné ${gain.toLocaleString()} FCFA !`);
+      toast.success(`Félicitations ! Vous avez gagné ${gain.toLocaleString()} koras !`);
     } else {
       toast.error("Vous avez perdu cette partie. Tentez votre chance à nouveau !");
     }
@@ -84,7 +84,7 @@ export default function GamePlayPage({ gameLabel, gameId }: GamePlayPageProps) {
           <Card className="h-12 flex items-center justify-center px-3 rounded-lg shadow-sm">
             <CardContent className="flex items-center gap-2 p-0">
               <IconCoin className="size-5 text-primary align-middle inline-block" />
-              <span className="font-bold">{gameState.pot.toLocaleString()} FCFA</span>
+              <span className="font-bold">{gameState.pot.toLocaleString()} koras</span>
             </CardContent>
           </Card>
         </div>
@@ -139,7 +139,7 @@ export default function GamePlayPage({ gameLabel, gameId }: GamePlayPageProps) {
             <CardContent className="text-center space-y-4">
               <p className="text-lg">
                 {winnerId === currentPlayer.id 
-                  ? `Vous avez gagné ${Math.floor(gameState.pot * 0.9).toLocaleString()} FCFA !`
+                  ? `Vous avez gagné ${Math.floor(gameState.pot * 0.9).toLocaleString()} koras !`
                   : `Le joueur gagnant est Player ${(gameState.players.get(winnerId)?.position ?? 0) + 1}. Tentez votre chance à nouveau !`}
               </p>
               <div className="flex gap-2 justify-center">

@@ -12,7 +12,7 @@ import {
 
 interface DashboardSummaryCardsProps {
   koras: number;
-  totalGains: number; // FCFA
+  totalGains: number; // koras
   totalGames: number;
   winRate: number; // 0-100
   className?: string;
@@ -55,7 +55,7 @@ export function DashboardSummaryCards({
         <CardHeader>
           <CardDescription>Gains cumulés</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {totalGains.toLocaleString()} FCFA
+            {totalGains.toLocaleString()} koras
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
