@@ -9,6 +9,7 @@ interface UserContextType {
   loading: boolean;
   error: Error | null;
   refreshUser: () => Promise<void>;
+  updateBalance: (newBalance: number) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -44,8 +45,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     await loadUser();
   };
 
+  const updateBalance = (newBalance: number) => {
+    if (user) {
+      setUser({ ...user, koras: newBalance });
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, loading, error, refreshUser }}>
+    <UserContext.Provider value={{ user, loading, error, refreshUser, updateBalance }}>
       {children}
     </UserContext.Provider>
   );
