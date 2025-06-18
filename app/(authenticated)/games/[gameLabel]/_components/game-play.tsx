@@ -96,8 +96,8 @@ export default function GamePlayPage({ gameLabel, gameId }: GamePlayPageProps) {
       <GameTable
         gameState={gameState}
         currentPlayerId={currentPlayer.id}
-        playerNames={new Map(Array.from(gameState.players.values()).map(p => [p.playerId, p.username]))}
-        playerAvatars={new Map(Array.from(gameState.players.values()).map(p => [p.playerId, p.avatar || '']))}
+        playerNames={new Map(Array.from(gameState.players.entries()).map(([id, p]) => [id, `Player ${p.position + 1}`]))}
+        playerAvatars={new Map(Array.from(gameState.players.entries()).map(([id, p]) => [id, '']))}
         onCardClick={(_playerId, cardIndex) => playCard(cardIndex)}
         className="mt-16"
       />
@@ -140,7 +140,7 @@ export default function GamePlayPage({ gameLabel, gameId }: GamePlayPageProps) {
               <p className="text-lg">
                 {winnerId === currentPlayer.id 
                   ? `Vous avez gagné ${Math.floor(gameState.pot * 0.9).toLocaleString()} FCFA !`
-                  : `Le joueur gagnant est ${gameState.players.get(winnerId)?.username}. Tentez votre chance à nouveau !`}
+                  : `Le joueur gagnant est Player ${(gameState.players.get(winnerId)?.position ?? 0) + 1}. Tentez votre chance à nouveau !`}
               </p>
               <div className="flex gap-2 justify-center">
                 <Button onClick={() => router.push(`/games/${gameLabel}`)} className="min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/40">
