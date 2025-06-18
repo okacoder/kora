@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ export function LoginForm({
   async function handleSubmit(e: any) {
     e.preventDefault();
 
-    const { data, error } = await authClient.signIn.username(
+    await authClient.signIn.username(
       {
         username,
         password,

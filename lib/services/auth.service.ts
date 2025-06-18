@@ -1,5 +1,7 @@
+'use server';
+
 import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import type { Session } from '@/lib/auth';
 
 class AuthService {
@@ -16,8 +18,12 @@ class AuthService {
 
   async getSession(): Promise<Session | null> {
     try {
+      const cookieStore = cookies();
+      const headers = new Headers();
+      headers.set('Cookie', cookieStore.toString());
+
       const session = await auth.api.getSession({
-        headers: await headers(),
+        headers,
       });
       return session;
     } catch (error) {
@@ -39,6 +45,32 @@ class AuthService {
   async hasRole(role: string): Promise<boolean> {
     const session = await this.getSession();
     return session?.user?.role === role;
+  }
+
+  async updateUser(userId: string, data: {
+    username?: string;
+    phoneNumber?: string;
+    role?: 'USER' | 'ADMIN' | 'MODERATOR';
+    koras?: number;
+    totalWins?: number;
+    totalGames?: number;
+  }): Promise<void> {
+    try {
+      const cookieStore = cookies();
+      const headers = new Headers();
+      headers.set('Cookie', cookieStore.toString());
+
+      await auth.api.updateUser({
+        headers,
+        body: {
+          id: userId,
+          ...data,
+        },
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
   }
 }
 
