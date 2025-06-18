@@ -6,16 +6,20 @@ import { Button } from '@/components/ui/button';
 import { IconCoin, IconTrophy, IconCards, IconChartBar, IconLoader2 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useUser } from '@/providers/user-provider';
-import { useGameRoomService, usePaymentService } from '@/hooks/useInjection';
-import { GameRoom } from '@/lib/garame/core/types';
+import { gameService } from '@/lib/services/game.service';
+import { transactionService } from '@/lib/services/transaction.service';
+import { GameRoom, GameRoomStatus, RoomPlayer } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// Extended GameRoom type to include players
+interface GameRoomWithPlayers extends GameRoom {
+  players: RoomPlayer[];
+}
 
 export default function DashboardPage() {
   const { user, loading: userLoading } = useUser();
-  const gameRoomService = useGameRoomService();
-  const paymentService = usePaymentService();
   
-  const [activeRooms, setActiveRooms] = useState<GameRoom[]>([]);
+  const [activeRooms, setActiveRooms] = useState<GameRoomWithPlayers[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalGames: 0,
@@ -38,13 +42,13 @@ export default function DashboardPage() {
       setLoading(true);
       
       // Charger les salles actives
-      const rooms = await gameRoomService.getUserRooms(user.id);
+      const rooms = await gameService.getUserRooms(user.id);
       setActiveRooms(rooms.filter(r => 
-        r.status === 'waiting' || r.status === 'in_progress'
-      ));
+        r.status === 'WAITING' || r.status === 'IN_PROGRESS'
+      ) as GameRoomWithPlayers[]);
 
       // Calculer les statistiques
-      const transactions = await paymentService.getTransactionHistory(user.id, 100);
+      const transactions = await transactionService.getUserTransactions(user.id, 100);
       const wins = transactions.filter(t => t.type === 'GAME_WIN');
       const totalEarnings = wins.reduce((sum, t) => sum + (t.koras || 0), 0);
 
@@ -216,7 +220,7 @@ function DashboardSkeleton() {
 }
 
 // Placeholder components that would need to be created separately
-function ActiveGamesCard({ rooms }: { rooms: GameRoom[] }) {
+function ActiveGamesCard({ rooms }: { rooms: GameRoomWithPlayers[] }) {
   return (
     <Card>
       <CardHeader>

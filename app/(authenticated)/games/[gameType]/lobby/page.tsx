@@ -20,9 +20,15 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { useGameRoomService, useEventBus } from '@/hooks/useInjection';
-import { GameRoom } from '@/lib/garame/core/types';
+import { gameService } from '@/lib/services/game.service';
+import { useGame } from '@/hooks/useGame';
+import { useCurrentUser } from '@/hooks/useUser';
+import { GameRoom, GameRoomStatus, RoomPlayer } from '@prisma/client';
 
+// Extended GameRoom type to include players
+interface GameRoomWithPlayers extends GameRoom {
+  players: RoomPlayer[];
+}
 
 interface LobbyPageProps {
   params: { gameType: string };
@@ -30,45 +36,31 @@ interface LobbyPageProps {
 
 export default function LobbyPage({ params }: LobbyPageProps) {
   const router = useRouter();
-  const gameRoomService = useGameRoomService();
-  const eventBus = useEventBus();
+  const { user } = useCurrentUser();
+  const { joinRoom: joinGameRoom, loading: gameLoading } = useGame();
 
-  const [rooms, setRooms] = useState<GameRoom[]>([]);
+  const [rooms, setRooms] = useState<GameRoomWithPlayers[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({
     stake: 'all',
-    status: 'waiting'
+    status: 'WAITING'
   });
   const [searchCode, setSearchCode] = useState('');
 
   useEffect(() => {
     loadRooms();
     
-    // S'abonner aux événements de mise à jour
-    const handleRoomUpdate = (data: any) => {
-      if (data.room && data.room.gameType === params.gameType) {
-        loadRooms();
-      }
-    };
-    
-    eventBus.on('room.created', handleRoomUpdate);
-    eventBus.on('room.updated', handleRoomUpdate);
-    eventBus.on('room.player_joined', handleRoomUpdate);
-
     // Rafraîchir automatiquement toutes les 10 secondes
     const interval = setInterval(loadRooms, 10000);
 
     return () => {
-      eventBus.off('room.created', handleRoomUpdate);
-      eventBus.off('room.updated', handleRoomUpdate);
-      eventBus.off('room.player_joined', handleRoomUpdate);
       clearInterval(interval);
     };
-  }, [params.gameType, filter, eventBus, gameRoomService]);
+  }, [params.gameType, filter]);
 
   const loadRooms = async () => {
     try {
-      const availableRooms = await gameRoomService.getAvailableRooms(params.gameType);
+      const availableRooms = await gameService.getAvailableRooms(params.gameType);
       
       // Filtrer selon les critères
       let filteredRooms = availableRooms;
@@ -78,7 +70,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         filteredRooms = filteredRooms.filter(room => room.stake <= maxStake);
       }
 
-      setRooms(filteredRooms);
+      setRooms(filteredRooms as GameRoomWithPlayers[]);
     } catch (error) {
       toast.error('Erreur lors du chargement des salles');
     } finally {
@@ -87,8 +79,13 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   };
 
   const handleJoinRoom = async (roomId: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour rejoindre une salle');
+      return;
+    }
+
     try {
-      await gameRoomService.joinRoom(roomId);
+      await joinGameRoom(roomId, user.id);
       router.push(`/games/${params.gameType}/room/${roomId}`);
     } catch (error: any) {
       toast.error(error.message || 'Impossible de rejoindre la salle');
@@ -99,7 +96,13 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     if (!searchCode) return;
     
     // Chercher la salle par code
-    const room = rooms.find(r => r.settings?.roomCode === searchCode);
+    const room = rooms.find(r => {
+      const settings = typeof r.settings === 'string' 
+        ? JSON.parse(r.settings as string) 
+        : r.settings;
+      return settings?.roomCode === searchCode;
+    });
+    
     if (room) {
       handleJoinRoom(room.id);
     } else {
@@ -107,20 +110,22 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     }
   };
 
-  const getRoomStatusColor = (status: string) => {
+  const getRoomStatusColor = (status: GameRoomStatus) => {
     switch (status) {
-      case 'waiting': return 'bg-green-500';
-      case 'starting': return 'bg-yellow-500';
-      case 'in_progress': return 'bg-red-500';
+      case 'WAITING': return 'bg-green-500';
+      case 'STARTING': return 'bg-yellow-500';
+      case 'IN_PROGRESS': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
 
-  const getRoomStatusText = (status: string) => {
+  const getRoomStatusText = (status: GameRoomStatus) => {
     switch (status) {
-      case 'waiting': return 'En attente';
-      case 'starting': return 'Démarre...';
-      case 'in_progress': return 'En cours';
+      case 'WAITING': return 'En attente';
+      case 'STARTING': return 'Démarre...';
+      case 'IN_PROGRESS': return 'En cours';
+      case 'COMPLETED': return 'Terminée';
+      case 'CANCELLED': return 'Annulée';
       default: return status;
     }
   };
@@ -260,7 +265,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 <Button 
                   onClick={() => handleJoinRoom(room.id)}
                   className="w-full"
-                  disabled={room.status !== 'waiting' || room.players.length >= room.maxPlayers}
+                  disabled={room.status !== 'WAITING' || room.players.length >= room.maxPlayers}
                 >
                   {room.players.length >= room.maxPlayers ? 'Salle pleine' : 'Rejoindre'}
                 </Button>

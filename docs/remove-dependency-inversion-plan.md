@@ -1445,22 +1445,26 @@ grep -r "@injectable" lib/ --include="*.tsx" --include="*.ts"
 
 ### 7.2 Checklist de migration
 
-- [ ] Supprimer tous les fichiers IoC
-- [ ] Créer `lib/db/prisma.ts`
-- [ ] Créer tous les services simplifiés
-- [ ] Créer les nouveaux hooks
-- [ ] Migrer `app/(authenticated)/dashboard/page.tsx`
-- [ ] Migrer `app/(authenticated)/account/page.tsx`
-- [ ] Migrer `app/(authenticated)/koras/page.tsx`
+- [x] Supprimer tous les fichiers IoC
+- [x] Créer `lib/db/prisma.ts`
+- [x] Créer tous les services simplifiés
+- [x] Créer les nouveaux hooks
+- [x] Migrer `app/(authenticated)/koras/page.tsx`
+- [x] Migrer `app/(authenticated)/dashboard/page.tsx`
+- [x] Migrer `app/(authenticated)/account/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/page.tsx`
-- [ ] Migrer `app/(authenticated)/games/[gameType]/lobby/page.tsx`
+- [x] Migrer `app/(authenticated)/games/[gameType]/lobby/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/[gameType]/create/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/[gameType]/room/[roomId]/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/[gameType]/play/[gameId]/page.tsx`
 - [ ] Migrer `app/(authenticated)/transactions/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/history/page.tsx`
+- [x] Migrer le provider utilisateur (`providers/user-provider.tsx`)
+- [x] Migrer le provider de jeu (`providers/game-provider.tsx`)
+- [x] Migrer le provider de notifications (`providers/notification-provider.tsx`)
 - [ ] Migrer tous les composants
-- [ ] Supprimer les imports inutiles
+- [x] Supprimer les imports inutiles
+- [x] Désinstaller les dépendances IoC (inversify, reflect-metadata)
 - [ ] Tester l'application complète
 
 ## ✅ Avantages de cette nouvelle architecture

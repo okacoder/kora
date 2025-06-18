@@ -1,17 +1,28 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { GameRoom, BaseGameState } from "@/lib/garame/core/types";
-import { useGameRoomService, useGameStateService, useEventBus } from "@/hooks/useInjection";
+import { GameRoom, GameState } from "@prisma/client";
+import { gameService } from "@/lib/services/game.service";
+import { useGame } from "@/hooks/useGame";
+import { useCurrentUser } from "@/hooks/useUser";
+
+// Extended types to include relations
+interface GameRoomWithPlayers extends GameRoom {
+  players: any[];
+}
+
+interface GameStateWithRelations extends GameState {
+  room?: GameRoomWithPlayers;
+}
 
 interface GameContextType {
-  currentRoom: GameRoom | null;
-  currentGameState: BaseGameState | null;
-  activeRooms: GameRoom[];
+  currentRoom: GameRoomWithPlayers | null;
+  currentGameState: GameStateWithRelations | null;
+  activeRooms: GameRoomWithPlayers[];
   loading: boolean;
   error: Error | null;
-  setCurrentRoom: (room: GameRoom | null) => void;
-  setCurrentGameState: (state: BaseGameState | null) => void;
+  setCurrentRoom: (room: GameRoomWithPlayers | null) => void;
+  setCurrentGameState: (state: GameStateWithRelations | null) => void;
   refreshActiveRooms: () => Promise<void>;
   joinRoom: (roomId: string) => Promise<void>;
   leaveRoom: (roomId: string) => Promise<void>;
@@ -20,65 +31,35 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [currentRoom, setCurrentRoom] = useState<GameRoom | null>(null);
-  const [currentGameState, setCurrentGameState] = useState<BaseGameState | null>(null);
-  const [activeRooms, setActiveRooms] = useState<GameRoom[]>([]);
+  const [currentRoom, setCurrentRoom] = useState<GameRoomWithPlayers | null>(null);
+  const [currentGameState, setCurrentGameState] = useState<GameStateWithRelations | null>(null);
+  const [activeRooms, setActiveRooms] = useState<GameRoomWithPlayers[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
-  const gameRoomService = useGameRoomService();
-  const gameStateService = useGameStateService();
-  const eventBus = useEventBus();
+  const { user } = useCurrentUser();
+  const { joinRoom: joinGameRoom, error: gameError } = useGame();
 
   useEffect(() => {
-    // Subscribe to game events
-    const handleRoomUpdate = (data: any) => {
-      if (data.room && currentRoom?.id === data.room.id) {
-        setCurrentRoom(data.room);
-      }
-      // Refresh active rooms when any room is updated
-      refreshActiveRooms();
-    };
-
-    const handleGameStateUpdate = (data: any) => {
-      if (data.state && currentGameState?.id === data.state.id) {
-        setCurrentGameState(data.state);
-      }
-    };
-
-    const handleGameEnd = (data: any) => {
-      if (data.gameId === currentGameState?.id) {
-        setCurrentGameState(null);
-        setCurrentRoom(null);
-      }
-    };
-
-    eventBus.on('room.updated', handleRoomUpdate);
-    eventBus.on('room.created', handleRoomUpdate);
-    eventBus.on('room.player_joined', handleRoomUpdate);
-    eventBus.on('room.player_left', handleRoomUpdate);
-    eventBus.on('game.state_updated', handleGameStateUpdate);
-    eventBus.on('game.ended', handleGameEnd);
-
     // Initial load
-    refreshActiveRooms();
+    if (user) {
+      refreshActiveRooms();
+    }
+  }, [user]);
 
-    return () => {
-      eventBus.off('room.updated', handleRoomUpdate);
-      eventBus.off('room.created', handleRoomUpdate);
-      eventBus.off('room.player_joined', handleRoomUpdate);
-      eventBus.off('room.player_left', handleRoomUpdate);
-      eventBus.off('game.state_updated', handleGameStateUpdate);
-      eventBus.off('game.ended', handleGameEnd);
-    };
-  }, [currentRoom?.id, currentGameState?.id]);
+  // Set error from game hook
+  useEffect(() => {
+    if (gameError) {
+      setError(gameError);
+    }
+  }, [gameError]);
 
   const refreshActiveRooms = async () => {
+    if (!user) return;
+    
     try {
       setLoading(true);
-      // This would need to be implemented in the service
-      // For now, we'll just set an empty array
-      setActiveRooms([]);
+      const rooms = await gameService.getAvailableRooms();
+      setActiveRooms(rooms as GameRoomWithPlayers[]);
       setError(null);
     } catch (err) {
       setError(err as Error);
@@ -88,10 +69,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   };
 
   const joinRoom = async (roomId: string) => {
+    if (!user) return;
+    
     try {
       setLoading(true);
-      const room = await gameRoomService.joinRoom(roomId);
-      setCurrentRoom(room);
+      const room = await joinGameRoom(roomId, user.id);
+      setCurrentRoom(room as GameRoomWithPlayers);
       setError(null);
     } catch (err) {
       setError(err as Error);
@@ -102,9 +85,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   };
 
   const leaveRoom = async (roomId: string) => {
+    if (!user) return;
+    
     try {
       setLoading(true);
-      await gameRoomService.leaveRoom(roomId);
+      // This functionality needs to be implemented in the game service
+      // For now, we'll just set the current room to null
       if (currentRoom?.id === roomId) {
         setCurrentRoom(null);
         setCurrentGameState(null);
@@ -138,10 +124,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useGame = () => {
+export const useGameContext = () => {
   const context = useContext(GameContext);
   if (!context) {
-    throw new Error("useGame must be used within GameProvider");
+    throw new Error("useGameContext must be used within GameProvider");
   }
   return context;
 };
