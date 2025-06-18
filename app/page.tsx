@@ -24,7 +24,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { Metadata } from "next";
 import { AuthenticatedLayout } from "@/components/auth/layouts";
-import { Dashboard } from "@/components/dashboard";
+import DashboardPage from "@/components/dashboard-page";
 
 export const metadata: Metadata = {
   title: "LaMap241",
@@ -39,7 +39,7 @@ export default async function HomePage() {
   if (session) {
     return (
       <AuthenticatedLayout>
-        <Dashboard />
+        <DashboardPage />
       </AuthenticatedLayout>
     );
   } 
