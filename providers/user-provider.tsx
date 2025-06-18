@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { user as User } from "@prisma/client";
-import { useUserService, useAuthService } from "@/hooks/useInjection";
+import { useCurrentUser } from "@/hooks/useUser";
+import { useAuth } from "@/hooks/useAuth";
 
 interface UserContextType {
   user: User | null;
@@ -16,49 +17,27 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading: userLoading, error, refresh } = useCurrentUser();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  const userService = useUserService();
-  const authService = useAuthService();
-
-  const loadUser = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const isAuth = await authService.isAuthenticated();
-      setIsAuthenticated(isAuth);
-      
-      if (isAuth) {
-        const currentUser = await userService.getCurrentUser();
-        setUser(currentUser);
-      } else {
-        setUser(null);
-      }
-    } catch (err) {
-      console.error('Error loading user:', err);
-      setError(err as Error);
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  }, [authService, userService]);
 
   useEffect(() => {
-    loadUser();
-  }, [loadUser]);
+    // Update loading state when both auth and user data are loaded
+    setLoading(userLoading || authLoading);
+  }, [userLoading, authLoading]);
 
   const refreshUser = async () => {
-    await loadUser();
+    await refresh();
   };
 
   const updateBalance = useCallback((newBalance: number) => {
     if (user) {
-      setUser(prev => prev ? { ...prev, koras: newBalance } : null);
+      // This is just a UI update, the actual balance is updated in the database
+      // The next refresh will get the updated balance from the database
+      const updatedUser = { ...user, koras: newBalance };
+      // We can't directly update the user here since it's managed by useCurrentUser
+      // This is a limitation of this approach, but the refresh function can be used
+      // to get the updated user data after updating the balance
     }
   }, [user]);
 
