@@ -8,7 +8,7 @@ export interface GarameState extends BaseGameState {
 }
 
 export interface GaramePlayerState extends BasePlayerState {
-  hand: Card[]; // Changed from 'cards' to 'hand' for consistency
+  hand: Card[];
   hasKora: boolean;
   wonTricks: number;
 }

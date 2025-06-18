@@ -37,7 +37,7 @@ export class GarameRules {
     if (!gameState.lastPlayedCard) return true;
 
     // Must follow suit if possible
-    const playerCards = playerState.cards;
+    const playerCards = playerState.hand;
     const hasSuit = playerCards.some(c => c.suit === gameState.currentSuit);
     
     if (hasSuit) {
@@ -54,8 +54,8 @@ export class GarameRules {
 
     const playableIndices: number[] = [];
     
-    for (let i = 0; i < playerState.cards.length; i++) {
-      if (this.canPlayCard(gameState, playerId, playerState.cards[i])) {
+    for (let i = 0; i < playerState.hand.length; i++) {
+      if (this.canPlayCard(gameState, playerId, playerState.hand[i])) {
         playableIndices.push(i);
       }
     }
@@ -143,7 +143,7 @@ export class GarameRules {
     // Game ends when a player has no cards left
     for (const [playerId, playerState] of gameState.players) {
       const garamePlayer = playerState as GaramePlayerState;
-      if (garamePlayer.cards.length === 0) {
+      if (garamePlayer.hand.length === 0) {
         // Player with Kora at end wins
         if (garamePlayer.hasKora) {
           garamePlayer.score = 10; // Winner gets 10 points
@@ -155,7 +155,7 @@ export class GarameRules {
     // Check if deck is exhausted and no one can play
     const allPlayersStuck = Array.from(gameState.players.values()).every(player => {
       const garamePlayer = player as GaramePlayerState;
-      return garamePlayer.cards.length > 0 && 
+      return garamePlayer.hand.length > 0 && 
              this.getPlayableCards(gameState, player.id).length === 0;
     });
 
