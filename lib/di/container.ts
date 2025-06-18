@@ -30,7 +30,6 @@ import { MockTransactionRepository } from '@/lib/repositories/MockTransactionRep
 
 // Service Implementations
 import { UserService } from '@/lib/services/UserService';
-import { AuthService } from '@/lib/services/AuthService';
 import { ClientAuthService } from '@/lib/services/ClientAuthService';
 import { MockAuthService } from '@/lib/services/MockAuthService';
 import { GameRoomService } from '@/lib/services/GameRoomService';
@@ -64,8 +63,8 @@ if (USE_MOCK) {
   container.bind<IGameRoomRepository>(TYPES.GameRoomRepository).to(GameRoomRepository).inSingletonScope();
   container.bind<IGameStateRepository>(TYPES.GameStateRepository).to(GameStateRepository).inSingletonScope();
   container.bind<ITransactionRepository>(TYPES.TransactionRepository).to(TransactionRepository).inSingletonScope();
-  // Use ClientAuthService for client-side, AuthService for server-side
-  container.bind<IAuthService>(TYPES.AuthService).to(IS_CLIENT ? ClientAuthService : AuthService).inSingletonScope();
+  // Always use ClientAuthService to avoid server-only imports in client bundles
+  container.bind<IAuthService>(TYPES.AuthService).to(ClientAuthService).inSingletonScope();
   container.bind<IMobileMoneyService>(TYPES.MobileMoneyService).to(MobileMoneyService).inSingletonScope();
 }
 

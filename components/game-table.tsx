@@ -19,7 +19,7 @@ export function GameTable({ gameState, totalPot = 0, className }: GameTableProps
         <div className="flex items-center justify-center mb-3">
           <Badge variant="secondary" className="text-game-xs px-3 py-1">
             <IconCoin className="h-3 w-3 mr-1" />
-            Pot: {totalPot.toLocaleString()} FCFA
+            Pot: {totalPot.toLocaleString()} koras
           </Badge>
         </div>
 

@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, user as User } from '@prisma/client';
 import { IUserRepository, CreateUserDto, UpdateUserDto } from '@/lib/interfaces/repositories/IUserRepository';
 import prisma from '@/lib/prisma';
 
@@ -32,7 +32,9 @@ export class UserRepository implements IUserRepository {
   async create(data: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
       data: {
+        id: crypto.randomUUID(),
         ...data,
+        koras: data.koras ?? 500,
         emailVerified: false,
         phoneNumberVerified: false,
         createdAt: new Date(),

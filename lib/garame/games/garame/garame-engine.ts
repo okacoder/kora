@@ -34,7 +34,7 @@ export class GarameEngine extends BaseGameEngine {
       const playerState: GaramePlayerState = {
         id: player.id,
         position: player.position,
-        cards: playerCards,
+        hand: playerCards,
         score: 0,
         hasKora: index === 0,
         wonTricks: 0,
@@ -62,7 +62,7 @@ export class GarameEngine extends BaseGameEngine {
     const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
     if (!playerState) return false;
 
-    const card = playerState.cards[garameAction.data.cardIndex];
+    const card = playerState.hand[garameAction.data.cardIndex];
     if (!card) return false;
 
     return GarameRules.canPlayCard(gameState, action.playerId, card);
@@ -74,7 +74,7 @@ export class GarameEngine extends BaseGameEngine {
     const playerState = gameState.players.get(action.playerId) as GaramePlayerState;
 
     // Remove card from hand
-    const card = playerState.cards.splice(garameAction.data.cardIndex, 1)[0];
+    const card = playerState.hand.splice(garameAction.data.cardIndex, 1)[0];
 
     // Apply Garame rules
     const updates = GarameRules.applyCardPlay(gameState, action.playerId, card);
@@ -107,7 +107,7 @@ export class GarameEngine extends BaseGameEngine {
       playerId,
       data: {
         cardIndex: index,
-        card: playerState.cards[index]
+        card: playerState.hand[index]
       },
       timestamp: new Date()
     }));

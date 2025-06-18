@@ -3,7 +3,7 @@
 export interface Player {
   id: string;
   username: string;
-  balance: number;
+  koras: number;
   avatar?: string;
   isAI?: boolean;
   aiDifficulty?: 'easy' | 'medium' | 'hard';

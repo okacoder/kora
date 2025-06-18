@@ -27,4 +27,20 @@ export class AuthService implements IAuthService {
     const session = await this.getSession();
     return session?.user?.role === role;
   }
+
+  async signInWithUsernamePassword(username: string, password: string): Promise<{ user?: User; error?: string; }> {
+    const { data, error } = await auth.api.signIn.username({ username, password, rememberMe: true });
+    if (error) {
+      return { error: error.message };
+    }
+    return { user: data.user };
+  }
+
+  async signUpWithEmailPassword(data: any): Promise<{ user?: User; error?:string; }> {
+    const { data: result, error } = await auth.api.signUp.email(data);
+     if (error) {
+      return { error: error.message };
+    }
+    return { user: result.user };
+  }
 }

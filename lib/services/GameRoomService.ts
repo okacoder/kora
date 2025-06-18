@@ -37,7 +37,7 @@ export class GameRoomService implements IGameRoomService {
     });
 
     // Traiter la mise du créateur
-    await this.paymentService.processStake(user.id, stake * 10, room.id); // stake * 10 pour FCFA
+    await this.paymentService.processStake(user.id, stake, room.id); // stake en koras
 
     return room;
   }
@@ -83,7 +83,7 @@ export class GameRoomService implements IGameRoomService {
       }
 
       // Traiter la mise
-      await this.paymentService.processStake(user.id, room.stake * 10, room.id);
+      await this.paymentService.processStake(user.id, room.stake, room.id);
 
       player = {
         id: user.id,

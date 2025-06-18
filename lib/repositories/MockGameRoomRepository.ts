@@ -25,7 +25,7 @@ export class MockGameRoomRepository implements IGameRoomRepository {
       status: 'waiting',
       maxPlayers: data.maxPlayers,
       minPlayers: data.minPlayers,
-      totalPot: data.stake * 10, // En FCFA
+      totalPot: data.stake, // En koras
       settings: data.settings,
       createdAt: new Date(),
     };
@@ -73,7 +73,7 @@ export class MockGameRoomRepository implements IGameRoomRepository {
     if (!room) throw new Error('Room not found');
     
     room.players.push(player);
-    room.totalPot += room.stake * 10; // En FCFA
+    room.totalPot += room.stake; // En koras
     room.updatedAt = new Date();
     
     return room;
@@ -84,7 +84,7 @@ export class MockGameRoomRepository implements IGameRoomRepository {
     if (!room) throw new Error('Room not found');
     
     room.players = room.players.filter(p => p.id !== playerId);
-    room.totalPot = Math.max(0, room.totalPot - room.stake * 10);
+    room.totalPot = Math.max(0, room.totalPot - room.stake);
     room.updatedAt = new Date();
     
     return room;

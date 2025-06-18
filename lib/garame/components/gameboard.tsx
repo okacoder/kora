@@ -164,7 +164,7 @@ const GameTable = ({
             <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full border">
               <div className="flex items-center gap-1">
                 <IconCoin className="size-4 text-primary" />
-                <span className="text-sm font-semibold">{gameState.pot.toLocaleString()} FCFA</span>
+                <span className="text-sm font-semibold">{gameState.pot.toLocaleString()} koras</span>
               </div>
             </div>
           )}
@@ -194,7 +194,7 @@ const GameTable = ({
               <p className="text-sm font-semibold">{player.name}</p>
               <div className="flex items-center gap-1 justify-center">
                 <IconCoin className="size-3 text-primary" />
-                <span className="text-xs text-muted-foreground">{player.playerState.score?.toLocaleString?.() ?? 0} FCFA</span>
+                <span className="text-xs text-muted-foreground">{player.playerState.score?.toLocaleString?.() ?? 0} koras</span>
               </div>
             </div>
           </div>

@@ -4,12 +4,11 @@ import { gameStore } from "@/lib/garame/core/game-store";
 
 interface DashboardStats {
   loading: boolean;
-  balance: number; // FCFA
-  korasBalance: number;
+  balance: number; // koras
   totalWins: number;
   totalGames: number;
   winRate: number; // 0-100
-  totalGains: number; // FCFA
+  totalGains: number; // koras
   transactions: any[];
 }
 
@@ -27,7 +26,7 @@ export function useDashboardStats(): DashboardStats {
     async function load() {
       try {
         setLoading(true);
-        // Simulate fetching balance and transactions from gameStore
+        // Récupérer le solde en koras
         const currentPlayer = await gameStore.getCurrentPlayer();
         setBalance(currentPlayer.balance);
         // TODO: Replace with real transaction history if available
@@ -45,15 +44,13 @@ export function useDashboardStats(): DashboardStats {
   }, []);
 
   const stats = useMemo(() => {
-    const korasBalance = Math.floor(balance / 10);
     // No real transactions yet, so stats are zero
-    return { korasBalance, totalWins: 0, totalGames: 0, winRate: 0, totalGains: 0 } as const;
+    return { totalWins: 0, totalGames: 0, winRate: 0, totalGains: 0 } as const;
   }, [balance, transactions]);
 
   return {
     loading,
     balance,
-    korasBalance: stats.korasBalance,
     totalWins: stats.totalWins,
     totalGames: stats.totalGames,
     winRate: stats.winRate,

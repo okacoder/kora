@@ -39,8 +39,8 @@ export abstract class BaseGameEngine {
       throw new GameError(ErrorCodes.INVALID_STATE, 'Mise minimum: 10 koras');
     }
 
-    const stakeInFCFA = stake * 10;
-    if (player.balance < stakeInFCFA) {
+    // Vérifier que le joueur a assez de koras
+    if (player.koras < stake) {
       throw new GameError(ErrorCodes.INSUFFICIENT_BALANCE, 'Solde insuffisant');
     }
 
@@ -60,11 +60,11 @@ export abstract class BaseGameEngine {
       status: 'waiting',
       maxPlayers: gameDefinition.maxPlayers,
       minPlayers: gameDefinition.minPlayers,
-      totalPot: stakeInFCFA,
+      totalPot: stake,
       settings
     });
 
-    await this.payment.processStake(player.id, stakeInFCFA, room.id);
+    await this.payment.processStake(player.id, stake, room.id);
     await this.events.emit('room.created', { room, player });
 
     return room;
@@ -90,7 +90,7 @@ export abstract class BaseGameEngine {
       player = {
         id: playerId,
         username: playerName,
-        balance: 999999,
+        koras: 999999,
         isAI: true,
         aiDifficulty
       };
@@ -99,12 +99,12 @@ export abstract class BaseGameEngine {
       playerId = player.id;
       playerName = player.username;
 
-      const stakeInFCFA = room.stake * 10;
-      if (player.balance < stakeInFCFA) {
+      // Vérifier que le joueur a assez de koras
+      if (player.koras < room.stake) {
         throw new GameError(ErrorCodes.INSUFFICIENT_BALANCE, 'Solde insuffisant');
       }
 
-      await this.payment.processStake(playerId, stakeInFCFA, room.id);
+      await this.payment.processStake(playerId, room.stake, room.id);
     }
 
     // Find next available position
@@ -122,7 +122,8 @@ export abstract class BaseGameEngine {
       joinedAt: new Date()
     });
 
-    room.totalPot += room.stake * 10;
+    // Le pot est en koras, on ajoute simplement la mise
+    room.totalPot += room.stake;
 
     // Check if we can start
     if (room.players.length >= room.minPlayers) {
@@ -229,20 +230,21 @@ export abstract class BaseGameEngine {
       hard: 3000 + Math.random() * 4000
     };
 
-    const room = this.store.getRoom(gameState.roomId);
-    const aiPlayer = room?.players.find(p => p.id === gameState.currentPlayerId);
-    const delay = thinkingTime[aiPlayer?.aiDifficulty || 'medium'];
-
-    setTimeout(async () => {
-      try {
-        const aiAction = await this.getAIAction(gameState, gameState.currentPlayerId);
-        if (aiAction) {
-          await this.executeAction(gameState.id, aiAction);
+    this.store.getRoom(gameState.roomId).then(room => {
+      if (!room) return;
+      const aiPlayer = room.players.find(p => p.id === gameState.currentPlayerId);
+      const delay = thinkingTime[aiPlayer?.aiDifficulty || 'medium'];
+      setTimeout(async () => {
+        try {
+          const aiAction = await this.getAIAction(gameState, gameState.currentPlayerId);
+          if (aiAction) {
+            await this.executeAction(gameState.id, aiAction);
+          }
+        } catch (error) {
+          console.error('AI turn error:', error);
         }
-      } catch (error) {
-        console.error('AI turn error:', error);
-      }
-    }, delay);
+      }, delay);
+    });
   }
 
   protected async getAIAction(gameState: BaseGameState, aiPlayerId: string): Promise<GameAction | null> {
