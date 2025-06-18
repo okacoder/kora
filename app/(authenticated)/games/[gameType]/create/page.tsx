@@ -136,7 +136,7 @@ export default function CreateRoomPage({ params }: CreateRoomPageProps) {
             </div>
             <Slider
               value={[settings.aiPlayers]}
-              onValueChange={([value]) => setSettings({ ...settings, aiPlayers: value })}
+              onValueChange={([value]: number[]) => setSettings({ ...settings, aiPlayers: value })}
               max={params.gameType === 'garame' ? 1 : 3}
               step={1}
             />
@@ -181,7 +181,7 @@ export default function CreateRoomPage({ params }: CreateRoomPageProps) {
             </div>
             <Slider
               value={[settings.turnDuration]}
-              onValueChange={([value]) => setSettings({ ...settings, turnDuration: value })}
+              onValueChange={([value]: number[]) => setSettings({ ...settings, turnDuration: value })}
               min={15}
               max={120}
               step={15}
@@ -198,7 +198,7 @@ export default function CreateRoomPage({ params }: CreateRoomPageProps) {
             </div>
             <Switch
               checked={settings.isPrivate}
-              onCheckedChange={(checked) => setSettings({ ...settings, isPrivate: checked })}
+              onCheckedChange={(checked: boolean) => setSettings({ ...settings, isPrivate: checked })}
             />
           </div>
 
