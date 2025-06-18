@@ -146,7 +146,7 @@ class GameStore {
   async updatePlayerBalance(playerId: string, amount: number): Promise<void> {
     const player = this.players.get(playerId);
     if (player) {
-      player.balance += amount;
+      player.koras += amount;
     }
     this._save();
   }
@@ -187,6 +187,17 @@ class GameStore {
       createdAt: new Date(now)
     };
     this.rooms.set(room.id, room);
+  }
+
+  // Utilitaire pour créer un Player à partir d'un User
+  createPlayerFromUser(user: any): Player {
+    return {
+      id: user.id,
+      username: user.username,
+      koras: user.koras,
+      avatar: user.image,
+      isAI: false
+    };
   }
 }
 

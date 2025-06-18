@@ -40,7 +40,7 @@ export abstract class BaseGameEngine {
     }
 
     // Vérifier que le joueur a assez de koras
-    if (player.balance < stake) {
+    if (player.koras < stake) {
       throw new GameError(ErrorCodes.INSUFFICIENT_BALANCE, 'Solde insuffisant');
     }
 
@@ -90,7 +90,7 @@ export abstract class BaseGameEngine {
       player = {
         id: playerId,
         username: playerName,
-        balance: 999999,
+        koras: 999999,
         isAI: true,
         aiDifficulty
       };
@@ -100,7 +100,7 @@ export abstract class BaseGameEngine {
       playerName = player.username;
 
       // Vérifier que le joueur a assez de koras
-      if (player.balance < room.stake) {
+      if (player.koras < room.stake) {
         throw new GameError(ErrorCodes.INSUFFICIENT_BALANCE, 'Solde insuffisant');
       }
 
