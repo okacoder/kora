@@ -1,14 +1,13 @@
 import React from "react";
-import { IPlayer, IGameRoom } from "@/lib/garame/domain/interfaces";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { GameCard } from "@/components/game-card";
 import { cn } from "@/lib/utils";
 
 interface PlayerAreaProps {
-  player: IPlayer | null;
+  player: any | null;
   isCurrentPlayer: boolean;
-  gameRoom: IGameRoom;
+  gameRoom: any;
   showCards?: boolean;
   className?: string;
 }

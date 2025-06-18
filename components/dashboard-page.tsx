@@ -5,18 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { IconCoin, IconTrophy, IconCards, IconChartBar } from '@tabler/icons-react';
 import Link from 'next/link';
-import { useCurrentUser } from '@/hooks/useUser';
-import { gameService } from '@/lib/services/game.service';
-import { transactionService } from '@/lib/services/transaction.service';
 import { GameRoom, RoomPlayer } from '@prisma/client';
-import { Skeleton } from '@/components/ui/skeleton';
+import { authClient } from '@/lib/auth-client';
 
 type GameRoomWithPlayers = GameRoom & {
   players: RoomPlayer[];
 };
 
 export default function DashboardPage() {
-  const { user, loading: userLoading } = useCurrentUser();
+  const { data: session } = authClient.useSession();
   const [activeRooms, setActiveRooms] = useState<GameRoomWithPlayers[]>([]);
   const [stats, setStats] = useState({
     totalGames: 0,
@@ -27,25 +24,35 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadDashboardData();
-  }, [user]);
+  }, [session]);
 
   const loadDashboardData = async () => {
-    if (!user) return;
+    if (!session) return;
 
     try {
       // Charger les salles actives
-      const rooms = await gameService.getUserRooms(user.id);
+      const rooms = [] as GameRoomWithPlayers[];
       setActiveRooms(rooms.filter(r => r.status === 'WAITING' || r.status === 'IN_PROGRESS'));
 
       // Charger les statistiques
-      const gameStats = await gameService.getGameStats(user.id);
-      const transactionStats = await transactionService.getTransactionStats(user.id);
+      const gameStats = {
+        totalGames: 0,
+        totalWins: 0,
+        winRate: 0,
+        ranking: 0
+      };
+      const transactionStats = {
+        totalTransactions: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalFees: 0
+      };
 
       setStats({
         totalGames: gameStats.totalGames,
-        totalWins: gameStats.gamesWon,
+        totalWins: gameStats.totalWins,
         winRate: gameStats.winRate,
-        ranking: await calculateRanking(gameStats.gamesWon)
+        ranking: await calculateRanking(gameStats.totalWins)
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -58,10 +65,6 @@ export default function DashboardPage() {
     return Math.max(1, 100 - wins * 5);
   };
 
-  if (userLoading) {
-    return <DashboardSkeleton />;
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* En-tête avec solde */}
@@ -69,7 +72,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">Tableau de bord</h1>
           <p className="text-muted-foreground">
-            Bienvenue, {user?.name || user?.username} !
+            Bienvenue, {session?.user?.username} !
           </p>
         </div>
         <Card className="border-primary">
@@ -77,10 +80,7 @@ export default function DashboardPage() {
             <IconCoin className="h-8 w-8 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Solde</p>
-              <p className="text-2xl font-bold">{user?.koras || 0} Koras</p>
-              <p className="text-xs text-muted-foreground">
-                ≈ {((user?.koras || 0) * 10).toLocaleString()} FCFA
-              </p>
+              <p className="text-2xl font-bold">{session?.user?.koras || 0} Koras</p>
             </div>
             <Link href="/koras">
               <Button size="sm">Recharger</Button>

@@ -26,7 +26,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const callbackUrl = useSearchParams().get("callbackUrl");
+  const redirectUrl = useSearchParams().get("redirect");
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +49,7 @@ export function LoginForm({
         },
         onSuccess: (ctx) => {
           setLoading(false);
-          router.push(callbackUrl || "/");
+          router.push(redirectUrl || "/");
         },
         onError: (ctx) => {
           // display the error message

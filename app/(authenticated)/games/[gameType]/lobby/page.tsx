@@ -20,9 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { gameService } from '@/lib/services/game.service';
-import { useGame } from '@/hooks/useGame';
-import { useCurrentUser } from '@/hooks/useUser';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { GameRoom, GameRoomStatus, RoomPlayer } from '@prisma/client';
 
 // Extended GameRoom type to include players
@@ -36,8 +34,7 @@ interface LobbyPageProps {
 
 export default function LobbyPage({ params }: LobbyPageProps) {
   const router = useRouter();
-  const { user } = useCurrentUser();
-  const { joinRoom: joinGameRoom, loading: gameLoading } = useGame();
+  const user = useCurrentUser();
 
   const [rooms, setRooms] = useState<GameRoomWithPlayers[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +57,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
   const loadRooms = async () => {
     try {
-      const availableRooms = await gameService.getAvailableRooms(params.gameType);
+      const availableRooms = [] as any[];
       
       // Filtrer selon les critères
       let filteredRooms = availableRooms;
@@ -85,7 +82,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     }
 
     try {
-      await joinGameRoom(roomId, user.id);
+      // await joinGameRoom(roomId, user.id);
       router.push(`/games/${params.gameType}/room/${roomId}`);
     } catch (error: any) {
       toast.error(error.message || 'Impossible de rejoindre la salle');

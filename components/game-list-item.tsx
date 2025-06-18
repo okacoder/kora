@@ -1,4 +1,3 @@
-import { IGameRoom } from "@/lib/garame/domain/interfaces";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GameCard } from "@/components/game-card";
@@ -6,7 +5,7 @@ import { IconUsers, IconClock, IconCoin } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 interface GameListItemProps {
-  game: IGameRoom;
+  game: any;
   onJoin: () => void;
   disabled?: boolean;
   className?: string;

@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   IconRobot, 
-  IconUser, 
   IconCrown,
   IconX 
 } from '@tabler/icons-react';

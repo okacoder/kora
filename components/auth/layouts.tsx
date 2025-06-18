@@ -1,27 +1,20 @@
 import { AppSidebar } from "../app-sidebar";
 import { SiteHeader } from "../site-header";
 import { SidebarInset } from "../ui/sidebar";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { AuthenticatedProviders } from "./providers";
+import { getCurrentUser } from "@/lib/user-actions";
 
 export const AuthenticatedLayout = async ({ children }: { children: React.ReactNode }) => {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    });
+    const user = await getCurrentUser();
 
-    if (!session?.user) {
+    if (!user) {
         return;
     }
-
-    // Check if we're in a game route
-    const headersList = await headers();
-    const pathname = headersList.get('x-pathname') || '';
 
     return (
         <AuthenticatedProviders>
             <AppSidebar
-                        user={{ ...session.user, image: session.user.image ?? null }}
+                        user={{ ...user, image: user.image ?? null, phoneNumber: user.phoneNumber ?? "" }}
                         variant="inset"
                     />
                     <SidebarInset className="bg-background overflow-hidden">

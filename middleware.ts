@@ -18,6 +18,8 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
   const { pathname } = request.nextUrl;
 
+  console.log("pathname", pathname, sessionCookie);
+
   // Redirect authenticated users away from auth pages
   if (sessionCookie && authRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -25,8 +27,8 @@ export async function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users trying to access protected routes
   if (!sessionCookie && protectedRoutes.some(route => pathname.startsWith(route))) {
-    const callbackUrl = encodeURIComponent(pathname);
-    return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, request.url));
+    const redirectUrl = encodeURIComponent(pathname);
+    return NextResponse.redirect(new URL(`/login?redirect=${redirectUrl}`, request.url));
   }
 
   return NextResponse.next();

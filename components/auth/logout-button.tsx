@@ -13,14 +13,16 @@ export default function LogoutButton() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.refresh();
+          console.log("onSuccess");
           router.push("/");
           setLoading(false);
         },
         onRequest: (ctx) => {
+          console.log("onRequest");
           setLoading(true);
         },
         onResponse: (ctx) => {
+          console.log("onResponse", ctx);
           setLoading(false);
         },
       },

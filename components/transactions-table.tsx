@@ -1,6 +1,6 @@
 "use client";
 
-import type { transaction as Transaction, TransactionType, TransactionStatus } from "@prisma/client";
+import type { transaction as Transaction, TransactionType } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { IconArrowDownLeft, IconArrowUpRight, IconCoin, IconTrendingUp, IconReceipt } from "@tabler/icons-react";
