@@ -1,4 +1,4 @@
-import { GameRoom, GameRoomStatus } from '@prisma/client';
+import { GameRoom, GameRoomStatus, GameState, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { paymentService } from './payment.service';
 import { userService } from './user.service';
@@ -9,6 +9,37 @@ export interface CreateRoomDto {
   maxPlayers?: number;
   minPlayers?: number;
   isPrivate?: boolean;
+  aiPlayers?: number;
+  aiDifficulty?: 'boa' | 'normal' | 'sensei';
+  turnDuration?: number;
+}
+
+export interface GameHistoryItem {
+  id: string;
+  gameType: string;
+  stake: number;
+  totalPot: number;
+  createdAt: Date;
+  endedAt: Date | null;
+  status: GameRoomStatus;
+  players: {
+    id: string;
+    name: string;
+    isWinner: boolean;
+  }[];
+  winnings: number | null;
+}
+
+type GameRoomWithRelations = Prisma.GameRoomGetPayload<{
+  include: {
+    players: true;
+    gameState: true;
+  };
+}>;
+
+interface GameMetadata {
+  winnings?: number;
+  [key: string]: any;
 }
 
 class GameService {
@@ -49,6 +80,9 @@ class GameService {
           settings: {
             isPrivate: data.isPrivate || false,
             roomCode: data.isPrivate ? this.generateRoomCode() : null,
+            aiPlayers: data.aiPlayers || 0,
+            aiDifficulty: data.aiDifficulty || 'normal',
+            turnDuration: data.turnDuration || 30
           },
         },
         include: {
@@ -67,6 +101,22 @@ class GameService {
           isAI: false,
         },
       });
+
+      // Ajouter les joueurs IA si demandé
+      if (data.aiPlayers && data.aiPlayers > 0) {
+        for (let i = 0; i < data.aiPlayers; i++) {
+          await tx.roomPlayer.create({
+            data: {
+              gameRoomId: newRoom.id,
+              userId: `ai-${i + 1}`,
+              name: `IA ${i + 1}`,
+              position: i + 1,
+              isReady: true,
+              isAI: true,
+            },
+          });
+        }
+      }
 
       return newRoom;
     });
@@ -163,7 +213,7 @@ class GameService {
     });
   }
 
-  async getUserRooms(userId: string): Promise<GameRoom[]> {
+  async getUserRooms(userId: string): Promise<GameRoomWithRelations[]> {
     return await prisma.gameRoom.findMany({
       where: {
         players: {
@@ -174,6 +224,7 @@ class GameService {
       },
       include: {
         players: true,
+        gameState: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -249,6 +300,150 @@ class GameService {
 
   private generateRoomCode(): string {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
+
+  async getUserGameHistory(userId: string, limit: number = 10): Promise<GameHistoryItem[]> {
+    const rooms = await prisma.gameRoom.findMany({
+      where: {
+        players: {
+          some: {
+            userId: userId,
+          },
+        },
+        status: {
+          in: ['COMPLETED', 'CANCELLED'],
+        },
+      },
+      include: {
+        players: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        gameState: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
+
+    return (rooms as GameRoomWithRelations[]).map(room => ({
+      id: room.id,
+      gameType: room.gameType,
+      stake: room.stake,
+      totalPot: room.totalPot,
+      createdAt: room.createdAt,
+      endedAt: room.gameState?.endedAt || null,
+      status: room.status,
+      players: room.players.map(player => ({
+        id: player.userId || player.id,
+        name: player.name,
+        isWinner: room.gameState?.winnerId === (player.userId || player.id),
+      })),
+      winnings: (room.gameState?.metadata as GameMetadata)?.winnings || null,
+    }));
+  }
+
+  async getGameStats(userId: string) {
+    const rooms = await prisma.gameRoom.findMany({
+      where: {
+        players: {
+          some: {
+            userId: userId,
+          },
+        },
+        status: 'COMPLETED',
+      },
+      include: {
+        gameState: true,
+      },
+    });
+
+    const stats = {
+      totalGames: rooms.length,
+      gamesWon: 0,
+      totalWinnings: 0,
+      highestWin: 0,
+      winRate: 0,
+      favoriteGameType: '',
+      gameTypes: {} as Record<string, number>,
+    };
+
+    rooms.forEach(room => {
+      // Count wins
+      if (room.gameState?.winnerId === userId) {
+        stats.gamesWon++;
+        const winnings = (room.gameState?.metadata as any)?.winnings || 0;
+        stats.totalWinnings += winnings;
+        stats.highestWin = Math.max(stats.highestWin, winnings);
+      }
+
+      // Track game types
+      stats.gameTypes[room.gameType] = (stats.gameTypes[room.gameType] || 0) + 1;
+    });
+
+    // Calculate win rate
+    stats.winRate = stats.totalGames > 0 ? (stats.gamesWon / stats.totalGames) * 100 : 0;
+
+    // Find favorite game type
+    let maxGames = 0;
+    Object.entries(stats.gameTypes).forEach(([type, count]) => {
+      if (count > maxGames) {
+        maxGames = count;
+        stats.favoriteGameType = type;
+      }
+    });
+
+    return stats;
+  }
+
+  async getGameState(gameId: string): Promise<any> {
+    const gameState = await prisma.gameState.findUnique({
+      where: { id: gameId },
+      include: {
+        room: {
+          include: {
+            players: true,
+          },
+        },
+      },
+    });
+
+    if (!gameState) {
+      throw new Error('Game state not found');
+    }
+
+    return gameState;
+  }
+
+  async playCard(gameId: string, playerId: string, cardId: string): Promise<void> {
+    const gameState = await this.getGameState(gameId);
+    if (!gameState) {
+      throw new Error('Game state not found');
+    }
+
+    if (gameState.currentPlayerId !== playerId) {
+      throw new Error('Not your turn');
+    }
+
+    // TODO: Implement game-specific logic
+    await prisma.gameState.update({
+      where: { id: gameId },
+      data: {
+        // Update game state based on the played card
+        metadata: {
+          lastPlayedCard: cardId,
+          lastPlayedBy: playerId,
+          lastPlayedAt: new Date().toISOString(),
+        },
+      },
+    });
   }
 }
 

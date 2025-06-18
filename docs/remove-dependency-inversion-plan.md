@@ -1454,36 +1454,25 @@ grep -r "@injectable" lib/ --include="*.tsx" --include="*.ts"
 - [x] Migrer `app/(authenticated)/account/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/page.tsx`
 - [x] Migrer `app/(authenticated)/games/[gameType]/lobby/page.tsx`
-- [ ] Migrer `app/(authenticated)/games/[gameType]/create/page.tsx`
+- [x] Migrer `app/(authenticated)/games/[gameType]/create/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/[gameType]/room/[roomId]/page.tsx`
 - [ ] Migrer `app/(authenticated)/games/[gameType]/play/[gameId]/page.tsx`
 - [ ] Migrer `app/(authenticated)/transactions/page.tsx`
-- [ ] Migrer `app/(authenticated)/games/history/page.tsx`
+- [x] Migrer `app/(authenticated)/games/history/page.tsx`
 - [x] Migrer le provider utilisateur (`providers/user-provider.tsx`)
 - [x] Migrer le provider de jeu (`providers/game-provider.tsx`)
 - [x] Migrer le provider de notifications (`providers/notification-provider.tsx`)
-- [ ] Migrer tous les composants
+- [x] Migrer les composants
+  - [x] `components/dashboard-page.tsx`
+  - [x] `components/transactions-table.tsx`
+  - [x] `components/game/player-list.tsx`
+  - [x] `components/game/room-settings.tsx`
 - [x] Supprimer les imports inutiles
 - [x] Désinstaller les dépendances IoC (inversify, reflect-metadata)
 - [ ] Tester l'application complète
 
-## ✅ Avantages de cette nouvelle architecture
-
-1. **Simplicité** : Plus de configuration IoC complexe
-2. **Performances** : Moins d'overhead, imports directs
-3. **Débugage** : Plus facile de suivre le code
-4. **Type-safety** : TypeScript fonctionne mieux sans l'IoC
-5. **Prisma direct** : Utilisation native avec transactions
-6. **Maintenabilité** : Code plus simple à comprendre
-
-## 🚀 Ordre d'exécution
-
-1. **Backup** : Faire une sauvegarde du projet actuel
-2. **Supprimer** : Retirer tous les fichiers IoC
-3. **Créer** : Implémenter les nouveaux services
-4. **Créer** : Implémenter les nouveaux hooks
-5. **Migrer** : Mettre à jour les pages une par une (commencer par les plus simples)
-6. **Tester** : Vérifier chaque page après migration
-7. **Nettoyer** : Supprimer tous les imports inutiles
-
-Cette approche vous donnera une application plus simple, plus rapide et plus facile à maintenir.
+Prochaines étapes prioritaires :
+1. Migrer `app/(authenticated)/games/page.tsx`
+2. Migrer `app/(authenticated)/games/[gameType]/room/[roomId]/page.tsx`
+3. Migrer `app/(authenticated)/games/[gameType]/play/[gameId]/page.tsx`
+4. Migrer `app/(authenticated)/transactions/page.tsx`

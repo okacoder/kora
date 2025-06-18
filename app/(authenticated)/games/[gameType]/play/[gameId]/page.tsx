@@ -7,56 +7,108 @@ import {
   IconCoin, 
   IconTrophy, 
   IconCrown, 
-  IconRobot 
+  IconRobot,
+  IconLoader2,
+  IconArrowLeft
 } from '@tabler/icons-react';
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
-import { useGameEngineService, useEventBus, useGarameAI } from '@/hooks/useInjection';
-import { useUser } from '@/providers/user-provider';
-import { GarameState, GarameCard } from '@/lib/garame/games/garame/garame-types';
+import { useCurrentUser } from '@/hooks/useUser';
+import { gameService } from '@/lib/services/game.service';
+import { routes } from '@/lib/routes';
 
-// NOTE: Ces composants sont spécifiques au jeu 'garame' et devront être rendus conditionnellement
-// ou remplacés par un système de rendu de jeu dynamique basé sur `params.gameType`.
-// Pour l'instant, ils sont importés directement pour l'exemple du 'garame'.
-
-// Placeholder pour GameEndModal
-function GameEndModal({ open, onClose, result }: { open: boolean; onClose: () => void; result: any; }) {
-    if (!open) return null;
-    const isWinner = result.winners?.some((w: any) => w.id === useUser().user?.id);
-    return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <Card className="w-full max-w-sm">
-                <CardContent className="p-6 text-center">
-                    <h2 className="text-2xl font-bold mb-2">
-                        {isWinner ? '🎉 Victoire ! 🎉' : '😥 Défaite 😥'}
-                    </h2>
-                    <p className="mb-4">
-                        {isWinner ? `Vous avez gagné ${result.winnings || 0} Koras !` : 'Meilleure chance la prochaine fois.'}
-                    </p>
-                    <Button onClick={onClose} className="w-full">
-                        Retour aux jeux
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
-    );
+interface GameEndModalProps {
+  open: boolean;
+  onClose: () => void;
+  result: {
+    winners: Array<{ id: string; name: string }>;
+    metadata: {
+      winnings: number;
+    };
+  };
 }
 
-// Placeholder pour PlayingCard
-function PlayingCard({ card, onClick, selected, disabled, size }: { card: GarameCard; onClick?: () => void; selected?: boolean; disabled?: boolean; size?: 'large' | 'normal' }) {
-    return (
-        <div 
-            onClick={!disabled ? onClick : undefined}
-            className={`w-20 h-28 rounded-lg flex items-center justify-center font-bold text-2xl border-2 ${selected ? 'border-primary' : 'border-gray-300'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${size === 'large' ? 'w-24 h-36' : ''}`}
-        >
-            {card.suit[0]}{card.rank}
-        </div>
-    );
+function GameEndModal({ open, onClose, result }: GameEndModalProps) {
+  const { user } = useCurrentUser();
+  if (!open) return null;
+  const isWinner = result.winners?.some(w => w.id === user?.id);
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <Card className="w-full max-w-sm">
+        <CardContent className="p-6 text-center">
+          <h2 className="text-2xl font-bold mb-2">
+            {isWinner ? '🎉 Victoire ! 🎉' : '😥 Défaite 😥'}
+          </h2>
+          <p className="mb-4">
+            {isWinner ? `Vous avez gagné ${result.metadata.winnings || 0} Koras !` : 'Meilleure chance la prochaine fois.'}
+          </p>
+          <Button onClick={onClose} className="w-full">
+            Retour aux jeux
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
+interface Card {
+  id: string;
+  suit: string;
+  rank: string;
+  value: number;
+}
+
+interface PlayingCardProps {
+  card: Card;
+  onClick?: () => void;
+  selected?: boolean;
+  disabled?: boolean;
+  size?: 'large' | 'normal';
+}
+
+function PlayingCard({ card, onClick, selected, disabled, size = 'normal' }: PlayingCardProps) {
+  return (
+    <div 
+      onClick={!disabled ? onClick : undefined}
+      className={`
+        relative rounded-lg flex items-center justify-center font-bold text-2xl border-2 
+        ${selected ? 'border-primary' : 'border-gray-300'} 
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50'} 
+        ${size === 'large' ? 'w-24 h-36' : 'w-20 h-28'}
+        transition-all duration-200
+      `}
+    >
+      <span className={size === 'large' ? 'text-3xl' : 'text-2xl'}>
+        {card.suit[0]}{card.rank}
+      </span>
+    </div>
+  );
+}
+
+interface Player {
+  id: string;
+  name: string;
+  isAI: boolean;
+  hand: Card[];
+  score: number;
+  hasKora: boolean;
+}
+
+interface GameState {
+  id: string;
+  status: 'PLAYING' | 'FINISHED';
+  currentPlayerId: string;
+  players: Map<string, Player>;
+  turn: number;
+  pot: number;
+  metadata: {
+    maxScore: number;
+  };
+}
 
 interface PlayPageProps {
   params: { 
@@ -65,124 +117,84 @@ interface PlayPageProps {
   };
 }
 
-export default function GaramePlayPage({ params }: PlayPageProps) {
+export default function PlayPage({ params }: PlayPageProps) {
   const router = useRouter();
-  const { user, refreshUser } = useUser();
-  const gameEngine = useGameEngineService();
-  const eventBus = useEventBus();
-  // NOTE: L'IA est spécifique au 'garame' pour l'instant
-  const { getNextMove } = useGarameAI();
-
-  const [gameState, setGameState] = useState<GarameState | null>(null);
+  const { user, refresh: refreshUser } = useCurrentUser();
+  const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedCard, setSelectedCard] = useState<GarameCard | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isMyTurn, setIsMyTurn] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const [gameResult, setGameResult] = useState<any>(null);
 
   useEffect(() => {
-    // TODO: Implémenter une logique pour charger le bon composant de jeu
-    // en fonction de `params.gameType`. Pour l'instant, seul 'garame' est géré.
-    if (params.gameType !== 'garame') {
-        toast.error(`Le jeu '${params.gameType}' n'est pas encore implémenté.`);
-        router.push('/games');
-        return;
-    }
-
     loadGameState();
-
-    const handleActionPlayed = (data: { gameId: string; }) => {
-      if (data.gameId === params.gameId) loadGameState();
-    };
-    const handleStateUpdated = (data: { gameId: string; state: any; }) => {
-      if (data.gameId === params.gameId && data.state) {
-        setGameState(data.state);
-        setIsMyTurn(data.state.currentPlayerId === user?.id);
-      }
-    };
-    const handleGameEnded = async (data: { gameId: string; }) => {
-      if (data.gameId === params.gameId) {
-        setGameResult(data);
-        setShowEndModal(true);
-        await refreshUser();
-      }
-    };
-
-    eventBus.on('game.action_played', handleActionPlayed);
-    eventBus.on('game.state_updated', handleStateUpdated);
-    eventBus.on('game.ended', handleGameEnded);
-
-    return () => {
-      eventBus.off('game.action_played', handleActionPlayed);
-      eventBus.off('game.state_updated', handleStateUpdated);
-      eventBus.off('game.ended', handleGameEnded);
-    };
-  }, [params.gameId, params.gameType, user?.id, gameEngine, eventBus, router, refreshUser]);
-
-  useEffect(() => {
-    const isAITurn = () => {
-        if (!gameState) return false;
-        const currentPlayer = gameState.players.get(gameState.currentPlayerId);
-        return currentPlayer?.isAI || false;
-    };
-
-    const playAITurn = async () => {
-        if (!gameState) return;
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        const aiMove = await getNextMove(gameState, gameState.currentPlayerId);
-        if (aiMove) {
-            await gameEngine.processAction(params.gameId, aiMove);
-        }
-    };
-
-    if (isAITurn()) {
-      playAITurn();
-    }
-  }, [gameState, getNextMove, gameEngine, params.gameId]);
+    // Rafraîchir toutes les 2 secondes
+    const interval = setInterval(loadGameState, 2000);
+    return () => clearInterval(interval);
+  }, [params.gameId]);
 
   const loadGameState = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
     try {
-      const state = await gameEngine.getGameState(params.gameId);
-      if (!state) {
-        toast.error('Partie introuvable');
-        router.push('/games');
-        return;
+      setLoading(true);
+      const state = await gameService.getGameState(params.gameId);
+      setGameState(state as GameState);
+      setIsMyTurn(state.currentPlayerId === user.id);
+
+      if (state.status === 'FINISHED') {
+        setGameResult(state);
+        setShowEndModal(true);
+        refreshUser();
       }
-      
-      setGameState(state as GarameState);
-      setIsMyTurn(state.currentPlayerId === user?.id);
-    } catch (error) {
-      toast.error('Erreur lors du chargement');
-      router.push('/games');
+    } catch (error: any) {
+      setError(error);
+      toast.error(error.message || 'Erreur lors du chargement de la partie');
     } finally {
       setLoading(false);
     }
   };
 
-  const playCard = async (card: GarameCard) => {
-    if (!isMyTurn || !user) return;
+  const playCard = async (card: Card) => {
+    if (!isMyTurn || !user || !gameState) return;
 
     try {
-      const action = {
-        type: 'play_card',
-        playerId: user.id,
-        data: { cardId: card.id },
-      };
-
-      await gameEngine.processAction(params.gameId, action);
+      await gameService.playCard(gameState.id, user.id, card.id);
       setSelectedCard(null);
+      await loadGameState();
     } catch (error: any) {
       toast.error(error.message || 'Coup invalide');
     }
+  };
+
+  const handleEndGame = () => {
+    setShowEndModal(false);
+    router.push('/games');
   };
 
   if (loading || !gameState) {
     return (
       <div className="container mx-auto p-6 flex items-center justify-center min-h-[600px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <IconLoader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Chargement de la partie...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-red-500">Erreur: {error.message}</p>
+        <Button onClick={() => router.push('/games')} className="mt-4">
+          Retour aux jeux
+        </Button>
       </div>
     );
   }
@@ -190,28 +202,53 @@ export default function GaramePlayPage({ params }: PlayPageProps) {
   const currentPlayer = gameState.players.get(user?.id || '');
   const opponent = Array.from(gameState.players.values()).find(p => p.id !== user?.id);
 
+  if (!currentPlayer || !opponent) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-red-500">Erreur: Joueur non trouvé</p>
+        <Button onClick={() => router.push('/games')} className="mt-4">
+          Retour aux jeux
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-6 grid grid-cols-3 gap-4">
-        <Card className={opponent?.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : ''}>
+      <GameEndModal 
+        open={showEndModal} 
+        onClose={handleEndGame}
+        result={gameResult}
+      />
+
+      <div className="mb-6 flex items-center gap-4">
+        <Button variant="ghost" onClick={() => router.push('/games')}>
+          <IconArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-2xl font-bold">Partie en cours</h1>
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Opponent */}
+        <Card className={opponent.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : ''}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold flex items-center gap-2">
-                  {opponent?.name || 'Adversaire'}
-                  {opponent?.isAI && (
+                  {opponent.name}
+                  {opponent.isAI && (
                     <Badge variant="secondary" className="text-xs">
                       <IconRobot className="h-3 w-3" />
                     </Badge>
                   )}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {opponent?.hand.length || 0} cartes
+                  {opponent.hand.length} cartes
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold">{opponent?.score || 0}</p>
-                {opponent?.hasKora && (
+                <p className="text-2xl font-bold">{opponent.score}</p>
+                {opponent.hasKora && (
                   <IconCrown className="h-5 w-5 text-yellow-500 ml-auto" />
                 )}
               </div>
@@ -219,6 +256,7 @@ export default function GaramePlayPage({ params }: PlayPageProps) {
           </CardContent>
         </Card>
 
+        {/* Game Info */}
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-sm text-muted-foreground">Tour {gameState.turn}</p>
@@ -227,23 +265,29 @@ export default function GaramePlayPage({ params }: PlayPageProps) {
               {gameState.pot} Koras
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Premier à {gameState.maxScore} points
+              Premier à {gameState.metadata.maxScore} points
             </p>
           </CardContent>
         </Card>
 
-        <Card className={isMyTurn ? 'ring-2 ring-primary' : ''}>
+        {/* Current Player */}
+        <Card className={currentPlayer.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : ''}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold">Vous</p>
+                <p className="font-semibold flex items-center gap-2">
+                  {currentPlayer.name}
+                  {isMyTurn && (
+                    <Badge variant="secondary">À vous de jouer</Badge>
+                  )}
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  {currentPlayer?.hand.length || 0} cartes
+                  {currentPlayer.hand.length} cartes
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold">{currentPlayer?.score || 0}</p>
-                {currentPlayer?.hasKora && (
+                <p className="text-2xl font-bold">{currentPlayer.score}</p>
+                {currentPlayer.hasKora && (
                   <IconCrown className="h-5 w-5 text-yellow-500 ml-auto" />
                 )}
               </div>
@@ -252,72 +296,45 @@ export default function GaramePlayPage({ params }: PlayPageProps) {
         </Card>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="p-8">
-          <div className="min-h-[200px] flex items-center justify-center">
-            {gameState.lastPlayedCard ? (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Dernière carte jouée</p>
-                <PlayingCard card={gameState.lastPlayedCard} size="large" />
-              </div>
-            ) : (
-              <p className="text-muted-foreground">Aucune carte jouée</p>
-            )}
-          </div>
-          {isMyTurn && (
-            <div className="mt-4 text-center">
-              <Badge variant="default" className="animate-pulse">
-                C'est votre tour !
-              </Badge>
+      {/* Game Board */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Opponent's Hand */}
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Main de l'adversaire</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {Array.from({ length: opponent.hand.length }).map((_, i) => (
+                <div 
+                  key={i}
+                  className="w-20 h-28 rounded-lg border-2 border-gray-300 bg-muted"
+                />
+              ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Votre main</h3>
-            {currentPlayer?.hasKora && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <IconCrown className="h-4 w-4" />
-                Vous avez la Kora
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-3 justify-center">
-            {currentPlayer?.hand.map((card) => (
-              <div key={card.id} className="relative group">
+        {/* Player's Hand */}
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Votre main</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4 justify-center">
+              {currentPlayer.hand.map((card) => (
                 <PlayingCard
+                  key={card.id}
                   card={card}
-                  onClick={() => isMyTurn && setSelectedCard(card)}
+                  onClick={() => isMyTurn ? playCard(card) : null}
                   selected={selectedCard?.id === card.id}
                   disabled={!isMyTurn}
                 />
-                {selectedCard?.id === card.id && (
-                  <Button
-                    size="sm"
-                    className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 z-10"
-                    onClick={() => playCard(card)}
-                  >
-                    Jouer
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <GameEndModal
-        open={showEndModal}
-        onClose={() => {
-          setShowEndModal(false);
-          router.push('/games');
-        }}
-        result={gameResult}
-      />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 

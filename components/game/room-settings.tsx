@@ -5,19 +5,34 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { GameDefinition } from '@/lib/garame/core/types';
+
+interface GameDefinition {
+  minPlayers: number;
+  maxPlayers: number;
+  name: string;
+  description: string;
+}
+
+interface RoomSettings {
+  maxPlayers: number;
+  turnDuration: number;
+  allowSpectators: boolean;
+  isPrivate: boolean;
+  aiPlayersAllowed: boolean;
+  stake: number;
+}
 
 interface RoomSettingsProps {
   game: GameDefinition;
-  onCreateRoom: (settings: any) => void;
+  onCreateRoom: (settings: RoomSettings) => void;
 }
 
 export function RoomSettings({ game, onCreateRoom }: RoomSettingsProps) {
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<RoomSettings>({
     maxPlayers: game.maxPlayers,
     turnDuration: 30,
     allowSpectators: false,
-    privateRoom: false,
+    isPrivate: false,
     aiPlayersAllowed: true,
     stake: 100
   });
@@ -107,8 +122,8 @@ export function RoomSettings({ game, onCreateRoom }: RoomSettingsProps) {
           <Label htmlFor="private-room">Partie privée</Label>
           <Switch
             id="private-room"
-            checked={settings.privateRoom}
-            onCheckedChange={(checked) => setSettings({ ...settings, privateRoom: checked })}
+            checked={settings.isPrivate}
+            onCheckedChange={(checked) => setSettings({ ...settings, isPrivate: checked })}
           />
         </div>
 

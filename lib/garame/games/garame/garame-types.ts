@@ -1,16 +1,43 @@
 import { BaseGameState, BasePlayerState, Card } from '../../core/types';
+import { GameStateStatus } from '@prisma/client';
 
-export interface GarameState extends BaseGameState {
-  lastPlayedCard: Card | null;
-  currentSuit?: Card['suit'];
-  deck: Card[]; // Remaining deck
-  discardPile: Card[];
+export interface GarameCard {
+  id: string;
+  suit: string;
+  rank: string | number;
 }
 
-export interface GaramePlayerState extends BasePlayerState {
-  hand: Card[];
+export interface GaramePlayerState {
+  id: string;
+  name: string;
+  score: number;
+  hand: GarameCard[];
   hasKora: boolean;
-  wonTricks: number;
+  isAI: boolean;
+  isActive: boolean;
+}
+
+export interface GarameMetadata {
+  lastPlayedCard?: GarameCard;
+  maxScore: number;
+  winners: string[];
+  winnings?: number;
+}
+
+export interface GarameState {
+  id: string;
+  gameType: 'garame';
+  currentPlayerId: string;
+  players: Map<string, GaramePlayerState>;
+  pot: number;
+  status: GameStateStatus;
+  winnerId: string | null;
+  winners: string[];
+  turn: number;
+  startedAt: Date;
+  endedAt: Date | null;
+  metadata: GarameMetadata;
+  roomId: string;
 }
 
 // Keep backward compatibility

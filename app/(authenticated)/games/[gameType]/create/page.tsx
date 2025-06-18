@@ -19,8 +19,9 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 
-import { useGameRoomService, usePaymentService } from '@/hooks/useInjection';
-import { useUser } from '@/providers/user-provider';
+import { useGame } from '@/hooks/useGame';
+import { useCurrentUser } from '@/hooks/useUser';
+import { paymentService } from '@/lib/services/payment.service';
 
 interface CreateRoomPageProps {
   params: { gameType: string };
@@ -28,9 +29,8 @@ interface CreateRoomPageProps {
 
 export default function CreateRoomPage({ params }: CreateRoomPageProps) {
   const router = useRouter();
-  const { user } = useUser();
-  const gameRoomService = useGameRoomService();
-  const paymentService = usePaymentService();
+  const { user } = useCurrentUser();
+  const { createRoom, loading: gameLoading } = useGame();
 
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState({
@@ -44,7 +44,10 @@ export default function CreateRoomPage({ params }: CreateRoomPageProps) {
   const presetStakes = [50, 100, 500, 1000, 5000];
 
   const handleCreate = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return;
+    }
 
     // Vérifier le solde
     const canAfford = await paymentService.canAffordStake(user.id, settings.stake);
@@ -55,16 +58,16 @@ export default function CreateRoomPage({ params }: CreateRoomPageProps) {
 
     setLoading(true);
     try {
-      const room = await gameRoomService.createRoom(params.gameType, settings.stake, {
-        privateRoom: settings.isPrivate,
-        aiPlayersAllowed: settings.aiPlayers > 0,
+      const room = await createRoom(user.id, {
+        gameType: params.gameType,
+        stake: settings.stake,
+        isPrivate: settings.isPrivate,
+        maxPlayers: params.gameType === 'garame' ? 2 : 4,
+        minPlayers: 2,
+        aiPlayers: settings.aiPlayers,
+        aiDifficulty: settings.aiDifficulty,
         turnDuration: settings.turnDuration
       });
-
-      // Ajouter les joueurs IA si demandé
-      for (let i = 0; i < settings.aiPlayers; i++) {
-        await gameRoomService.joinRoom(room.id, true, settings.aiDifficulty as 'easy' | 'medium' | 'hard');
-      }
 
       toast.success('Salle créée avec succès !');
       router.push(`/games/${params.gameType}/room/${room.id}`);
