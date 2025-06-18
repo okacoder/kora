@@ -9,6 +9,8 @@ import {
   IconInnerShadowTop,
   IconSettings,
   IconUserCircle,
+  IconHistory,
+  IconArrowsExchange,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -44,6 +46,16 @@ const data = {
       title: "Mes jeux",
       url: routes.games,
       icon: IconCards,
+    },
+    {
+      title: "Transactions",
+      url: routes.transactions,
+      icon: IconArrowsExchange,
+    },
+    {
+      title: "Historique",
+      url: routes.gamesHistory,
+      icon: IconHistory,
     },
   ],
   navSecondary: [

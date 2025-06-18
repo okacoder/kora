@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --experimental-https --port 4000",
-    "dev:mock": "NEXT_PUBLIC_USE_MOCK=true next dev --experimental-https --port 4000",
-    "dev:db": "NEXT_PUBLIC_USE_MOCK=false next dev --experimental-https --port 4000",
+    "dev:mock": "cross-env NEXT_PUBLIC_USE_MOCK=true next dev --experimental-https --port 4000",
+    "dev:db": "cross-env NEXT_PUBLIC_USE_MOCK=false next dev --experimental-https --port 4000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -59,6 +59,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/reflect-metadata": "^0.0.5",
+    "cross-env": "^7.0.3",
     "prisma": "^6.9.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.3",

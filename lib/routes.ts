@@ -3,11 +3,13 @@ import { Route } from "next";
 export const routes = {
   base: "/",
   games: "/games",
-  gameRoom: (gameLabel: string, roomId: string) => `/games/${gameLabel}?roomId=${roomId}` as Route<string>,
-  gamePlay: (gameLabel: string, roomId: string) => `/games/${gameLabel}?gameId=${roomId}` as Route<string>,
+  gameRoom: (gameType: string, roomId: string) => `/games/${gameType}/room/${roomId}` as Route<string>,
+  gamePlay: (gameType: string, gameId: string) => `/games/${gameType}/play/${gameId}` as Route<string>,
   koras: "/koras",
-  setting: "/setting",
+  setting: "/settings",
   account: "/account",
   login: "/login",
   signup: "/signup",
+  transactions: "/transactions",
+  gamesHistory: "/games/history",
 } as const;
