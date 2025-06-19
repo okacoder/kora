@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { 
   IconCoin, 
@@ -14,8 +14,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import GameTable from '@/components/game-table';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { cn } from '@/lib/utils';
 
 interface GameEndModalProps {
   open: boolean;
@@ -51,7 +53,7 @@ function GameEndModal({ open, onClose, result }: GameEndModalProps) {
   );
 }
 
-interface Card {
+interface GameCard {
   id: string;
   suit: string;
   rank: string;
@@ -59,7 +61,7 @@ interface Card {
 }
 
 interface PlayingCardProps {
-  card: Card;
+  card: GameCard;
   onClick?: () => void;
   selected?: boolean;
   disabled?: boolean;
@@ -89,7 +91,7 @@ interface Player {
   id: string;
   name: string;
   isAI: boolean;
-  hand: Card[];
+  hand: GameCard[];
   score: number;
   hasKora: boolean;
 }
@@ -106,64 +108,63 @@ interface GameState {
   };
 }
 
-interface PlayPageProps {
-  params: { 
-    gameType: string;
-    gameId: string; 
-  };
-}
+const MOCK_CARDS: GameCard[] = [
+  { id: '1', suit: '♠', rank: 'A', value: 14 },
+  { id: '2', suit: '♥', rank: 'K', value: 13 },
+  { id: '3', suit: '♦', rank: 'Q', value: 12 },
+  { id: '4', suit: '♣', rank: 'J', value: 11 },
+  { id: '5', suit: '♠', rank: '10', value: 10 }
+];
 
-export default function PlayPage({ params }: PlayPageProps) {
+export default function PlayPage() {
+  const params = useParams<{ gameType: string, gameId: string }>();
   const router = useRouter();
   const user = useCurrentUser();
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [gameState, setGameState] = useState<GameState | null>({
+        id: '1',
+        status: 'PLAYING',
+        currentPlayerId: '1',
+        players: new Map([
+          ['1', { 
+            id: '1', 
+            name: 'John Doe', 
+            isAI: false, 
+            hand: MOCK_CARDS.slice(0, 3), 
+            score: 120, 
+            hasKora: true 
+          }],
+          ['2', { 
+            id: '2', 
+            name: 'AI Player', 
+            isAI: true, 
+            hand: MOCK_CARDS.slice(3, 5), 
+            score: 80, 
+            hasKora: false 
+          }],
+        ]),
+        turn: 5,
+        pot: 1000,
+        metadata: {
+          maxScore: 500
+        }
+      });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
   const [isMyTurn, setIsMyTurn] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
-  const [gameResult, setGameResult] = useState<any>(null);
+  const [gameResult, setGameResult] = useState<any>({
+    winners: [],
+    metadata: { winnings: 500 }
+  });
 
-  useEffect(() => {
-    loadGameState();
-    // Rafraîchir toutes les 2 secondes
-    const interval = setInterval(loadGameState, 2000);
-    return () => clearInterval(interval);
-  }, [params.gameId]);
-
-  const loadGameState = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const state = {
-        id: '1',
-      } as any;
-      setGameState(state as GameState);
-      setIsMyTurn(state.currentPlayerId === user.id);
-
-      if (state.status === 'FINISHED') {
-        setGameResult(state);
-        setShowEndModal(true);
-      }
-    } catch (error: any) {
-      setError(error);
-      toast.error(error.message || 'Erreur lors du chargement de la partie');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const playCard = async (card: Card) => {
-    if (!isMyTurn || !user || !gameState) return;
+  const playCard = async (card: GameCard) => {
+    //if (!isMyTurn || !user || !gameState) return;
 
     try {
       // await gameService.playCard(gameState.id, user.id, card.id);
       setSelectedCard(null);
-      await loadGameState();
+      // await loadGameState();
     } catch (error: any) {
       toast.error(error.message || 'Coup invalide');
     }
@@ -196,8 +197,8 @@ export default function PlayPage({ params }: PlayPageProps) {
     );
   }
 
-  const currentPlayer = gameState.players.get(user?.id || '');
-  const opponent = Array.from(gameState.players.values()).find(p => p.id !== user?.id);
+  const currentPlayer = gameState.players.get('1');
+  const opponent = Array.from(gameState.players.values()).find(p => p.id !== '1');
 
   if (!currentPlayer || !opponent) {
     return (
@@ -211,127 +212,118 @@ export default function PlayPage({ params }: PlayPageProps) {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="absolute inset-0 flex flex-col">
       <GameEndModal 
         open={showEndModal} 
         onClose={handleEndGame}
         result={gameResult}
       />
 
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-2 flex items-center gap-4">
         <Button variant="ghost" onClick={() => router.push('/games')}>
-          <IconArrowLeft className="h-5 w-5" />
+          <IconArrowLeft className="size-5" />
         </Button>
-        <h1 className="text-2xl font-bold">Partie en cours</h1>
+        <h1 className="text-lg font-bold">Partie en cours</h1>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Opponent */}
-        <Card className={opponent.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : ''}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold flex items-center gap-2">
-                  {opponent.name}
-                  {opponent.isAI && (
-                    <Badge variant="secondary" className="text-xs">
-                      <IconRobot className="h-3 w-3" />
-                    </Badge>
-                  )}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {opponent.hand.length} cartes
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold">{opponent.score}</p>
-                {opponent.hasKora && (
-                  <IconCrown className="h-5 w-5 text-yellow-500 ml-auto" />
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col lg:flex-row gap-4 flex-1">
+        {/* Game Board */}
+        <div className="flex-1">
+          <GameTable
+            gameState={{
+              players: new Map(Array.from(gameState.players.entries()).map(([id, player]) => [
+                id,
+                {
+                  ...player,
+                  cards: player.hand.map(card => ({
+                    suit: card.suit,
+                    rank: card.rank
+                  })),
+                  score: player.score,
+                  hasKora: player.hasKora
+                }
+              ])),
+              currentPlayerId: gameState.currentPlayerId,
+              pot: gameState.pot,
+              metadata: gameState.metadata
+            }}
+            currentPlayerId={currentPlayer.id}
+            playerNames={new Map(Array.from(gameState.players.entries()).map(([id, player]) => [
+              id,
+              player.name
+            ]))}
+            onCardClick={(playerId, cardIndex) => {
+              if (playerId === currentPlayer.id && currentPlayer.hand[cardIndex]) {
+                playCard(currentPlayer.hand[cardIndex]);
+              }
+            }}
+          />
+        </div>
 
-        {/* Game Info */}
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-muted-foreground">Tour {gameState.turn}</p>
-            <p className="text-lg font-semibold flex items-center justify-center gap-2">
-              <IconCoin className="h-5 w-5" />
-              {gameState.pot} Koras
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Premier à {gameState.metadata.maxScore} points
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Current Player */}
-        <Card className={currentPlayer.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : ''}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold flex items-center gap-2">
-                  {currentPlayer.name}
-                  {isMyTurn && (
-                    <Badge variant="secondary">À vous de jouer</Badge>
-                  )}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {currentPlayer.hand.length} cartes
-                </p>
+        {/* Game Info Cards */}
+        <div className="gap-2 p-4 flex flex-row lg:flex-col lg:gap-4">
+          {/* Opponent */}
+          <Card className={cn("p-0 flex-1 lg:flex-none", opponent.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : '')}>
+            <CardContent className="p-2 lg:p-4">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-1 lg:gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm lg:text-base font-semibold">{opponent.name}</span>
+                      {opponent.isAI && <IconRobot className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] lg:text-xs text-muted-foreground">
+                      <span>{opponent.hand.length} cartes</span>
+                      {opponent.hasKora && <IconCrown className="h-3 w-3 text-yellow-500" />}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right lg:text-center">
+                  <span className="text-lg lg:text-2xl font-bold">{opponent.score}</span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold">{currentPlayer.score}</p>
-                {currentPlayer.hasKora && (
-                  <IconCrown className="h-5 w-5 text-yellow-500 ml-auto" />
-                )}
+            </CardContent>
+          </Card>
+
+          {/* Game Info */}
+          <Card className="p-0 flex-1 lg:flex-none">
+            <CardContent className="p-2 lg:p-4">
+              <div className="flex flex-col items-center justify-center gap-0.5 lg:gap-1">
+                <span className="text-xs lg:text-sm text-muted-foreground">Tour {gameState.turn}</span>
+                <div className="flex items-center gap-1">
+                  <IconCoin className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
+                  <span className="text-sm lg:text-lg font-bold">{gameState.pot}</span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Game Board */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Opponent's Hand */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Main de l'adversaire</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {Array.from({ length: opponent.hand.length }).map((_, i) => (
-                <div 
-                  key={i}
-                  className="w-20 h-28 rounded-lg border-2 border-gray-300 bg-muted"
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Player's Hand */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Votre main</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4 justify-center">
-              {currentPlayer.hand.map((card) => (
-                <PlayingCard
-                  key={card.id}
-                  card={card}
-                  onClick={() => isMyTurn ? playCard(card) : null}
-                  selected={selectedCard?.id === card.id}
-                  disabled={!isMyTurn}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          {/* Current Player */}
+          <Card className={cn("p-0 flex-1 lg:flex-none", currentPlayer.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : '')}>
+            <CardContent className="p-2 lg:p-4">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-1 lg:gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm lg:text-base font-semibold">{currentPlayer.name}</span>
+                      {isMyTurn && (
+                        <Badge variant="secondary" className="text-[8px] lg:text-xs px-1.5 py-0 h-3.5 lg:h-5">À vous</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] lg:text-xs text-muted-foreground">
+                      <span>{currentPlayer.hand.length} cartes</span>
+                      {currentPlayer.hasKora && <IconCrown className="h-3 w-3 text-yellow-500" />}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right lg:text-center">
+                  <span className="text-lg lg:text-2xl font-bold">{currentPlayer.score}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-} 
+}

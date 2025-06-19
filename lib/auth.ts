@@ -47,11 +47,11 @@ const options = {
     },
   },
   plugins: [
-    nextCookies(),
      username({
       minUsernameLength: 3,
       maxUsernameLength: 20,
-     }) 
+     }),
+     nextCookies(), 
   ],
 } satisfies BetterAuthOptions;
 

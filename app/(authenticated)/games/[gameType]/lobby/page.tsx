@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -28,11 +28,8 @@ interface GameRoomWithPlayers extends GameRoom {
   players: RoomPlayer[];
 }
 
-interface LobbyPageProps {
-  params: { gameType: string };
-}
-
-export default function LobbyPage({ params }: LobbyPageProps) {
+export default function LobbyPage() {
+  const params = useParams<{ gameType: string }>();
   const router = useRouter();
   const user = useCurrentUser();
 

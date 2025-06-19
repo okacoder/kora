@@ -16,9 +16,7 @@ import {
   IconLoader2,
   IconGift} from "@tabler/icons-react";
 import { toast } from "sonner";
-import { useCurrentUser } from "@/hooks/useUser";
-import { paymentService } from "@/lib/services/payment.service";
-import { userService } from "@/lib/services/user.service";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 // Taux de conversion
 const FCFA_TO_KORAS_RATE = 10; // 100 FCFA = 10 koras
@@ -34,7 +32,7 @@ const rechargeOptions = [
 ];
 
 export default function KorasPage() {
-  const { user, refresh } = useCurrentUser();
+  const user = useCurrentUser();
   
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("buy");
@@ -67,11 +65,11 @@ export default function KorasPage() {
       // Process deposit through payment service
       const reference = `MM-${Date.now()}-${user.id.substring(0, 6)}`;
       
-      await paymentService.depositKoras(
-        user.id,
-        amount,
-        reference
-      );
+      // await paymentService.depositKoras(
+      //   user.id,
+      //   amount,
+      //   reference
+      // );
       
       const option = rechargeOptions.find(opt => opt.fcfa === amount);
       const baseKoras = Math.floor(amount / FCFA_TO_KORAS_RATE);
@@ -88,7 +86,7 @@ export default function KorasPage() {
         </div>
       );
       
-      await refresh();
+      // await refresh();
       setSelectedAmount("");
       setCustomAmount("");
       setPhoneNumber("");
@@ -110,7 +108,7 @@ export default function KorasPage() {
       return;
     }
     
-    if (korasToWithdraw > user.koras) {
+    if (korasToWithdraw > (user.koras || 0)) {
       toast.error("Solde de koras insuffisant");
       return;
     }
@@ -123,7 +121,7 @@ export default function KorasPage() {
     setLoading(true);
     try {
       // Process withdrawal through user service
-      await userService.updateBalance(user.id, -korasToWithdraw);
+      // await userService.updateBalance(user.id, -korasToWithdraw);
       
       toast.success(
         <div>
@@ -132,7 +130,7 @@ export default function KorasPage() {
         </div>
       );
       
-      await refresh();
+      // await refresh();
       setWithdrawAmount("");
       setWithdrawPhone("");
     } catch (error: any) {

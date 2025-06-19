@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { 
   IconCrown, 
@@ -24,13 +24,6 @@ import { GameRoom } from '@prisma/client';
 import { routes } from '@/lib/routes';
 // Note: Le composant CountdownTimer est défini dans le plan mais n'existe pas encore.
 // import { CountdownTimer } from '@/components/game/countdown-timer';
-
-interface RoomPageProps {
-  params: { 
-    gameType: string;
-    roomId: string;
-  };
-}
 
 // Placeholder pour CountdownTimer
 function CountdownTimer({ seconds, onComplete, message }: { seconds: number; onComplete: () => void; message: string; }) {
@@ -77,7 +70,8 @@ interface RoomPlayer {
   avatar?: string;
 }
 
-export default function RoomPage({ params }: RoomPageProps) {
+export default function RoomPage() {
+  const params = useParams<{ gameType: string, roomId: string }>();
   const router = useRouter();
   const user = useCurrentUser();
   const [room, setRoom] = useState<GameRoomWithPlayers | null>(null);
@@ -102,6 +96,21 @@ export default function RoomPage({ params }: RoomPageProps) {
       setLoading(true);
       const roomData = {
         id: '1',
+        players: [{
+          id: '1',
+          name: 'John Doe',
+          position: 1,
+          isReady: false,
+          isAI: false,
+          aiDifficulty: null,
+          joinedAt: new Date(),
+        }],
+        settings: {},
+        creatorId: '1',
+        creatorName: 'John Doe',
+        stake: 100,
+        maxPlayers: 4,
+        minPlayers: 2,
       } as any;
       
       const typedRoom = roomData as GameRoomWithPlayers;
@@ -111,8 +120,8 @@ export default function RoomPage({ params }: RoomPageProps) {
       setIsReady(currentPlayer?.isReady || false);
 
       // Si la partie a démarré, rediriger vers la page de jeu
-      if (typedRoom.status === 'IN_PROGRESS' && typedRoom.gameStateId) {
-        router.push(routes.gamePlay(params.gameType, typedRoom.gameStateId));
+      if (typedRoom.id) {
+        router.push(routes.gamePlay(params.gameType, typedRoom.id));
       }
     } catch (error) {
       toast.error('Erreur lors du chargement de la salle');
@@ -218,7 +227,7 @@ export default function RoomPage({ params }: RoomPageProps) {
           <div>
             <h1 className="text-2xl font-bold">Salle de {room.creatorName}</h1>
             <p className="text-muted-foreground">
-              {room.players.length}/{room.maxPlayers} joueurs
+              {room.players?.length || 0}/{room.maxPlayers} joueurs
             </p>
           </div>
         </div>

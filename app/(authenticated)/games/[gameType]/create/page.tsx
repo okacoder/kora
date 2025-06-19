@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { 
   IconCoin, 
@@ -20,11 +20,10 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
-interface CreateRoomPageProps {
-  params: { gameType: string };
-}
 
-export default function CreateRoomPage({ params }: CreateRoomPageProps) {
+
+export default function CreateRoomPage() {
+  const params = useParams<{ gameType: string }>();
   const router = useRouter();
   const user = useCurrentUser();
 
