@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { PlayingCard, CardBack } from '@/components/game-card';
 import { IconHandStop, IconCoin } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
+import { useAdaptiveTableSize } from '@/hooks/use-adaptive-table-size';
 
 interface GameBoardPlayer {
   id: string;
@@ -53,6 +54,8 @@ const GameTable = ({
   onCardClick, 
   className 
 }: GameTableProps) => {
+  const tableDimensions = useAdaptiveTableSize();
+  
   // Convert game state to players array
   const players: GameBoardPlayer[] = Array.from(gameState.players.entries() as IterableIterator<[string, any]>).map(([playerId, playerState]) => ({
     id: playerId,
@@ -62,16 +65,32 @@ const GameTable = ({
     isCurrentTurn: playerId === gameState.currentPlayerId
   }));
   
-  const positions = getPlayerPositions(players.length);
+  // Reorder players so current player is always at bottom center
+  const currentPlayerIndex = players.findIndex(p => p.id === currentPlayerId);
+  const reorderedPlayers = [...players];
+  
+  if (currentPlayerIndex !== -1) {
+    // Move current player to the end (bottom position)
+    const currentPlayer = reorderedPlayers.splice(currentPlayerIndex, 1)[0];
+    reorderedPlayers.push(currentPlayer);
+  }
+  
+  const positions = getPlayerPositions(reorderedPlayers.length);
+  
   // Try to get lastPlayedCard if present in metadata or state
   const centerCard = (gameState as any).lastPlayedCard || gameState.metadata?.lastPlayedCard;
   
+  // Calculate responsive dimensions based on table size
+  const { width, height, centerX, centerY } = tableDimensions;
+  const padding = Math.max(20, width * 0.05);
+  const innerPadding = padding + 20;
+  
   return (
-    <div className={cn("relative w-full h-full min-h-[400px] flex items-center justify-center", className)}>
+    <div className={cn("relative w-full h-full min-h-[300px] lg:min-h-[400px] flex items-center justify-center", className)}>
       {/* Table SVG avec design system */}
       <svg 
-        viewBox="0 0 400 400" 
-        className="absolute inset-0 w-full h-full mx-auto"
+        viewBox={tableDimensions.viewBox}
+        className="absolute inset-0 w-full h-full mx-auto lg:max-w-lg"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
@@ -113,27 +132,27 @@ const GameTable = ({
         </defs>
         
         {/* Table principale */}
-        <rect x="20" y="20" width="360" height="360" rx="20" fill="url(#tableGradient)" filter="url(#tableShadow)"/>
+        <rect x={padding} y={padding} width={width - padding * 2} height={height - padding * 2} rx="20" fill="url(#tableGradient)" filter="url(#tableShadow)"/>
         
         {/* Texture */}
-        <rect x="20" y="20" width="360" height="360" rx="20" fill="url(#tableTexture)" opacity="0.3"/>
+        <rect x={padding} y={padding} width={width - padding * 2} height={height - padding * 2} rx="20" fill="url(#tableTexture)" opacity="0.3"/>
         
         {/* Bordure dorée */}
-        <rect x="20" y="20" width="360" height="360" rx="20" fill="none" className="stroke-primary" strokeWidth="3" opacity="0.8"/>
+        <rect x={padding} y={padding} width={width - padding * 2} height={height - padding * 2} rx="20" fill="none" className="stroke-primary" strokeWidth="3" opacity="0.8"/>
         
         {/* Bordure intérieure */}
-        <rect x="40" y="40" width="320" height="320" rx="15" fill="none" className="stroke-chart-4/60" strokeWidth="2"/>
+        <rect x={innerPadding} y={innerPadding} width={width - innerPadding * 2} height={height - innerPadding * 2} rx="15" fill="none" className="stroke-chart-4/60" strokeWidth="2"/>
         
         {/* Zone de jeu */}
-        <rect x="60" y="60" width="280" height="280" rx="10" fill="none" className="stroke-chart-4/40" strokeWidth="1.5" strokeDasharray="5 5"/>
+        <rect x={innerPadding + 20} y={innerPadding + 20} width={width - (innerPadding + 20) * 2} height={height - (innerPadding + 20) * 2} rx="10" fill="none" className="stroke-chart-4/40" strokeWidth="1.5" strokeDasharray="5 5"/>
         
         {/* Reflet */}
-        <rect x="40" y="40" width="320" height="320" rx="15" fill="url(#tableShine)"/>
+        <rect x={innerPadding} y={innerPadding} width={width - innerPadding * 2} height={height - innerPadding * 2} rx="15" fill="url(#tableShine)"/>
         
         {/* Logo central */}
         <g opacity="0.2">
-          <circle cx="200" cy="200" r="40" fill="none" className="stroke-chart-4" strokeWidth="1"/>
-          <g transform="translate(200, 200)">
+          <circle cx={centerX} cy={centerY} r="40" fill="none" className="stroke-chart-4" strokeWidth="1"/>
+          <g transform={`translate(${centerX}, ${centerY})`}>
             <path d="M0,-20 L5,-5 L20,0 L5,5 L0,20 L-5,5 L-20,0 L-5,-5 Z" className="fill-chart-4" opacity="0.3"/>
             <circle cx="0" cy="0" r="8" fill="none" className="stroke-chart-4" strokeWidth="1"/>
           </g>
@@ -141,10 +160,10 @@ const GameTable = ({
         
         {/* Points décoratifs */}
         <g opacity="0.3">
-          <circle cx="200" cy="30" r="3" className="fill-primary"/>
-          <circle cx="200" cy="370" r="3" className="fill-primary"/>
-          <circle cx="30" cy="200" r="3" className="fill-primary"/>
-          <circle cx="370" cy="200" r="3" className="fill-primary"/>
+          <circle cx={centerX} cy={padding + 20} r="3" className="fill-primary"/>
+          <circle cx={centerX} cy={height - padding - 20} r="3" className="fill-primary"/>
+          <circle cx={padding + 20} cy={centerY} r="3" className="fill-primary"/>
+          <circle cx={width - padding - 20} cy={centerY} r="3" className="fill-primary"/>
         </g>
       </svg>
       
@@ -171,7 +190,7 @@ const GameTable = ({
       )}
       
       {/* Joueurs */}
-      {players.map((player, index) => (
+      {reorderedPlayers.map((player, index) => (
         <div 
           key={player.id} 
           className="absolute flex flex-col items-center gap-2"

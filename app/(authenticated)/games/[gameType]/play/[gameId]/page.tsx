@@ -228,7 +228,7 @@ export default function PlayPage() {
 
       <div className="flex flex-col lg:flex-row gap-4 flex-1">
         {/* Game Board */}
-        <div className="flex-1">
+        <div className="flex-1 lg:flex-1">
           <GameTable
             gameState={{
               players: new Map(Array.from(gameState.players.entries()).map(([id, player]) => [
@@ -257,11 +257,12 @@ export default function PlayPage() {
                 playCard(currentPlayer.hand[cardIndex]);
               }
             }}
+            className="h-full"
           />
         </div>
 
         {/* Game Info Cards */}
-        <div className="gap-2 p-4 flex flex-row lg:flex-col lg:gap-4">
+        <div className="gap-2 p-4 flex flex-row lg:flex-col lg:gap-4 lg:p-0">
           {/* Opponent */}
           <Card className={cn("p-0 flex-1 lg:flex-none", opponent.id === gameState.currentPlayerId ? 'ring-2 ring-primary' : '')}>
             <CardContent className="p-2 lg:p-4">
