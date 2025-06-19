@@ -78,7 +78,7 @@ export default async function HomePage() {
           {/* Desktop menu */}
           <nav className="hidden sm:flex items-center gap-4">
             {session ? (
-              <Link href="/dashboard">
+              <Link href="/">
                 <Button variant="outline">Se déconnecter</Button>
               </Link>
             ) : (
@@ -87,7 +87,7 @@ export default async function HomePage() {
               </Link>
             )}
             {session ? (
-              <Link href="/dashboard">
+              <Link href="/games">
                 <Button>Commencer à jouer</Button>
               </Link>
             ) : (

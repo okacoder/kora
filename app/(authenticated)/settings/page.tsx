@@ -1,10 +1,22 @@
-"use client";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { ModeToggle } from "@/components/mode-toggle";
 
-export default function SettingsPage() {
+export default async function Page() {
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Paramètres</h1>
-      <p className="text-muted-foreground">TODO: Implémenter la gestion des paramètres utilisateur</p>
+    <div className="flex justify-center px-4 lg:px-6 py-8">
+      <Card className="w-full max-w-md rounded-lg shadow-sm border">
+        <CardHeader>
+          <h1 className="text-lg font-semibold">Paramètres</h1>
+          <p className="text-sm text-muted-foreground mb-2">
+            Choisissez vos préférences d'apparence.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center py-4">
+            <ModeToggle />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-} 
+}

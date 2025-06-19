@@ -1,10 +1,7 @@
 "use client";
 
 import {
-  IconCreditCard,
   IconDotsVertical,
-  IconLogout,
-  IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
 
@@ -25,7 +22,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Session } from "@/lib/auth";
-import LogoutButton from "./auth/logout-button";
+import { LogoutButton } from "./auth/logout-button";
+import { ModeToggle } from "./mode-toggle";
 
 export function NavUser({ user }: { user: Session["user"] }) {
   const { isMobile } = useSidebar();
@@ -81,9 +79,13 @@ export function NavUser({ user }: { user: Session["user"] }) {
                 Mon compte
               </DropdownMenuItem>
             </DropdownMenuGroup>
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+               <ModeToggle />
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <IconLogout />
               <LogoutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>

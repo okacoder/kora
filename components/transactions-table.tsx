@@ -1,23 +1,23 @@
 "use client";
 
-import { ITransaction } from "@/lib/garame/domain/interfaces";
+import type { transaction as Transaction, TransactionType } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { IconArrowDownLeft, IconArrowUpRight, IconCoin, IconTrendingUp, IconReceipt } from "@tabler/icons-react";
 
 interface TransactionsTableProps {
-  transactions: ITransaction[];
+  transactions: Transaction[];
 }
 
-function getIcon(type: ITransaction["type"]) {
+function getIcon(type: TransactionType) {
   switch (type) {
-    case "deposit":
+    case "DEPOSIT":
       return <IconArrowDownLeft className="size-4 text-green-600" />;
-    case "withdrawal":
+    case "WITHDRAWAL":
       return <IconArrowUpRight className="size-4 text-red-600" />;
-    case "game_stake":
+    case "GAME_STAKE":
       return <IconCoin className="size-4 text-orange-600" />;
-    case "game_win":
+    case "GAME_WIN":
       return <IconTrendingUp className="size-4 text-green-600" />;
     default:
       return <IconReceipt className="size-4" />;
@@ -45,7 +45,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                     {getIcon(tx.type)}
                   </div>
                   <div>
-                    <p className="text-sm font-medium capitalize">{tx.type.replace("_", " ")}</p>
+                    <p className="text-sm font-medium capitalize">{tx.type.toLowerCase().replace("_", " ")}</p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(tx.createdAt).toLocaleDateString("fr-FR", {
                         day: "2-digit",
@@ -57,14 +57,14 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold ${tx.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                    {tx.amount > 0 ? "+" : ""}
-                    {tx.type === 'deposit' || tx.type === 'withdrawal'
-                      ? `${tx.amount.toLocaleString()} FCFA`
-                      : `${tx.amount.toLocaleString()} koras`}
+                  <p className={`font-semibold ${(tx.koras ?? 0) > 0 ? "text-green-600" : "text-red-600"}`}>
+                    {(tx.koras ?? 0) > 0 ? "+" : ""}
+                    {tx.type === 'DEPOSIT' || tx.type === 'WITHDRAWAL'
+                      ? `${tx.amount?.toLocaleString() ?? 0} FCFA`
+                      : `${tx.koras?.toLocaleString() ?? 0} koras`}
                   </p>
                   <Badge variant="outline" className="text-xs capitalize">
-                    {tx.status}
+                    {tx.status.toLowerCase()}
                   </Badge>
                 </div>
               </div>

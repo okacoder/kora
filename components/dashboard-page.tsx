@@ -5,47 +5,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { IconCoin, IconTrophy, IconCards, IconChartBar } from '@tabler/icons-react';
 import Link from 'next/link';
-import { useUser } from '@/providers/user-provider';
-import { useGameRoomService, useTransactionRepository } from '@/hooks/useInjection';
-import { GameRoom } from '@/lib/garame/core/types';
-import { Skeleton } from '@/components/ui/skeleton';
+import { GameRoom, RoomPlayer } from '@prisma/client';
+import { authClient } from '@/lib/auth-client';
+
+type GameRoomWithPlayers = GameRoom & {
+  players: RoomPlayer[];
+};
 
 export default function DashboardPage() {
-  const { user, loading: userLoading } = useUser();
-  const gameRoomService = useGameRoomService();
-  const transactionRepository = useTransactionRepository();
-  
-  const [activeRooms, setActiveRooms] = useState<GameRoom[]>([]);
+  const { data: session } = authClient.useSession();
+  const [activeRooms, setActiveRooms] = useState<GameRoomWithPlayers[]>([]);
   const [stats, setStats] = useState({
     totalGames: 0,
     totalWins: 0,
     winRate: 0,
     ranking: 0
   });
-  const [showDepositModal, setShowDepositModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
-  }, [user]);
+  }, [session]);
 
   const loadDashboardData = async () => {
-    if (!user) return;
+    if (!session) return;
 
-    // Charger les salles actives
-    const rooms = await gameRoomService.getUserRooms(user.id);
-    setActiveRooms(rooms.filter(r => r.status === 'waiting' || r.status === 'in_progress'));
+    try {
+      // Charger les salles actives
+      const rooms = [] as GameRoomWithPlayers[];
+      setActiveRooms(rooms.filter(r => r.status === 'WAITING' || r.status === 'IN_PROGRESS'));
 
-    // Calculer les statistiques
-    const winRate = user.totalGames > 0 
-      ? Math.round((user.totalWins / user.totalGames) * 100) 
-      : 0;
+      // Charger les statistiques
+      const gameStats = {
+        totalGames: 0,
+        totalWins: 0,
+        winRate: 0,
+        ranking: 0
+      };
+      const transactionStats = {
+        totalTransactions: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+        totalFees: 0
+      };
 
-    setStats({
-      totalGames: user.totalGames,
-      totalWins: user.totalWins,
-      winRate,
-      ranking: await calculateRanking(user.totalWins)
-    });
+      setStats({
+        totalGames: gameStats.totalGames,
+        totalWins: gameStats.totalWins,
+        winRate: gameStats.winRate,
+        ranking: await calculateRanking(gameStats.totalWins)
+      });
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
   };
 
   const calculateRanking = async (wins: number): Promise<number> => {
@@ -54,10 +65,6 @@ export default function DashboardPage() {
     return Math.max(1, 100 - wins * 5);
   };
 
-  if (userLoading) {
-    return <DashboardSkeleton />;
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* En-tête avec solde */}
@@ -65,7 +72,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">Tableau de bord</h1>
           <p className="text-muted-foreground">
-            Bienvenue, {user?.name || user?.username} !
+            Bienvenue, {session?.user?.username} !
           </p>
         </div>
         <Card className="border-primary">
@@ -73,10 +80,7 @@ export default function DashboardPage() {
             <IconCoin className="h-8 w-8 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Solde</p>
-              <p className="text-2xl font-bold">{user?.koras || 0} Koras</p>
-              <p className="text-xs text-muted-foreground">
-                {user?.koras?.toLocaleString()} koras
-              </p>
+              <p className="text-2xl font-bold">{session?.user?.koras || 0} Koras</p>
             </div>
             <Link href="/koras">
               <Button size="sm">Recharger</Button>
@@ -97,7 +101,7 @@ export default function DashboardPage() {
           icon={IconTrophy}
           title="Victoires"
           value={stats.totalWins}
-          description={`${stats.winRate}% de victoires`}
+          description={`${stats.winRate.toFixed(1)}% de victoires`}
         />
         <StatCard
           icon={IconChartBar}
@@ -108,7 +112,7 @@ export default function DashboardPage() {
         <StatCard
           icon={IconCoin}
           title="Gains totaux"
-          value={`${user?.totalWins * 90} K`}
+          value={`${stats.totalWins * 90} K`}
           description="Koras gagnés"
         />
       </div>
@@ -178,7 +182,14 @@ export default function DashboardPage() {
 }
 
 // Composants utilitaires
-function StatCard({ icon: Icon, title, value, description }: any) {
+interface StatCardProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  value: string | number;
+  description: string;
+}
+
+function StatCard({ icon: Icon, title, value, description }: StatCardProps) {
   return (
     <Card>
       <CardContent className="p-6">
@@ -198,13 +209,21 @@ function StatCard({ icon: Icon, title, value, description }: any) {
 function DashboardSkeleton() {
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Skeleton className="h-32 w-full" />
+      <div className="flex justify-between items-center">
+        <div>
+          <div className="h-8 w-48 bg-muted rounded-md mb-2" />
+          <div className="h-4 w-32 bg-muted rounded-md" />
+        </div>
+        <div className="h-24 w-64 bg-muted rounded-lg" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-32" />
+          <div key={i} className="h-32 bg-muted rounded-lg" />
         ))}
       </div>
-      <Skeleton className="h-64 w-full" />
+
+      <div className="h-64 bg-muted rounded-lg" />
     </div>
   );
 }

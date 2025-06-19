@@ -2,7 +2,6 @@ import { LoginForm } from "@/components/auth/login-form";
 import { PlayingCard, CardBack } from "@/components/game-card";
 import Link from "next/link";
 import { IconCards } from "@tabler/icons-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function Page() {
   return (

@@ -1,10 +1,9 @@
-import { RoomPlayer } from '@/lib/garame/core/types';
+import type { RoomPlayer, AIDifficulty } from '@prisma/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   IconRobot, 
-  IconUser, 
   IconCrown,
   IconX 
 } from '@tabler/icons-react';
@@ -13,7 +12,7 @@ interface PlayerListProps {
   players: RoomPlayer[];
   maxPlayers: number;
   isHost: boolean;
-  onAddAI?: (difficulty: 'easy' | 'medium' | 'hard') => void;
+  onAddAI?: (difficulty: AIDifficulty) => void;
   onKickPlayer?: (playerId: string) => void;
 }
 
@@ -51,7 +50,7 @@ export function PlayerList({
               <div className="flex gap-1">
                 {player.isAI && (
                   <Badge variant="secondary" className="text-xs">
-                    Bot {player.aiDifficulty}
+                    Bot {player.aiDifficulty?.toLowerCase()}
                   </Badge>
                 )}
                 {player.isReady && (
@@ -86,7 +85,7 @@ export function PlayerList({
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => onAddAI('easy')}
+                onClick={() => onAddAI('EASY')}
               >
                 <IconRobot className="h-4 w-4 mr-1" />
                 Bot Facile
@@ -94,7 +93,7 @@ export function PlayerList({
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => onAddAI('medium')}
+                onClick={() => onAddAI('MEDIUM')}
               >
                 <IconRobot className="h-4 w-4 mr-1" />
                 Bot Moyen
@@ -102,7 +101,7 @@ export function PlayerList({
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => onAddAI('hard')}
+                onClick={() => onAddAI('HARD')}
               >
                 <IconRobot className="h-4 w-4 mr-1" />
                 Bot Difficile

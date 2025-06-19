@@ -1,9 +1,6 @@
 import { ThemeProvider } from "next-themes";
 import { RouteAuthGuard } from "./route-auth-gard";
 import { SidebarProvider } from "../ui/sidebar";
-import { UserProvider } from "@/providers/user-provider";
-import { GameProvider } from "@/providers/game-provider";
-import { NotificationProvider } from "@/providers/notification-provider";
 import { Toaster } from "sonner";
 
 export const BaseProviders = ({ children }: { children: React.ReactNode }) => {
@@ -13,14 +10,8 @@ export const BaseProviders = ({ children }: { children: React.ReactNode }) => {
           enableSystem
           disableTransitionOnChange
         >
-          <UserProvider>
-            <GameProvider>
-              <NotificationProvider>
-                {children}
-                <Toaster position="top-right" />
-              </NotificationProvider>
-            </GameProvider>
-          </UserProvider>
+          {children}
+          <Toaster position="bottom-right" />
         </ThemeProvider> 
         )
 };
