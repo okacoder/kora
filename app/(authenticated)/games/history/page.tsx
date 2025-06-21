@@ -137,7 +137,7 @@ function GameStats({ stats }: { stats: any }) {
         <CardContent className="p-4 pt-0">
           <p className="text-2xl font-bold">{stats.favoriteGameType || '-'}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {stats.gameTypes[stats.favoriteGameType] || 0} parties
+            {stats.favoriteGameType && stats.gameTypes ? (stats.gameTypes[stats.favoriteGameType] || 0) : 0} parties
           </p>
         </CardContent>
       </Card>
@@ -178,6 +178,8 @@ export default function GamesHistoryPage() {
         winRate: 0,
         totalWinnings: 0,
         highestWin: 0,
+        favoriteGameType: null,
+        gameTypes: {},
       };
       setStats(gameStats);
     } catch (error: any) {
