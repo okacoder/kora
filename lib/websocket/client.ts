@@ -4,236 +4,363 @@ import { io, Socket } from 'socket.io-client';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 
-export interface SocketStore {
+export interface GameMessage {
+  playerId: string;
+  playerName: string;
+  message: string;
+  timestamp: Date;
+}
+
+export interface GameAction {
+  playerId: string;
+  playerName: string;
+  action: any;
+  timestamp: Date;
+}
+
+export interface PlayerStatus {
+  playerId: string;
+  playerName: string;
+  isConnected: boolean;
+  isReady?: boolean;
+  timestamp: Date;
+}
+
+interface WebSocketStore {
+  // État de connexion
   socket: Socket | null;
   isConnected: boolean;
   isConnecting: boolean;
-  reconnectAttempts: number;
-  lastError: string | null;
+  connectionError: string | null;
+  
+  // État du jeu
+  currentGameId: string | null;
+  gameState: any | null;
+  players: PlayerStatus[];
+  messages: GameMessage[];
   
   // Actions
-  connect: (token: string) => void;
+  connect: (token: string) => Promise<void>;
   disconnect: () => void;
-  emit: (event: string, data: any) => void;
-  on: (event: string, callback: Function) => void;
-  off: (event: string, callback?: Function) => void;
+  joinGame: (gameId: string) => Promise<void>;
+  leaveGame: () => void;
+  sendGameAction: (action: any) => void;
+  sendMessage: (message: string) => void;
+  setPlayerReady: (ready: boolean) => void;
   
-  // Game-specific actions
-  joinGame: (gameId: string) => void;
-  leaveGame: (gameId: string) => void;
-  sendGameAction: (gameId: string, action: string, payload: any) => void;
+  // Événements internes
+  _handleConnect: () => void;
+  _handleDisconnect: () => void;
+  _handleError: (error: string) => void;
+  _handleGameStateUpdate: (data: any) => void;
+  _handlePlayerJoined: (data: PlayerStatus) => void;
+  _handlePlayerLeft: (data: PlayerStatus) => void;
+  _handleGameMessage: (data: GameMessage) => void;
+  _handleGameAction: (data: GameAction) => void;
 }
 
-function getWebSocketUrl(): string {
-  if (typeof window !== 'undefined') {
-    // Client-side: utiliser l'URL actuelle
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${window.location.host}`;
-  }
-  
-  // Fallback pour SSR
-  return process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000';
-}
-
-export const useSocketStore = create<SocketStore>()(
+/**
+ * Store Zustand pour la gestion WebSocket
+ */
+export const useWebSocketStore = create<WebSocketStore>()(
   subscribeWithSelector((set, get) => ({
+    // État initial
     socket: null,
     isConnected: false,
     isConnecting: false,
-    reconnectAttempts: 0,
-    lastError: null,
+    connectionError: null,
+    currentGameId: null,
+    gameState: null,
+    players: [],
+    messages: [],
 
-    connect: (token: string) => {
-      const { socket: existingSocket, isConnecting } = get();
+    /**
+     * Connexion au serveur WebSocket
+     */
+    connect: async (token: string) => {
+      const { socket, isConnected, isConnecting } = get();
       
-      // Éviter les connexions multiples
-      if (existingSocket?.connected || isConnecting) {
-        console.log('WebSocket already connected or connecting');
+      if (isConnected || isConnecting) {
+        console.log('WebSocket déjà connecté ou en cours de connexion');
         return;
       }
 
-      set({ isConnecting: true, lastError: null });
+      set({ isConnecting: true, connectionError: null });
 
-      const socket = io(getWebSocketUrl(), {
-        auth: { token },
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 10,
-        timeout: 20000,
-        transports: ['websocket', 'polling'],
-      });
+      try {
+        const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000', {
+          auth: { token },
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 10,
+        });
 
-      // Événements de connexion
-      socket.on('connect', () => {
-        console.log('✅ WebSocket connected');
+        // Configuration des événements
+        newSocket.on('connect', get()._handleConnect);
+        newSocket.on('disconnect', get()._handleDisconnect);
+        newSocket.on('error', get()._handleError);
+        newSocket.on('game-state-update', get()._handleGameStateUpdate);
+        newSocket.on('player-joined', get()._handlePlayerJoined);
+        newSocket.on('player-left', get()._handlePlayerLeft);
+        newSocket.on('player-disconnected', get()._handlePlayerLeft);
+        newSocket.on('game-message-broadcast', get()._handleGameMessage);
+        newSocket.on('game-action-broadcast', get()._handleGameAction);
+        newSocket.on('ai-action', get()._handleGameAction);
+
+        set({ socket: newSocket, isConnecting: false });
+
+      } catch (error) {
+        console.error('Erreur de connexion WebSocket:', error);
         set({ 
-          isConnected: true, 
           isConnecting: false, 
-          reconnectAttempts: 0,
-          lastError: null 
+          connectionError: error instanceof Error ? error.message : 'Erreur de connexion'
         });
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('❌ WebSocket disconnected:', reason);
-        set({ isConnected: false });
-      });
-
-      socket.on('connect_error', (error) => {
-        console.error('🔴 WebSocket connection error:', error);
-        const attempts = get().reconnectAttempts + 1;
-        set({ 
-          isConnecting: false,
-          reconnectAttempts: attempts,
-          lastError: error.message 
-        });
-      });
-
-      socket.on('reconnect', (attemptNumber) => {
-        console.log(`🔄 WebSocket reconnected after ${attemptNumber} attempts`);
-        set({ reconnectAttempts: 0, lastError: null });
-      });
-
-      socket.on('reconnect_attempt', (attemptNumber) => {
-        console.log(`🔄 WebSocket reconnection attempt ${attemptNumber}`);
-        set({ reconnectAttempts: attemptNumber });
-      });
-
-      socket.on('reconnect_failed', () => {
-        console.error('💥 WebSocket reconnection failed');
-        set({ 
-          isConnecting: false,
-          lastError: 'Reconnection failed after maximum attempts' 
-        });
-      });
-
-      // Événements de jeu
-      socket.on('connected', (data) => {
-        console.log('🎮 Game server connected:', data);
-      });
-
-      socket.on('player-joined', (data) => {
-        console.log('👤 Player joined:', data);
-      });
-
-      socket.on('player-left', (data) => {
-        console.log('👋 Player left:', data);
-      });
-
-      socket.on('player-disconnected', (data) => {
-        console.log('🔌 Player disconnected:', data);
-      });
-
-      socket.on('game-update', (data) => {
-        console.log('🎯 Game update:', data);
-      });
-
-      socket.on('room-state', (data) => {
-        console.log('🏠 Room state:', data);
-      });
-
-      socket.on('error', (error) => {
-        console.error('🚨 Game error:', error);
-        set({ lastError: error.message });
-      });
-
-      // Ping/Pong pour maintenir la connexion
-      const pingInterval = setInterval(() => {
-        if (socket.connected) {
-          socket.emit('ping');
-        }
-      }, 30000); // Ping toutes les 30 secondes
-
-      socket.on('pong', (data) => {
-        // console.log('🏓 Pong received:', data);
-      });
-
-      // Nettoyer l'interval à la déconnexion
-      socket.on('disconnect', () => {
-        clearInterval(pingInterval);
-      });
-
-      set({ socket });
+      }
     },
 
+    /**
+     * Déconnexion du serveur WebSocket
+     */
     disconnect: () => {
       const { socket } = get();
+      
       if (socket) {
-        console.log('🔌 Disconnecting WebSocket...');
         socket.disconnect();
         set({ 
           socket: null, 
           isConnected: false, 
-          isConnecting: false,
-          reconnectAttempts: 0,
-          lastError: null 
+          currentGameId: null,
+          gameState: null,
+          players: [],
+          messages: []
         });
       }
     },
 
-    emit: (event: string, data: any) => {
+    /**
+     * Rejoindre une partie
+     */
+    joinGame: async (gameId: string) => {
       const { socket, isConnected } = get();
-      if (socket && isConnected) {
-        socket.emit(event, data);
-      } else {
-        console.warn(`Cannot emit ${event}: WebSocket not connected`);
-        set({ lastError: 'WebSocket not connected' });
+      
+      if (!socket || !isConnected) {
+        throw new Error('WebSocket non connecté');
+      }
+
+      socket.emit('join-game', { gameId });
+      set({ currentGameId: gameId, messages: [] });
+    },
+
+    /**
+     * Quitter la partie actuelle
+     */
+    leaveGame: () => {
+      const { socket, currentGameId } = get();
+      
+      if (socket && currentGameId) {
+        socket.emit('leave-game', { gameId: currentGameId });
+        set({ 
+          currentGameId: null, 
+          gameState: null, 
+          players: [], 
+          messages: [] 
+        });
       }
     },
 
-    on: (event: string, callback: Function) => {
-      const { socket } = get();
-      if (socket) {
-        socket.on(event, callback as any);
+    /**
+     * Envoyer une action de jeu
+     */
+    sendGameAction: (action: any) => {
+      const { socket, currentGameId, isConnected } = get();
+      
+      if (!socket || !isConnected || !currentGameId) {
+        console.error('Impossible d\'envoyer l\'action: WebSocket non connecté ou pas dans une partie');
+        return;
       }
+
+      socket.emit('game-action', {
+        gameId: currentGameId,
+        action
+      });
     },
 
-    off: (event: string, callback?: Function) => {
-      const { socket } = get();
-      if (socket) {
-        if (callback) {
-          socket.off(event, callback as any);
-        } else {
-          socket.off(event);
-        }
+    /**
+     * Envoyer un message de chat
+     */
+    sendMessage: (message: string) => {
+      const { socket, currentGameId, isConnected } = get();
+      
+      if (!socket || !isConnected || !currentGameId || !message.trim()) {
+        return;
       }
+
+      socket.emit('game-message', {
+        gameId: currentGameId,
+        message: message.trim()
+      });
     },
 
-    // Actions spécifiques au jeu
-    joinGame: (gameId: string) => {
-      const { emit } = get();
-      console.log(`🎮 Joining game: ${gameId}`);
-      emit('join-game', gameId);
+    /**
+     * Définir le statut "prêt"
+     */
+    setPlayerReady: (ready: boolean) => {
+      const { socket, currentGameId, isConnected } = get();
+      
+      if (!socket || !isConnected || !currentGameId) {
+        return;
+      }
+
+      socket.emit('player-ready', {
+        gameId: currentGameId,
+        ready
+      });
     },
 
-    leaveGame: (gameId: string) => {
-      const { emit } = get();
-      console.log(`🚪 Leaving game: ${gameId}`);
-      emit('leave-game', gameId);
+    // Gestionnaires d'événements internes
+    _handleConnect: () => {
+      console.log('✅ WebSocket connecté');
+      set({ isConnected: true, connectionError: null });
     },
 
-    sendGameAction: (gameId: string, action: string, payload: any) => {
-      const { emit } = get();
-      console.log(`🎯 Sending game action: ${action} in ${gameId}`);
-      emit('game-action', { gameId, action, payload });
+    _handleDisconnect: () => {
+      console.log('❌ WebSocket déconnecté');
+      set({ isConnected: false });
+    },
+
+    _handleError: (error: string) => {
+      console.error('❌ Erreur WebSocket:', error);
+      set({ connectionError: error });
+    },
+
+    _handleGameStateUpdate: (data: any) => {
+      console.log('🎮 Mise à jour état du jeu:', data);
+      set({ 
+        gameState: data.gameState,
+        players: data.players || []
+      });
+    },
+
+    _handlePlayerJoined: (data: PlayerStatus) => {
+      console.log('👋 Joueur rejoint:', data.playerName);
+      set(state => ({
+        players: [...state.players.filter(p => p.playerId !== data.playerId), data]
+      }));
+    },
+
+    _handlePlayerLeft: (data: PlayerStatus) => {
+      console.log('👋 Joueur parti:', data.playerName);
+      set(state => ({
+        players: state.players.filter(p => p.playerId !== data.playerId)
+      }));
+    },
+
+    _handleGameMessage: (data: GameMessage) => {
+      console.log('💬 Message reçu:', data);
+      set(state => ({
+        messages: [...state.messages, { ...data, timestamp: new Date(data.timestamp) }]
+      }));
+    },
+
+    _handleGameAction: (data: GameAction) => {
+      console.log('🎯 Action de jeu:', data);
+      // Les actions de jeu sont gérées par les mises à jour d'état
+      // On pourrait ajouter des notifications ici
     },
   }))
 );
 
-// Hook personnalisé pour utiliser WebSocket facilement
-export function useWebSocket() {
-  const store = useSocketStore();
+/**
+ * Hook pour utiliser WebSocket dans les composants React
+ */
+export const useWebSocket = () => {
+  const store = useWebSocketStore();
   
   return {
-    ...store,
-    isReconnecting: store.reconnectAttempts > 0 && !store.isConnected,
-    connectionStatus: store.isConnected 
-      ? 'connected' 
-      : store.isConnecting 
-        ? 'connecting' 
-        : store.reconnectAttempts > 0 
-          ? 'reconnecting' 
-          : 'disconnected'
+    // État
+    isConnected: store.isConnected,
+    isConnecting: store.isConnecting,
+    connectionError: store.connectionError,
+    currentGameId: store.currentGameId,
+    gameState: store.gameState,
+    players: store.players,
+    messages: store.messages,
+    
+    // Actions
+    connect: store.connect,
+    disconnect: store.disconnect,
+    joinGame: store.joinGame,
+    leaveGame: store.leaveGame,
+    sendGameAction: store.sendGameAction,
+    sendMessage: store.sendMessage,
+    setPlayerReady: store.setPlayerReady,
   };
-} 
+};
+
+/**
+ * Hook pour écouter des événements WebSocket spécifiques
+ */
+export const useWebSocketListener = (
+  event: keyof WebSocketStore,
+  callback: (value: any, previousValue: any) => void
+) => {
+  return useWebSocketStore.subscribe(
+    (state) => state[event],
+    callback
+  );
+};
+
+/**
+ * Utilitaires WebSocket
+ */
+export const WebSocketUtils = {
+  /**
+   * Vérifie si le WebSocket est prêt pour envoyer des données
+   */
+  isReady: (): boolean => {
+    const { socket, isConnected } = useWebSocketStore.getState();
+    return !!(socket && isConnected);
+  },
+
+  /**
+   * Obtient les statistiques de connexion
+   */
+  getConnectionStats: (): any => {
+    const { socket, isConnected, players, messages } = useWebSocketStore.getState();
+    
+    return {
+      isConnected,
+      socketId: socket?.id || null,
+      playersCount: players.length,
+      messagesCount: messages.length,
+      lastMessage: messages[messages.length - 1] || null,
+    };
+  },
+
+  /**
+   * Force la reconnexion
+   */
+  forceReconnect: (): void => {
+    const { socket } = useWebSocketStore.getState();
+    if (socket) {
+      socket.disconnect();
+      socket.connect();
+    }
+  },
+
+  /**
+   * Nettoie les messages anciens (garde les 100 derniers)
+   */
+  cleanupMessages: (): void => {
+    useWebSocketStore.setState(state => ({
+      messages: state.messages.slice(-100)
+    }));
+  }
+};
+
+/**
+ * Types pour TypeScript
+ */
+export type { WebSocketStore }; 

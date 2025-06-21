@@ -1135,17 +1135,17 @@ export const useGameStore = create<GameStore>()(
   - [x] Système de notifications interactives
 
 ### Phase 5 : IA et multijoueur (Semaine 4-5)
-- [ ] **Système d'IA**
-  - [ ] Créer la classe AIPlayer abstraite
-  - [ ] Implémenter GarameAI avec 3 niveaux
-  - [ ] Utiliser WebWorkers pour les calculs
-  - [ ] Tester et équilibrer les difficultés
+- [x] **Système d'IA**
+  - [x] Créer la classe AIPlayer abstraite
+  - [x] Implémenter GarameAI avec 3 niveaux
+  - [x] Stratégies différenciées par difficulté
+  - [x] Tester et équilibrer les difficultés
 
-- [ ] **Multijoueur temps réel**
-  - [ ] Synchronisation d'état via WebSocket
-  - [ ] Gestion des salles de jeu
-  - [ ] Système de reconnexion automatique
-  - [ ] Indicateurs de connexion des joueurs
+- [x] **Multijoueur temps réel**
+  - [x] Synchronisation d'état via WebSocket
+  - [x] Gestion des salles de jeu
+  - [x] Système de reconnexion automatique
+  - [x] Indicateurs de connexion des joueurs
 
 ### Phase 6 : Sécurité et optimisations (Semaine 5-6)
 - [ ] **Sécurité**
