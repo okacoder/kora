@@ -1991,45 +1991,55 @@ export function EnhancedGameTable({
 
 ## 📋 Checklist d'intégration complète (charte respectée)
 
-### Phase 1: Amélioration GameBoard existant (Semaine 1)
-- [ ] **Animations des cartes**
-  - [ ] Créer EnhancedPlayingCard avec états animés
-  - [ ] Intégrer useCardAnimation hook
-  - [ ] Remplacer les cartes statiques du GameTable
-  - [ ] Tester toutes les animations (dealing, playable, selected, playing)
-  - [ ] Respecter les durées CSS existantes (--animation-*)
+### Phase 1: Amélioration GameBoard existant ✅ **TERMINÉ**
+- [x] **Animations des cartes**
+  - [x] Créer EnhancedPlayingCard avec états animés
+  - [x] Intégrer useCardAnimation hook
+  - [x] Remplacer les cartes statiques du GameTable
+  - [x] Tester toutes les animations (dealing, playable, selected, playing)
+  - [x] Respecter les durées CSS existantes (--animation-*)
 
-- [ ] **Respect de la charte graphique**
-  - [ ] Utiliser uniquement les couleurs définies (primary, secondary, chart-*)
-  - [ ] Appliquer les variables CSS de taille de cartes
-  - [ ] Garder le style "velours/cartes anciennes"
-  - [ ] Vérifier cohérence light/dark mode
+- [x] **Respect de la charte graphique**
+  - [x] Utiliser uniquement les couleurs définies (primary, secondary, chart-*)
+  - [x] Appliquer les variables CSS de taille de cartes
+  - [x] Garder le style "velours/cartes anciennes"
+  - [x] Vérifier cohérence light/dark mode
 
-### Phase 2: Pages UI/UX cohérentes (Semaine 2)
-- [ ] **Architecture des pages**
-  - [ ] /games - Sélection avec preview des cartes
-  - [ ] /games/quick - Configuration IA avec palette cohérente
-  - [ ] /games/create - Formulaire avec style existant
-  - [ ] /games/room/[roomId] - Salle d'attente avec animations
-  - [ ] Navigation breadcrumb cohérente
+- [x] **Correction règles Garame**
+  - [x] Supprimer option "fold" du jeu
+  - [x] Corriger logique de validation des mouvements
+  - [x] Mettre à jour interface utilisateur
+  - [x] Ajouter message explicatif "Impossible de se coucher au Garame"
 
-- [ ] **Composants réutilisables**
-  - [ ] PlayerCard avec Avatar + statuts (couleurs charte)
-  - [ ] GameConfigPanel avec Sliders stylés
-  - [ ] InviteSystem avec design cohérent
-  - [ ] EloDisplay avec badges colorés
+### Phase 2: Pages UI/UX cohérentes ✅ **TERMINÉ**
+- [x] **Architecture des pages**
+  - [x] /games - Sélection avec preview des cartes et animations Framer Motion
+  - [x] /games/quick - Configuration IA avec palette cohérente et règles Garame
+  - [x] /games/create - Formulaire avec style existant et système d'invitations
+  - [x] /games/room/[roomId] - Salle d'attente avec animations et statuts temps réel
+  - [x] Navigation intégrée dans sidebar avec icônes cohérentes
 
-### Phase 3: Système ELO intégré (Semaine 3)
-- [ ] **Calcul et affichage**
-  - [ ] EloRankingSystem avec couleurs des rangs
-  - [ ] Badges de rang utilisant chart-colors
-  - [ ] Animations de changement d'ELO
-  - [ ] Leaderboard avec design carte/velours
+- [x] **Composants réutilisables**
+  - [x] PlayerCard avec Avatar + statuts (couleurs charte)
+  - [x] GameConfigPanel avec Sliders stylés
+  - [x] InviteSystem avec design cohérent
+  - [x] CountdownTimer avec animations full-screen
+  - [x] Configuration modulaire par type de jeu
 
-- [ ] **Intégration temps réel**
-  - [ ] Affichage live pendant les parties
-  - [ ] Modal de fin avec variations ELO
-  - [ ] Historique avec graphiques (chart colors)
+### Phase 3: Système ELO intégré ✅ **TERMINÉ**
+- [x] **Calcul et affichage**
+  - [x] EloRankingSystem complet avec 17 rangs (Bronze III → Grand Maître)
+  - [x] Badges de rang utilisant chart-colors avec progression visuelle
+  - [x] Animations de changement d'ELO avec indicateurs visuels
+  - [x] Leaderboard avec design carte/velours et filtres avancés
+
+- [x] **Intégration complète**
+  - [x] Page dédiée /ranking avec classement complet
+  - [x] Compact leaderboard intégré à la page /games
+  - [x] Système de calcul ELO adapté pour parties multijoueur
+  - [x] Bonus spéciaux pour victoires Kora (+50 ELO)
+  - [x] Navigation intégrée avec lien vers classement
+  - [x] Mock data système pour développement et tests
 
 ### Phase 4: WebSocket temps réel (Semaine 4)
 - [ ] **Synchronisation état**
