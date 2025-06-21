@@ -1148,19 +1148,19 @@ export const useGameStore = create<GameStore>()(
   - [x] Indicateurs de connexion des joueurs
 
 ### Phase 6 : Sécurité et optimisations (Semaine 5-6)
-- [ ] **Sécurité**
-  - [ ] Validation côté serveur de tous les mouvements
-  - [ ] Implémentation anti-triche (rate limiting)
-  - [ ] Journalisation des actions suspectes
-  - [ ] Chiffrement des communications sensibles
-  - [ ] Tests de pénétration basiques
+- [x] **Sécurité**
+  - [x] Validation côté serveur de tous les mouvements
+  - [x] Implémentation anti-triche (rate limiting)
+  - [x] Journalisation des actions suspectes
+  - [x] Chiffrement des communications sensibles
+  - [x] Tests de pénétration basiques
 
-- [ ] **Optimisations**
-  - [ ] Mise en cache avec Redis
-  - [ ] Optimisation des requêtes Prisma
-  - [ ] Compression des messages WebSocket
-  - [ ] Lazy loading des composants
-  - [ ] Bundle splitting avec Next.js
+- [x] **Optimisations**
+  - [x] Mise en cache avec Redis
+  - [x] Optimisation des requêtes Prisma
+  - [x] Compression des messages WebSocket
+  - [x] Lazy loading des composants
+  - [x] Bundle splitting avec Next.js
 
 ### Phase 7 : Système financier (Semaine 6)
 - [ ] **Gestion des Koras**

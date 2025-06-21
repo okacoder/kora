@@ -5,6 +5,10 @@ import { GameEngine } from '@/lib/game-engine/core/GameEngine';
 import { GarameRules } from '@/lib/game-engine/games/garame/GarameRules';
 import { GarameState } from '@/lib/game-engine/games/garame/GarameState';
 import { GameType, GameRoomStatus, AIDifficulty, MoveType, TransactionType, GameStateStatus } from '@prisma/client';
+import { validateGameAction } from '@/lib/security/game-validator';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
+import { withOptimization } from '@/lib/optimization/prisma-optimizer';
+import { getRedisClient } from '@/lib/cache/redis-client';
 
 export const gameRouter = createTRPCRouter({
   // Créer une nouvelle partie
