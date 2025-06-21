@@ -43,19 +43,19 @@ enum Role {
 }
 
 model user {
-  id                  String        @id
+  id                  String          @id
   name                String
-  username            String        @unique
+  username            String          @unique
   displayUsername     String?
-  role                Role          @default(USER)
-  email               String        @unique
+  role                Role            @default(USER)
+  email               String          @unique
   emailVerified       Boolean
-  phoneNumber         String?       @unique
-  phoneNumberVerified Boolean       @default(false)
+  phoneNumber         String?         @unique
+  phoneNumberVerified Boolean         @default(false)
   image               String?
-  koras               Int           @default(0) // Jetons de jeu
-  totalWins           Int           @default(0)
-  totalGames          Int           @default(0)
+  koras               Int             @default(0) // Jetons de jeu
+  totalWins           Int             @default(0)
+  totalGames          Int             @default(0)
   createdAt           DateTime
   updatedAt           DateTime
   account             account[]
@@ -63,6 +63,8 @@ model user {
   transactions        Transaction[]
   GameRoom            GameRoom[]
   RoomPlayer          RoomPlayer[]
+  wallet              Wallet?
+  gameStats           UserGameStats[]
 
   @@index([email])
   @@index([phoneNumber])
@@ -206,4 +208,67 @@ enum TransactionStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+// Modèle pour enregistrer les mouvements de jeu (pour replay et audit)
+model GameMove {
+  id         String   @id @default(cuid())
+  gameId     String // Référence au GameState
+  playerId   String // ID du joueur qui fait le mouvement
+  playerName String // Nom du joueur (pour éviter les jointures)
+  moveNumber Int // Numéro séquentiel du mouvement
+  moveType   MoveType
+  moveData   Json // Données spécifiques au mouvement (carte jouée, etc.)
+  timestamp  DateTime @default(now())
+
+  @@index([gameId])
+  @@index([playerId])
+  @@index([gameId, moveNumber])
+}
+
+enum MoveType {
+  PLAY_CARD
+  FOLD
+  BET
+  SPECIAL_MOVE
+  TIMEOUT
+}
+
+// Modèle pour le système de Wallet séparé (optionnel, pour plus de flexibilité)
+model Wallet {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  koraBalance    Int      @default(0)
+  lockedKoras    Int      @default(0) // Koras bloqués dans des parties en cours
+  totalDeposits  Float    @default(0) // Total des dépôts en FCFA
+  totalWithdraws Float    @default(0) // Total des retraits en FCFA
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Statistiques de jeu par utilisateur
+model UserGameStats {
+  id              String    @id @default(cuid())
+  userId          String
+  gameType        GameType
+  gamesPlayed     Int       @default(0)
+  gamesWon        Int       @default(0)
+  totalKorasWon   Int       @default(0)
+  totalKorasLost  Int       @default(0)
+  bestWinStreak   Int       @default(0)
+  currentStreak   Int       @default(0)
+  avgGameDuration Int? // Durée moyenne en secondes
+  lastPlayedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameType])
+  @@index([userId])
+  @@index([gameType])
 }

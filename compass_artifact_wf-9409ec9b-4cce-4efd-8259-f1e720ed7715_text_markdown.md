@@ -1084,20 +1084,20 @@ export const useGameStore = create<GameStore>()(
   - [x] Migrer les endpoints existants vers tRPC (routers de base créés)
   - [x] Configurer le provider TanStack Query
 
-- [ ] **Configuration WebSocket**
+- [x] **Configuration WebSocket**
   - [x] Installer Socket.io client et serveur
-  - [ ] Créer le serveur WebSocket avec authentification
-  - [ ] Implémenter la logique de reconnexion automatique
-  - [ ] Créer le store Zustand pour WebSocket
-  - [ ] Tester la communication bidirectionnelle
+  - [x] Créer le serveur WebSocket avec authentification
+  - [x] Implémenter la logique de reconnexion automatique
+  - [x] Créer le store Zustand pour WebSocket
+  - [x] Tester la communication bidirectionnelle
 
 ### Phase 2 : Base de données (Semaine 1-2)
-- [ ] **Schéma Prisma**
-  - [ ] Ajouter les modèles Game, GamePlayer, GameMove
-  - [ ] Créer les modèles Transaction pour le système de paris
-  - [ ] Implémenter les indexes pour les performances
-  - [ ] Créer les migrations Prisma
-  - [ ] Seeder pour les données de test
+- [x] **Schéma Prisma**
+  - [x] Ajouter les modèles Game, GamePlayer, GameMove
+  - [x] Créer les modèles Transaction pour le système de paris
+  - [x] Implémenter les indexes pour les performances
+  - [x] Créer les migrations Prisma
+  - [x] Seeder pour les données de test
 
 ### Phase 3 : Moteur de jeu (Semaine 2-3)
 - [ ] **Architecture modulaire**

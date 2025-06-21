@@ -26,6 +26,7 @@ import { Metadata } from "next";
 import { AuthenticatedLayout } from "@/components/auth/layouts";
 import DashboardPage from "@/components/dashboard-page";
 import { TestTRPC } from "@/components/test-trpc";
+import { TestWebSocket } from "@/components/test-websocket";
 
 export const metadata: Metadata = {
   title: "LaMap241",
@@ -41,7 +42,10 @@ export default async function HomePage() {
     return (
       <AuthenticatedLayout>
         <div className="space-y-6">
-          <TestTRPC />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TestTRPC />
+            <TestWebSocket />
+          </div>
           <DashboardPage />
         </div>
       </AuthenticatedLayout>
