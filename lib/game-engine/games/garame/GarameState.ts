@@ -114,7 +114,7 @@ export interface GarameConfig {
  * Configuration par défaut pour Garame
  */
 export const DEFAULT_GARAME_CONFIG: GarameConfig = {
-  maxPlayers: 4,
+  maxPlayers: 5,
   minPlayers: 2,
   cardsPerPlayer: 5,
   excludeCards: ['spades_10'], // Exclure le 10 de pique

@@ -14,8 +14,8 @@ export class GameEngine<TState extends BaseGameState> {
   /**
    * Initialise un nouveau jeu
    */
-  initializeGame(playerCount: number, betAmount: number): TState {
-    const initialState = this.rules.initializeGame(playerCount, betAmount);
+  initializeGame(playerCount: number, betAmount: number, playerIds?: string[]): TState {
+    const initialState = this.rules.initializeGame(playerCount, betAmount, playerIds);
     this.moveHistory = [];
     return initialState;
   }

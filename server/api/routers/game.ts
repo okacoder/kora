@@ -28,16 +28,13 @@ export const gameRouter = createTRPCRouter({
         });
       }
 
-      // Créer le moteur de jeu et l'état initial
-      const gameEngine = new GameEngine(new GarameRules());
-      const playerIds = [ctx.session.user.id];
-      
-      // Ajouter l'IA si spécifiée
+      // Créer l'état initial seulement pour les parties IA
+      let initialState = null;
       if (input.aiLevel) {
-        playerIds.push(`ai_${input.aiLevel.toLowerCase()}`);
+        const gameEngine = new GameEngine(new GarameRules());
+        const playerIds = [ctx.session.user.id, `ai_${input.aiLevel.toLowerCase()}`];
+        initialState = gameEngine.initializeGame(playerIds.length, input.betAmount, playerIds);
       }
-
-      const initialState = gameEngine.initializeGame(playerIds.length, input.betAmount);
 
       // Créer la salle de jeu
       const gameRoom = await ctx.db.gameRoom.create({
@@ -49,9 +46,23 @@ export const gameRouter = createTRPCRouter({
           status: input.aiLevel ? GameRoomStatus.IN_PROGRESS : GameRoomStatus.WAITING,
           maxPlayers: input.maxPlayers,
           minPlayers: 2,
-          totalPot: input.betAmount,
+          totalPot: input.aiLevel ? input.betAmount * 2 : input.betAmount,
           players: {
-            create: {
+            create: input.aiLevel ? [
+              {
+                name: ctx.session.user.name || 'Joueur',
+                position: 0,
+                userId: ctx.session.user.id,
+                isReady: true,
+              },
+              {
+                name: `IA ${input.aiLevel}`,
+                position: 1,
+                isAI: true,
+                aiDifficulty: input.aiLevel,
+                isReady: true,
+              }
+            ] : {
               name: ctx.session.user.name || 'Joueur',
               position: 0,
               userId: ctx.session.user.id,
@@ -75,13 +86,13 @@ export const gameRouter = createTRPCRouter({
       });
 
       // Créer l'état de jeu si c'est une partie IA
-      if (input.aiLevel) {
+      if (input.aiLevel && initialState) {
         await ctx.db.gameState.create({
           data: {
             gameType: input.gameType as GameType,
             currentPlayerId: ctx.session.user.id,
             players: initialState as any,
-            pot: input.betAmount,
+            pot: input.betAmount * 2, // Joueur + IA
             status: GameStateStatus.PLAYING,
             turn: 1,
             roomId: gameRoom.id,
@@ -265,7 +276,7 @@ export const gameRouter = createTRPCRouter({
       if (gameRoom.players.length + 1 === gameRoom.maxPlayers) {
         const gameEngine = new GameEngine(new GarameRules());
         const allPlayerIds = [...gameRoom.players.map(p => p.userId!), ctx.session.user.id];
-        const initialState = gameEngine.initializeGame(allPlayerIds.length, gameRoom.stake);
+        const initialState = gameEngine.initializeGame(allPlayerIds.length, gameRoom.stake, allPlayerIds);
         
         // Mettre à jour le statut de la salle
         await ctx.db.gameRoom.update({

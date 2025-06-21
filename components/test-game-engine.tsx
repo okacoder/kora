@@ -140,12 +140,12 @@ export function TestGameEngine() {
           
           <div>
             <label className="text-sm font-medium">Niveau IA (optionnel)</label>
-            <Select value={aiLevel || ''} onValueChange={(value) => setAiLevel(value as any || undefined)}>
+            <Select value={aiLevel || 'NONE'} onValueChange={(value) => setAiLevel(value === 'NONE' ? undefined : value as any)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un niveau IA" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Pas d'IA (multijoueur)</SelectItem>
+                <SelectItem value="NONE">Pas d'IA (multijoueur)</SelectItem>
                 <SelectItem value="EASY">Facile</SelectItem>
                 <SelectItem value="MEDIUM">Moyen</SelectItem>
                 <SelectItem value="HARD">Difficile</SelectItem>

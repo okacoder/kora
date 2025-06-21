@@ -25,7 +25,7 @@ export class GarameRules implements GameRules<GarameState> {
   /**
    * Initialise un nouveau jeu Garame
    */
-  initializeGame(playerCount: number, betAmount: number): GarameState {
+  initializeGame(playerCount: number, betAmount: number, playerIds?: string[]): GarameState {
     if (playerCount < this.config.minPlayers || playerCount > this.config.maxPlayers) {
       throw new Error(`Le nombre de joueurs doit être entre ${this.config.minPlayers} et ${this.config.maxPlayers}`);
     }
@@ -36,7 +36,7 @@ export class GarameRules implements GameRules<GarameState> {
     // Créer les joueurs
     const players: Record<string, GaramePlayerState> = {};
     for (let i = 0; i < playerCount; i++) {
-      const playerId = `player_${i}`;
+      const playerId = playerIds?.[i] || `player_${i}`;
       players[playerId] = {
         id: playerId,
         name: `Joueur ${i + 1}`,
@@ -56,7 +56,7 @@ export class GarameRules implements GameRules<GarameState> {
     const updatedDeck = [...deck];
     for (let cardIndex = 0; cardIndex < this.config.cardsPerPlayer; cardIndex++) {
       for (let playerIndex = 0; playerIndex < playerCount; playerIndex++) {
-        const playerId = `player_${playerIndex}`;
+        const playerId = playerIds?.[playerIndex] || `player_${playerIndex}`;
         const card = updatedDeck.pop();
         if (card) {
           players[playerId].hand.push(card);
@@ -65,12 +65,13 @@ export class GarameRules implements GameRules<GarameState> {
     }
 
     // État initial du jeu
+    const firstPlayerId = playerIds?.[0] || 'player_0';
     const initialState: GarameState = {
       gameId: `garame_${Date.now()}`,
       gameType: 'garame',
       status: 'in_progress',
       players,
-      currentPlayerId: 'player_0', // Le premier joueur commence
+      currentPlayerId: firstPlayerId, // Le premier joueur commence
       turn: 1,
       betAmount,
       pot: betAmount * playerCount,

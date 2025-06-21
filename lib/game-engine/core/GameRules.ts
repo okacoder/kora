@@ -6,7 +6,7 @@ export interface GameRules<TState> {
   /**
    * Initialise un nouveau jeu avec le nombre de joueurs spécifié
    */
-  initializeGame(playerCount: number, betAmount: number): TState;
+  initializeGame(playerCount: number, betAmount: number, playerIds?: string[]): TState;
 
   /**
    * Valide si un mouvement est légal dans l'état actuel
