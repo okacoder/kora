@@ -32,12 +32,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { GameRoom } from '@prisma/client';
-import { routes } from '@/lib/routes';
+import { useGameRoom } from '@/hooks/use-game-room';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-// Note: Le composant CountdownTimer est défini dans le plan mais n'existe pas encore.
-// import { CountdownTimer } from '@/components/game/countdown-timer';
+import { RoomChat } from '@/components/game/room-chat';
+import { WebSocketStatusIndicator } from '@/components/game/websocket-status';
+import { routes } from '@/lib/routes';
 
 // Enhanced CountdownTimer with animations
 function CountdownTimer({ seconds, onComplete, message }: { seconds: number; onComplete: () => void; message: string; }) {
@@ -120,154 +120,56 @@ function InviteByUsername({ onInvite }: { onInvite: (username: string) => void }
   );
 }
 
-interface GameRoomWithPlayers extends Omit<GameRoom, 'players'> {
-  players: RoomPlayer[];
-}
-
-interface RoomSettings {
-  isPrivate: boolean;
-  roomCode?: string;
-  aiPlayers?: number;
-  aiDifficulty?: string;
-  turnDuration?: number;
-}
-
-// Fix the avatar property error by making it optional in RoomPlayer
-interface RoomPlayer {
-  id: string;
-  name: string;
-  position: number;
-  isReady: boolean;
-  isAI: boolean;
-  aiDifficulty: string | null;
-  joinedAt: Date;
-  gameRoomId: string;
-  userId: string | null;
-  avatar?: string;
-}
+// Les interfaces sont maintenant dans use-game-room.ts
 
 export default function RoomPage() {
   const params = useParams<{ gameType: string, roomId: string }>();
   const router = useRouter();
   const user = useCurrentUser();
-  const [room, setRoom] = useState<GameRoomWithPlayers | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
+  
+  // Utilisation du hook WebSocket pour la salle
+  const {
+    room,
+    loading,
+    error,
+    messages,
+    toggleReady,
+    startGame,
+    sendMessage,
+    invitePlayer,
+    kickPlayer,
+    isHost,
+    currentPlayer,
+    canStartGame
+  } = useGameRoom(params.roomId);
 
+  // Gestion des erreurs WebSocket
   useEffect(() => {
-    loadRoom();
-    // Rafraîchir toutes les 5 secondes
-    const interval = setInterval(loadRoom, 5000);
-    return () => clearInterval(interval);
-  }, [params.roomId]);
-
-  const loadRoom = async () => {
-
-    try {
-      setLoading(true);
-      const roomData = {
-        id: '1',
-        players: [{
-          id: '1',
-          name: 'John Doe',
-          position: 1,
-          isReady: false,
-          isAI: false,
-          aiDifficulty: null,
-          joinedAt: new Date(),
-        }],
-        settings: {},
-        creatorId: '1',
-        creatorName: 'John Doe',
-        stake: 100,
-        maxPlayers: 4,
-        minPlayers: 2,
-      } as any;
-      
-      const typedRoom = roomData as GameRoomWithPlayers;
-      setRoom(typedRoom);
-      
-      const currentPlayer = typedRoom.players.find(p => p.userId === user?.id);
-      setIsReady(currentPlayer?.isReady || false);
-
-      // Si la partie a démarré, rediriger vers la page de jeu
-      if (typedRoom.id) {
-        router.push(routes.gamePlay(typedRoom.id));
-      }
-    } catch (error) {
-      toast.error('Erreur lors du chargement de la salle');
-    } finally {
-      setLoading(false);
+    if (error) {
+      toast.error(error);
     }
-  };
+  }, [error]);
 
-  const toggleReady = async () => {
-    if (!room || !user) return;
-    
-    try {
-      // await gameService.setPlayerReady(room.id, user.id, !isReady);
-      setIsReady(!isReady);
-      await loadRoom();
-    } catch (error) {
-      toast.error('Erreur lors de la mise à jour');
+  // Redirection si la partie démarre
+  useEffect(() => {
+    if (room?.status === 'in_progress') {
+      router.push(routes.gamePlay(room.id));
     }
-  };
-
-  const handleStartGame = async () => {
-    if (!room || !user || room.creatorId !== user.id) return;
-
-    try {
-      setCountdown(5);
-      setTimeout(async () => {
-        try {
-          const gameStateId = '1';
-          router.push(routes.gamePlay(gameStateId));
-        } catch (error: any) {
-          toast.error(error.message || 'Impossible de démarrer la partie');
-          setCountdown(null);
-        }
-      }, 5000);
-    } catch (error: any) {
-      toast.error(error.message || 'Impossible de démarrer la partie');
-      setCountdown(null);
-    }
-  };
+  }, [room?.status, router]);
 
   const handleLeaveRoom = () => {
-    if (!room) return;
-    router.push(routes.gameLobby(room.gameType));
+    router.push(routes.games);
   };
 
-  const getRoomSettings = (room: GameRoomWithPlayers): RoomSettings => {
+  const handleInvitePlayer = async (username: string) => {
     try {
-      const settings = room.settings as Record<string, unknown>;
-      return {
-        isPrivate: Boolean(settings?.isPrivate),
-        roomCode: settings?.roomCode as string | undefined,
-        aiPlayers: settings?.aiPlayers as number | undefined,
-        aiDifficulty: settings?.aiDifficulty as string | undefined,
-        turnDuration: settings?.turnDuration as number | undefined,
-      };
-    } catch {
-      return { isPrivate: false };
+      await invitePlayer(username);
+    } catch (error) {
+      console.error('Error inviting player:', error);
     }
   };
 
-  const copyRoomCode = () => {
-    if (!room) return;
-    const settings = getRoomSettings(room);
-    if (settings.roomCode) {
-      navigator.clipboard.writeText(settings.roomCode);
-      toast.success('Code copié !');
-    }
-  };
-
-  const canStartGame = () => {
-    if (!room || !user || room.creatorId !== user.id) return false;
-    if (room.players.length < (room.minPlayers || 2)) return false;
-    return room.players.every(p => p.isReady || p.isAI);
-  };
+  // Les fonctions de gestion sont maintenant dans le hook useGameRoom
 
   if (loading) {
     return (
@@ -279,14 +181,12 @@ export default function RoomPage() {
 
   if (!room) return null;
 
-  const settings = getRoomSettings(room);
-
   return (
     <div className="min-h-screen bg-background">
-      {countdown !== null && (
+      {room?.countdown && (
         <CountdownTimer 
-          seconds={countdown} 
-          onComplete={() => setCountdown(null)}
+          seconds={room.countdown} 
+          onComplete={() => {}}
           message="La partie commence dans"
         />
       )}
@@ -303,7 +203,7 @@ export default function RoomPage() {
               <IconArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Salle de {room.creatorName}</h1>
+              <h1 className="text-3xl font-bold text-foreground">Salle de {room.hostName}</h1>
               <p className="text-muted-foreground flex items-center gap-2">
                 <IconUsers className="h-4 w-4" />
                 {room.players?.length || 0}/{room.maxPlayers} joueurs
@@ -312,14 +212,18 @@ export default function RoomPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <WebSocketStatusIndicator showText={true} size="sm" />
             <Badge variant="outline" className="flex items-center gap-1 bg-chart-5/10 text-chart-5 border-chart-5/20">
               <IconCoin className="h-4 w-4" />
-              {room.stake} Koras
+              {room.betAmount} Koras
             </Badge>
-            {settings.isPrivate && settings.roomCode && (
-              <Button variant="outline" size="sm" onClick={copyRoomCode}>
+            {room.isPrivate && room.code && (
+              <Button variant="outline" size="sm" onClick={() => {
+                navigator.clipboard.writeText(room.code);
+                toast.success('Code copié !');
+              }}>
                 <IconCopy className="h-4 w-4 mr-1" />
-                {settings.roomCode}
+                {room.code}
               </Button>
             )}
           </div>
@@ -352,7 +256,7 @@ export default function RoomPage() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="relative">
-                        {room.creatorId === player.userId && (
+                        {room.hostId === player.userId && (
                           <IconCrown className="absolute -top-2 -right-2 h-4 w-4 text-chart-5" />
                         )}
                         {player.isAI && (
@@ -367,15 +271,16 @@ export default function RoomPage() {
                         {/* Indicateur de statut en ligne */}
                         <div className={cn(
                           "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background",
-                          player.isReady ? "bg-chart-4" : "bg-muted-foreground"
+                          player.status === 'online' && player.isReady ? "bg-chart-4" : 
+                          player.status === 'online' ? "bg-chart-5" : "bg-muted-foreground"
                         )} />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-card-foreground">{player.name}</span>
-                          {room.creatorId === player.userId && (
+                          {room.hostId === player.userId && (
                             <Badge variant="secondary" className="bg-chart-5/20 text-chart-5 text-xs">
-                              Créateur
+                              Host
                             </Badge>
                           )}
                           {player.isAI && (
@@ -400,6 +305,17 @@ export default function RoomPage() {
                           <IconClock className="h-3 w-3" />
                           En attente
                         </Badge>
+                      )}
+                      
+                      {/* Actions host */}
+                      {isHost && player.userId !== user?.id && !player.isAI && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => kickPlayer(player.id)}
+                        >
+                          <IconUserX className="h-3 w-3" />
+                        </Button>
                       )}
                     </div>
                   </motion.div>
@@ -432,24 +348,24 @@ export default function RoomPage() {
             <Card className="bg-card border-border">
               <CardContent className="pt-6">
                 <div className="flex gap-4">
-                  {user?.id === room.creatorId ? (
+                  {isHost ? (
                     <Button 
                       className="flex-1 bg-primary hover:bg-primary/90" 
-                      onClick={handleStartGame}
-                      disabled={!canStartGame()}
+                      onClick={startGame}
+                      disabled={!canStartGame}
                       size="lg"
                     >
                       <IconDeviceGamepad2 className="h-5 w-5 mr-2" />
-                      {canStartGame() ? 'Démarrer la partie' : 'En attente des joueurs'}
+                      {canStartGame ? 'Démarrer la partie' : 'En attente des joueurs'}
                     </Button>
                   ) : (
                     <Button 
                       className="flex-1" 
                       onClick={toggleReady}
-                      variant={isReady ? "outline" : "default"}
+                      variant={currentPlayer?.isReady ? "outline" : "default"}
                       size="lg"
                     >
-                      {isReady ? (
+                      {currentPlayer?.isReady ? (
                         <>
                           <IconUserX className="h-5 w-5 mr-2" />
                           Annuler
@@ -492,24 +408,24 @@ export default function RoomPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <InviteByUsername onInvite={async (username) => {
-                  // TODO: Implement invitation logic
-                  console.log('Inviting:', username);
-                }} />
+                <InviteByUsername onInvite={handleInvitePlayer} />
                 
-                {settings.isPrivate && settings.roomCode && (
+                {room.isPrivate && room.code && (
                   <div className="space-y-2">
                     <Label className="text-card-foreground text-sm">Code de la salle</Label>
                     <div className="flex items-center gap-2">
                       <Input 
-                        value={settings.roomCode} 
+                        value={room.code} 
                         readOnly 
                         className="text-center font-mono text-lg"
                       />
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={copyRoomCode}
+                        onClick={() => {
+                          navigator.clipboard.writeText(room.code);
+                          toast.success('Code copié !');
+                        }}
                       >
                         <IconCopy className="h-4 w-4" />
                       </Button>
@@ -545,13 +461,13 @@ export default function RoomPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Jeu:</span>
-                    <span className="text-card-foreground font-medium">Garame</span>
+                    <span className="text-card-foreground font-medium">{room.gameType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Mise par joueur:</span>
                     <span className="text-card-foreground font-medium flex items-center gap-1">
                       <IconCoin className="w-3 h-3 text-chart-5" />
-                      {room.stake}
+                      {room.betAmount}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -561,13 +477,13 @@ export default function RoomPage() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Durée/tour:</span>
                     <span className="text-card-foreground font-medium">
-                      {settings.turnDuration || 60}s
+                      {room.settings.turnDuration || 60}s
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type:</span>
                     <span className="text-card-foreground font-medium">
-                      {settings.isPrivate ? 'Privée' : 'Publique'}
+                      {room.isPrivate ? 'Privée' : 'Publique'}
                     </span>
                   </div>
                   <Separator />
@@ -575,33 +491,31 @@ export default function RoomPage() {
                     <span className="text-muted-foreground">Total pot:</span>
                     <span className="text-card-foreground font-bold flex items-center gap-1">
                       <IconCoin className="w-3 h-3 text-chart-5" />
-                      {room.stake * room.maxPlayers}
+                      {room.betAmount * room.maxPlayers}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Commission (10%):</span>
                     <span className="text-muted-foreground">
-                      -{Math.round(room.stake * room.maxPlayers * 0.1)}
+                      -{Math.round(room.betAmount * room.maxPlayers * 0.1)}
                     </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Chat placeholder */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-card-foreground">
-                  <IconMessageCircle className="h-4 w-4 text-chart-4" />
-                  Chat rapide
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-4">
-                  <p className="text-muted-foreground text-sm">Chat disponible pendant la partie</p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Chat en temps réel */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <RoomChat 
+                messages={messages}
+                onSendMessage={sendMessage}
+                maxHeight="h-64"
+              />
+            </motion.div>
           </motion.div>
         </div>
       </div>

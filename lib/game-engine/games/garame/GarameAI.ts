@@ -16,11 +16,11 @@ export class GarameAI extends AIPlayer {
   protected analyzeAndDecide(gameState: GarameState): AIMove {
     const player = this.getPlayerInfo(gameState);
     
-    if (!player || player.hasFolded || !this.isMyTurn(gameState)) {
+    if (!player || !this.isMyTurn(gameState)) {
       return {
-        type: 'FOLD',
+        type: 'PLAY_CARD',
         confidence: 0,
-        reasoning: 'Pas mon tour ou déjà couché'
+        reasoning: 'Pas mon tour'
       };
     }
 
@@ -55,18 +55,9 @@ export class GarameAI extends AIPlayer {
     
     if (playableCards.length === 0) {
       return {
-        type: 'FOLD',
+        type: 'PLAY_CARD',
         confidence: 0.3,
         reasoning: 'Aucune carte jouable'
-      };
-    }
-
-    // 20% de chance de se coucher si mauvaise main
-    if (Math.random() < 0.2 && player.hand.length > 3) {
-      return {
-        type: 'FOLD',
-        confidence: 0.2,
-        reasoning: 'Se couche aléatoirement (stratégie facile)'
       };
     }
 
@@ -98,14 +89,6 @@ export class GarameAI extends AIPlayer {
     korasPotential: any,
     winProbability: number
   ): AIMove {
-    // Se coucher si très mauvaise position
-    if (winProbability < 0.15 && gameState.currentRound > 2) {
-      return {
-        type: 'FOLD',
-        confidence: 0.7,
-        reasoning: 'Probabilité de victoire trop faible'
-      };
-    }
 
     // Conservation des Koras
     if (korasPotential.hasKora && gameState.currentRound < 4) {
@@ -170,14 +153,6 @@ export class GarameAI extends AIPlayer {
     const opponents = this.getOpponents(gameState);
     const gameProgression = gameState.currentRound / gameState.maxRounds;
     
-    // Se coucher stratégiquement si mauvaise position en fin de partie
-    if (winProbability < 0.2 && gameProgression > 0.6) {
-      return {
-        type: 'FOLD',
-        confidence: 0.8,
-        reasoning: 'Position défavorable en fin de partie'
-      };
-    }
 
     // Gestion avancée des Koras
     if (korasPotential.hasKora) {

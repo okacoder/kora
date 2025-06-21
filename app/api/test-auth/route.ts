@@ -10,12 +10,14 @@ export async function POST(request: NextRequest) {
       console.log('Creating user with Better Auth:', { username, email, name });
 
       // Créer un utilisateur avec Better Auth
-      const result = await auth.api.signUpUsername({
+      const result = await auth.api.signUpEmail({
         body: {
           username,
           password,
           email,
           name,
+          role: 'USER' as const,
+          phoneNumber: `+237${Math.floor(Math.random() * 100000000)}`, // Numéro de téléphone fictif
         },
         headers: request.headers,
       });

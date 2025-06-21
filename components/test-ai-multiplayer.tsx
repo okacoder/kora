@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-// import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWebSocket } from '@/lib/websocket/client';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { trpc } from '@/lib/trpc/client';
@@ -102,7 +102,7 @@ export function TestAIMultiplayer() {
   const handleCreateMultiplayerGame = async () => {
     try {
       const result = await createGameMutation.mutateAsync({
-        gameType: 'GARAME',
+        gameType: 'garame',
         betAmount: newGameStake,
         maxPlayers: 4
       });
@@ -302,14 +302,14 @@ export function TestAIMultiplayer() {
             <div className="flex gap-2">
               <Button 
                 onClick={handleCreateAIGame}
-                disabled={createGameMutation.isLoading}
+                disabled={createGameMutation.isPending}
                 className="flex-1"
               >
                 Partie vs IA
               </Button>
               <Button 
                 onClick={handleCreateMultiplayerGame}
-                disabled={createGameMutation.isLoading}
+                disabled={createGameMutation.isPending}
                 variant="outline"
                 className="flex-1"
               >
@@ -369,7 +369,7 @@ export function TestAIMultiplayer() {
                     <Button 
                       size="sm" 
                       onClick={() => handleJoinGame(game.id)}
-                      disabled={joinGameMutation.isLoading}
+                      disabled={joinGameMutation.isPending}
                     >
                       Rejoindre
                     </Button>
@@ -430,14 +430,14 @@ export function TestAIMultiplayer() {
                 <div className="flex gap-2">
                   <Button 
                     onClick={handlePlayCard}
-                    disabled={playCardMutation.isLoading}
+                    disabled={playCardMutation.isPending}
                     size="sm"
                   >
                     Jouer Carte
                   </Button>
                   <Button 
                     onClick={handleFold}
-                    disabled={foldMutation.isLoading}
+                    disabled={foldMutation.isPending}
                     variant="outline"
                     size="sm"
                   >

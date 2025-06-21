@@ -28,7 +28,6 @@ export default function RankingPage() {
     {
       id: "1",
       name: "Champion",
-      avatar: undefined,
       eloRating: calculateEloRating(2450, 156, 121, 35),
       previousRating: 2425,
       position: 1,
@@ -38,7 +37,6 @@ export default function RankingPage() {
     {
       id: "2", 
       name: "Expert",
-      avatar: undefined,
       eloRating: calculateEloRating(2210, 89, 67, 22),
       previousRating: 2205,
       position: 2,
@@ -48,7 +46,6 @@ export default function RankingPage() {
     {
       id: "3",
       name: "Maître",
-      avatar: undefined,
       eloRating: calculateEloRating(1980, 134, 89, 45),
       previousRating: 1995,
       position: 3,
@@ -58,7 +55,6 @@ export default function RankingPage() {
     {
       id: "4",
       name: "Challenger",
-      avatar: undefined,
       eloRating: calculateEloRating(1755, 67, 41, 26),
       previousRating: 1740,
       position: 4,
@@ -68,7 +64,6 @@ export default function RankingPage() {
     {
       id: "5",
       name: "Rising Star",
-      avatar: undefined,
       eloRating: calculateEloRating(1689, 43, 29, 14),
       previousRating: 1650,
       position: 5,
@@ -78,7 +73,7 @@ export default function RankingPage() {
     {
       id: "user",
       name: user?.name || "Vous",
-      avatar: user?.image,
+      avatar: user?.image || undefined,
       eloRating: calculateEloRating(1456, 24, 15, 9),
       previousRating: 1423,
       position: 12,
@@ -89,7 +84,6 @@ export default function RankingPage() {
     ...Array.from({ length: 20 }, (_, i) => ({
       id: `player-${i + 6}`,
       name: `Joueur ${i + 6}`,
-      avatar: undefined,
       eloRating: calculateEloRating(
         Math.floor(Math.random() * 1500) + 800,
         Math.floor(Math.random() * 100) + 10,

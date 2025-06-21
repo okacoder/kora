@@ -7,10 +7,7 @@ import {
   DEFAULT_GARAME_CONFIG,
   GarameCardUtils,
   GarameMoveData,
-  GarameAction,
-  GarameRound,
-  GarameKora
-} from './GarameState';
+  GarameRound} from './GarameState';
 
 /**
  * Implémentation des règles du jeu Garame
@@ -46,7 +43,6 @@ export class GarameRules implements GameRules<GarameState> {
         hand: [],
         cardsWon: [],
         korasWon: 0,
-        hasFolded: false,
         position: i,
         isReady: false,
       };
@@ -119,10 +115,6 @@ export class GarameRules implements GameRules<GarameState> {
       case 'READY':
         return this.validateReady(state, move.playerId);
       
-      case 'FOLD':
-        // CORRECTION: Impossible de se coucher au Garame
-        return false;
-      
       default:
         return false;
     }
@@ -140,10 +132,6 @@ export class GarameRules implements GameRules<GarameState> {
       case 'PLAY_CARD':
         this.applyPlayCard(newState, move.playerId, moveData.cardId!);
         break;
-      
-      case 'FOLD':
-        // CORRECTION: Impossible de se coucher au Garame - on ignore cette action
-        throw new Error('Il est impossible de se coucher au Garame');
       
       case 'READY':
         this.applyReady(newState, move.playerId);
@@ -268,9 +256,6 @@ export class GarameRules implements GameRules<GarameState> {
       });
     }
 
-    // CORRECTION: Pas de fold au Garame
-    // Les joueurs DOIVENT jouer une carte
-
     return moves;
   }
 
@@ -281,11 +266,6 @@ export class GarameRules implements GameRules<GarameState> {
     
     const player = state.players[playerId];
     return player.hand.some(card => card.id === cardId);
-  }
-
-  private validateFold(state: GarameState, playerId: string): boolean {
-    const player = state.players[playerId];
-    return !player.hasFolded;
   }
 
   private validateReady(state: GarameState, playerId: string): boolean {

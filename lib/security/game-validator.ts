@@ -110,10 +110,10 @@ export class GameValidator {
       throw new GameValidationError('Joueur non trouvé', 'PLAYER_NOT_FOUND');
     }
 
-    // Vérifier que le joueur n'a pas abandonné
-    if (player.hasFolded) {
-      throw new GameValidationError('Joueur déjà couché', 'PLAYER_FOLDED');
-    }
+      // Vérifier que le joueur n'a pas abandonné
+      if (player.hasFolded) {
+        throw new GameValidationError('Joueur déjà couché', 'PLAYER_FOLDED');
+      }
 
     // Vérifier que c'est le tour du joueur
     if (gameState.currentPlayerId !== playerId) {

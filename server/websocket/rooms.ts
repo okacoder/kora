@@ -53,12 +53,13 @@ export class RoomManager {
     }
 
     // Récupérer les données du jeu depuis la base de données
-    const gameData = await prisma.game.findUnique({
+    const gameData = await prisma.gameRoom.findUnique({
       where: { id: gameId },
       include: {
         players: {
           include: { user: true }
-        }
+        },
+        gameState: true
       }
     });
 
@@ -66,10 +67,47 @@ export class RoomManager {
       throw new Error(`Game ${gameId} not found`);
     }
 
+    // Créer l'état de jeu Garame depuis les données de la base
+    let garameState: GarameState;
+    if (gameData.gameState) {
+      // Convertir les données de la base vers l'état Garame
+      garameState = {
+        gameId: gameData.gameState.id,
+        gameType: 'garame',
+        status: gameData.gameState.status === 'PLAYING' ? 'in_progress' : 'completed',
+        players: gameData.gameState.players as any, // JSON déjà parsé
+        currentPlayerId: gameData.gameState.currentPlayerId,
+        turn: gameData.gameState.turn,
+        betAmount: gameData.stake,
+        pot: gameData.gameState.pot,
+        startedAt: gameData.gameState.startedAt,
+        endedAt: gameData.gameState.endedAt || undefined,
+        winnerId: gameData.gameState.winnerId,
+        winners: gameData.gameState.winners,
+        
+        // Champs spécifiques à Garame
+        deck: [], // À recréer depuis metadata si nécessaire
+        tableCards: [],
+        currentRound: gameData.gameState.turn,
+        maxRounds: 5,
+        roundWinner: null,
+        roundHistory: [],
+        lastAction: null,
+        totalCardsPlayed: 0,
+        korasDetected: []
+      };
+    } else {
+      // Créer un nouvel état de jeu
+      const rules = new GarameRules();
+      const playerIds = gameData.players.map(p => p.userId || p.id);
+      garameState = rules.initializeGame(gameData.players.length, gameData.stake, playerIds);
+      garameState.gameId = gameId;
+    }
+
     // Créer la salle
     const room: GameRoom = {
       id: gameId,
-      gameState: gameData.gameState as GarameState,
+      gameState: garameState,
       players: new Map(),
       gameEngine: new GameEngine(new GarameRules()),
       aiPlayers: new Map(),
@@ -81,10 +119,11 @@ export class RoomManager {
 
     // Initialiser les joueurs IA
     for (const player of gameData.players) {
-      if (player.user.email?.includes('@ai.garame')) {
-        const aiLevel = gameData.aiLevel || 'MEDIUM';
-        const aiPlayer = new GarameAI(player.userId, aiLevel);
-        room.aiPlayers.set(player.userId, aiPlayer);
+      if (player.isAI || player.user?.email?.includes('@ai.garame')) {
+        const aiLevel = player.aiDifficulty || 'MEDIUM';
+        const playerId = player.userId || player.id;
+        const aiPlayer = new GarameAI(playerId, aiLevel);
+        room.aiPlayers.set(playerId, aiPlayer);
       }
     }
 
@@ -215,8 +254,10 @@ export class RoomManager {
        const result = room.gameEngine.executeMove(room.gameState, {
          type: action.type,
          playerId,
-         cardId: action.card?.id,
-         data: action,
+         data: {
+           ...action,
+           cardId: action.card?.id
+         },
          timestamp: new Date()
        });
 
@@ -257,6 +298,8 @@ export class RoomManager {
    */
   private async handleAITurn(room: GameRoom): Promise<void> {
     const currentPlayerId = room.gameState.currentPlayerId;
+    if (!currentPlayerId) return; // Pas de joueur actuel
+    
     const aiPlayer = room.aiPlayers.get(currentPlayerId);
     
     if (!aiPlayer) return; // Pas une IA
@@ -266,24 +309,28 @@ export class RoomManager {
       const aiMove = await aiPlayer.calculateMove(room.gameState);
       
       // Appliquer le mouvement
-      const newGameState = room.gameEngine.applyMove(room.gameState, {
+      const result = room.gameEngine.executeMove(room.gameState, {
         type: aiMove.type,
         playerId: currentPlayerId,
-        cardId: aiMove.cardId,
         data: {
           type: aiMove.type,
           playerId: currentPlayerId,
           playerName: `AI ${currentPlayerId}`,
+          cardId: aiMove.cardId,
           card: aiMove.cardId ? room.gameState.players[currentPlayerId].hand.find(c => c.id === aiMove.cardId) : undefined,
           timestamp: new Date()
         }
       });
 
-      room.gameState = newGameState;
+      if (!result.success) {
+        throw new Error(result.error || 'Échec du mouvement IA');
+      }
+
+      room.gameState = result.state;
       room.lastActivity = new Date();
 
       // Sauvegarder en base
-      await this.saveGameState(room.id, newGameState, {
+      await this.saveGameState(room.id, room.gameState, {
         type: aiMove.type,
         playerId: currentPlayerId,
         playerName: `AI ${currentPlayerId}`,

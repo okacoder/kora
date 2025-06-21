@@ -16,9 +16,9 @@ export interface GaramePlayerState extends BasePlayerState {
   hand: GarameCard[];
   cardsWon: GarameCard[];
   korasWon: number;
-  hasFolded: boolean;
   position: number; // Position à la table (0, 1, 2, 3...)
   isReady: boolean;
+  hasFolded?: boolean;
 }
 
 /**
@@ -88,7 +88,7 @@ export interface GarameKora {
 /**
  * Mouvements possibles dans Garame
  */
-export type GarameMoveType = 'PLAY_CARD' | 'FOLD' | 'READY';
+export type GarameMoveType = 'PLAY_CARD' | 'READY';
 
 /**
  * Données d'un mouvement Garame

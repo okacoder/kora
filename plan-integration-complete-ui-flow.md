@@ -2041,17 +2041,38 @@ export function EnhancedGameTable({
   - [x] Navigation intégrée avec lien vers classement
   - [x] Mock data système pour développement et tests
 
-### Phase 4: WebSocket temps réel (Semaine 4)
-- [ ] **Synchronisation état**
-  - [ ] Statuts joueurs temps réel (couleurs cohérentes)
-  - [ ] Chat salle avec style existant
-  - [ ] Animations coordonnées entre clients
-  - [ ] Reconnexion avec feedback visuel
+### Phase 4: WebSocket temps réel ✅ **TERMINÉ**
+- [x] **Synchronisation état**
+  - [x] Statuts joueurs temps réel (couleurs cohérentes)
+  - [x] Système WebSocket central avec useWebSocket hook
+  - [x] Hook spécialisé useGameRoom pour les salles de jeu
+  - [x] Reconnexion automatique avec retry exponential backoff
+  - [x] Indicateur de statut de connexion avec animations
 
-- [ ] **Notifications système**
-  - [ ] Toast avec design shadcn existant
-  - [ ] Alertes avec couleurs de la charte
-  - [ ] Son et vibrations (mobile)
+- [x] **Chat temps réel**
+  - [x] Composant RoomChat avec interface moderne
+  - [x] Messages système (join, leave, ready) avec icônes
+  - [x] Animations Framer Motion pour les nouveaux messages
+  - [x] Auto-scroll et indicateurs de frappe
+  - [x] Support pour avatars et timestamps
+
+- [x] **Gestion des salles en temps réel**
+  - [x] Synchronisation des joueurs (join/leave)
+  - [x] Système ready/unready avec feedback visuel
+  - [x] Countdown automatique de démarrage de partie
+  - [x] Actions host (kick, start game) en temps réel
+  - [x] Codes de salle et invitations
+
+- [x] **Mock server pour développement**
+  - [x] MockWebSocketServer simulant le comportement réel
+  - [x] Mode mock activable via NEXT_PUBLIC_USE_MOCK
+  - [x] Gestion complète des événements de salle
+  - [x] Latence réseau simulée pour réalisme
+
+- [x] **Notifications système**
+  - [x] Toast avec design shadcn existant (Sonner intégré)
+  - [x] Alertes avec couleurs de la charte
+  - [x] Feedback visuel pour toutes les actions WebSocket
 
 ### Phase 5: Pipeline financier (Semaine 5)
 - [ ] **Interface transactions**

@@ -210,23 +210,27 @@ async function main() {
       });
 
              // Ajouter une IA
-       playerData.push({
-         name: 'IA Medium',
-         position: 2,
-         isReady: true,
-         isAI: true,
-         aiDifficulty: AIDifficulty.MEDIUM,
-         userId: undefined,
-         gameRoomId: room.id,
-       });
     }
 
     for (const player of playerData) {
       await prisma.roomPlayer.create({
         data: {
           ...player,
-          isAI: player.isAI || false,
-          aiDifficulty: player.aiDifficulty as any,
+          isAI: false,
+        },
+      });
+    }
+
+    // Create AI player separately if needed
+    if (roomData.status === 'IN_PROGRESS') {
+      await prisma.roomPlayer.create({
+        data: {
+          name: 'IA Medium',
+          position: 2,
+          isReady: true,
+          isAI: true,
+          aiDifficulty: AIDifficulty.MEDIUM,
+          gameRoomId: room.id,
         },
       });
     }
@@ -283,7 +287,7 @@ async function main() {
           playerId: roomData.creatorId,
           playerName: roomData.creatorName,
           moveNumber: 1,
-          moveType: 'PLAY_CARD',
+          moveType: MoveType.PLAY_CARD,
           moveData: JSON.stringify({ cardId: '3_hearts' }),
         },
         {
@@ -291,7 +295,7 @@ async function main() {
           playerId: 'user3',
           playerName: 'Charlie Joueur',
           moveNumber: 2,
-          moveType: 'PLAY_CARD',
+          moveType: MoveType.PLAY_CARD,
           moveData: JSON.stringify({ cardId: '5_spades' }),
         },
         {
@@ -299,8 +303,8 @@ async function main() {
           playerId: 'ai_medium',
           playerName: 'IA Medium',
           moveNumber: 3,
-          moveType: 'FOLD',
-          moveData: JSON.stringify({ reason: 'weak_hand' }),
+          moveType: MoveType.PLAY_CARD,
+          moveData: JSON.stringify({ cardId: '4_clubs' }),
         },
       ];
 

@@ -3,7 +3,7 @@ import { GarameState, GarameCard, GaramePlayerState } from '../games/garame/Gara
 export type AILevel = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface AIMove {
-  type: 'PLAY_CARD' | 'FOLD';
+  type: 'PLAY_CARD';
   cardId?: string;
   confidence: number; // 0-1, confiance dans le mouvement
   reasoning?: string; // Explication du choix (pour debug)
