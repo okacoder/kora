@@ -97,10 +97,11 @@ export class GarameRules implements GameRules<GarameState> {
 
   /**
    * Valide si un mouvement est légal
+   * IMPORTANT: Garame ne permet PAS de se coucher (fold)
    */
   validateMove(state: GarameState, move: GameMove): boolean {
     const player = state.players[move.playerId];
-    if (!player || !player.isActive || player.hasFolded) {
+    if (!player || !player.isActive) {
       return false;
     }
 
@@ -115,11 +116,12 @@ export class GarameRules implements GameRules<GarameState> {
       case 'PLAY_CARD':
         return this.validatePlayCard(state, move.playerId, moveData.cardId);
       
-      case 'FOLD':
-        return this.validateFold(state, move.playerId);
-      
       case 'READY':
         return this.validateReady(state, move.playerId);
+      
+      case 'FOLD':
+        // CORRECTION: Impossible de se coucher au Garame
+        return false;
       
       default:
         return false;
@@ -128,6 +130,7 @@ export class GarameRules implements GameRules<GarameState> {
 
   /**
    * Applique un mouvement au jeu
+   * IMPORTANT: Garame ne permet PAS de se coucher (fold)
    */
   applyMove(state: GarameState, move: GameMove): GarameState {
     const newState = JSON.parse(JSON.stringify(state)) as GarameState;
@@ -139,8 +142,8 @@ export class GarameRules implements GameRules<GarameState> {
         break;
       
       case 'FOLD':
-        this.applyFold(newState, move.playerId);
-        break;
+        // CORRECTION: Impossible de se coucher au Garame - on ignore cette action
+        throw new Error('Il est impossible de se coucher au Garame');
       
       case 'READY':
         this.applyReady(newState, move.playerId);
@@ -172,8 +175,8 @@ export class GarameRules implements GameRules<GarameState> {
       return true;
     }
 
-    // Jeu terminé si un seul joueur reste actif
-    const activePlayers = Object.values(state.players).filter(p => p.isActive && !p.hasFolded);
+    // Dans Garame, il n'y a pas de fold donc on vérifie seulement les joueurs actifs
+    const activePlayers = Object.values(state.players).filter(p => p.isActive);
     if (activePlayers.length <= 1) {
       return true;
     }
@@ -189,7 +192,7 @@ export class GarameRules implements GameRules<GarameState> {
       return null;
     }
 
-    const activePlayers = Object.values(state.players).filter(p => p.isActive && !p.hasFolded);
+    const activePlayers = Object.values(state.players).filter(p => p.isActive);
     
     if (activePlayers.length === 1) {
       return [activePlayers[0].id];
@@ -242,12 +245,13 @@ export class GarameRules implements GameRules<GarameState> {
 
   /**
    * Retourne les mouvements possibles pour un joueur
+   * CORRECTION: Garame ne permet pas de se coucher
    */
   getPossibleMoves(state: GarameState, playerId: string): GameMove[] {
     const moves: GameMove[] = [];
     const player = state.players[playerId];
 
-    if (!player || !player.isActive || player.hasFolded) {
+    if (!player || !player.isActive) {
       return moves;
     }
 
@@ -255,7 +259,7 @@ export class GarameRules implements GameRules<GarameState> {
       return moves;
     }
 
-    // Jouer une carte
+    // Jouer une carte - seule action possible au Garame
     for (const card of player.hand) {
       moves.push({
         type: 'PLAY_CARD',
@@ -264,14 +268,8 @@ export class GarameRules implements GameRules<GarameState> {
       });
     }
 
-    // Se coucher (si pas déjà fait)
-    if (!player.hasFolded) {
-      moves.push({
-        type: 'FOLD',
-        playerId,
-        data: {},
-      });
-    }
+    // CORRECTION: Pas de fold au Garame
+    // Les joueurs DOIVENT jouer une carte
 
     return moves;
   }
@@ -317,14 +315,7 @@ export class GarameRules implements GameRules<GarameState> {
     this.nextPlayer(state);
   }
 
-  private applyFold(state: GarameState, playerId: string): void {
-    const player = state.players[playerId];
-    player.hasFolded = true;
-    player.isActive = false;
-
-    // Passer au joueur suivant
-    this.nextPlayer(state);
-  }
+  // CORRECTION: Méthode applyFold supprimée car impossible de se coucher au Garame
 
   private applyReady(state: GarameState, playerId: string): void {
     const player = state.players[playerId];
@@ -335,7 +326,7 @@ export class GarameRules implements GameRules<GarameState> {
     const playerIds = Object.keys(state.players);
     const currentIndex = playerIds.indexOf(state.currentPlayerId!);
     
-    // Trouver le prochain joueur actif
+    // Trouver le prochain joueur actif (pas de fold au Garame)
     let nextIndex = (currentIndex + 1) % playerIds.length;
     let attempts = 0;
     
@@ -343,7 +334,7 @@ export class GarameRules implements GameRules<GarameState> {
       const nextPlayerId = playerIds[nextIndex];
       const nextPlayer = state.players[nextPlayerId];
       
-      if (nextPlayer.isActive && !nextPlayer.hasFolded) {
+      if (nextPlayer.isActive) {
         state.currentPlayerId = nextPlayerId;
         return;
       }
@@ -357,7 +348,7 @@ export class GarameRules implements GameRules<GarameState> {
   }
 
   private checkRoundEnd(state: GarameState): void {
-    const activePlayers = Object.values(state.players).filter(p => p.isActive && !p.hasFolded);
+    const activePlayers = Object.values(state.players).filter(p => p.isActive);
     
     // Vérifier si tous les joueurs actifs ont joué
     if (state.tableCards.length === activePlayers.length) {
@@ -376,7 +367,7 @@ export class GarameRules implements GameRules<GarameState> {
     const cardsPlayed: Record<string, GarameCard> = {};
     
     for (const [playerId, player] of Object.entries(state.players)) {
-      if (player.isActive && !player.hasFolded) {
+      if (player.isActive) {
         // Logique simplifiée : associer les cartes aux joueurs
         // Dans une vraie implémentation, il faudrait tracker qui a joué quelle carte
         const playedCard = state.tableCards.find(card => card.id === winningCard.id);

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { trpc } from '@/lib/trpc/client';
 import { PlayingCard, HiddenCard, CardSlot } from './playing-card';
+import { EnhancedPlayingCard } from './enhanced-playing-card';
+import { useCardAnimation } from '@/hooks/use-card-animation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +33,14 @@ export function GameBoard({ gameId }: GameBoardProps) {
   const user = useCurrentUser();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [gameTimer, setGameTimer] = useState(0);
+  
+  // Animation hook
+  const { getCardState } = useCardAnimation({
+    phase: 'playing',
+    isMyTurn: false,
+    playableCards: [],
+    tableCards: []
+  }, selectedCard);
 
   // Queries
   const { data: gameData, refetch: refetchGame } = trpc.game.getGameState.useQuery(
@@ -62,15 +72,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
     },
   });
 
-  const fold = trpc.game.fold.useMutation({
-    onSuccess: () => {
-      toast.info('Vous vous êtes couché');
-      refetchGame();
-    },
-    onError: (error) => {
-      toast.error(`Erreur: ${error.message}`);
-    },
-  });
+  // CORRECTION: Fold retiré car impossible au Garame
 
   // Timer du jeu
   useEffect(() => {
@@ -97,6 +99,14 @@ export function GameBoard({ gameId }: GameBoardProps) {
   const currentPlayer = gameState?.players?.[user.id];
   const isMyTurn = gameData.currentPlayerId === user.id;
   const otherPlayers = gameData.players.filter(p => p.userId !== user.id);
+  
+  // Update animation hook with current game state
+  const { getCardState: getAnimatedCardState } = useCardAnimation({
+    phase: 'playing',
+    isMyTurn,
+    playableCards: currentPlayer?.hand?.map(c => c.id) || [],
+    tableCards: gameState?.tableCards || []
+  }, selectedCard);
 
   const handleCardClick = (cardId: string) => {
     if (!isMyTurn) {
@@ -113,13 +123,7 @@ export function GameBoard({ gameId }: GameBoardProps) {
     }
   };
 
-  const handleFold = () => {
-    if (!isMyTurn) {
-      toast.warning("Ce n'est pas votre tour !");
-      return;
-    }
-    fold.mutate({ gameId });
-  };
+  // CORRECTION: Fonction handleFold supprimée car impossible au Garame
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -219,7 +223,12 @@ export function GameBoard({ gameId }: GameBoardProps) {
                     {/* Cartes de l'adversaire (cachées) */}
                     <div className="flex gap-1 justify-center">
                       {Array.from({ length: 5 }).map((_, cardIndex) => (
-                        <HiddenCard key={cardIndex} size="sm" />
+                        <EnhancedPlayingCard
+                          key={cardIndex}
+                          state="hidden"
+                          size="sm"
+                          delay={cardIndex * 0.05}
+                        />
                       ))}
                     </div>
                   </CardContent>
@@ -251,10 +260,11 @@ export function GameBoard({ gameId }: GameBoardProps) {
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ delay: index * 0.2 }}
                       >
-                        <PlayingCard
+                        <EnhancedPlayingCard
                           card={card}
-                          isPlayable={false}
+                          state="played"
                           size="md"
+                          delay={index * 0.1}
                         />
                       </motion.div>
                     ))}
@@ -285,21 +295,21 @@ export function GameBoard({ gameId }: GameBoardProps) {
               </div>
               
               <div className="flex justify-center gap-2 mb-4">
-                {currentPlayer?.hand?.map((card) => (
-                  <PlayingCard
+                {currentPlayer?.hand?.map((card, index) => (
+                  <EnhancedPlayingCard
                     key={card.id}
                     card={card}
-                    isPlayable={isMyTurn && !playCard.isPending}
-                    isSelected={selectedCard === card.id}
+                    state={getAnimatedCardState(card, true, selectedCard === card.id)}
                     onClick={() => handleCardClick(card.id)}
                     size="lg"
+                    delay={index * 0.1}
                   />
                 )) || (
                   <div className="text-white/60">Aucune carte disponible</div>
                 )}
               </div>
 
-              {/* Actions */}
+              {/* Actions - CORRECTION: Bouton "Se coucher" retiré car impossible au Garame */}
               {isMyTurn && (
                 <div className="flex justify-center gap-3">
                   {selectedCard && (
@@ -319,14 +329,12 @@ export function GameBoard({ gameId }: GameBoardProps) {
                     </Button>
                   )}
                   
-                  <Button
-                    variant="outline"
-                    onClick={handleFold}
-                    disabled={fold.isPending}
-                    className="border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
-                  >
-                    {fold.isPending ? 'Abandon...' : 'Se coucher'}
-                  </Button>
+                  {/* Message explicatif pour Garame */}
+                  {!selectedCard && (
+                    <p className="text-white/60 text-sm text-center">
+                      Sélectionnez une carte à jouer (impossible de se coucher au Garame)
+                    </p>
+                  )}
                 </div>
               )}
             </motion.div>

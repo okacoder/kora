@@ -61,7 +61,7 @@ export interface GarameRound {
  * Action dans le jeu Garame
  */
 export interface GarameAction {
-  type: 'PLAY_CARD' | 'FOLD' | 'READY';
+  type: 'PLAY_CARD' | 'READY';
   playerId: string;
   playerName: string;
   card?: GarameCard;
