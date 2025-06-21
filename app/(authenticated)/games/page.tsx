@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/lib/routes';
 import { IconCards, IconJoker, IconDice } from '@tabler/icons-react';
+import { GameType } from '@prisma/client';
 
 interface Game {
-  id: string;
+  id: GameType;
   name: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -64,7 +65,7 @@ export default function GamesPage() {
             <Card 
               key={game.id}
               className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => router.push(routes.gameCreate(game.id))}
+              onClick={() => router.push(routes.createGameRoom(game.id))}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -80,7 +81,7 @@ export default function GamesPage() {
               </CardHeader>
               <CardContent>
                 <Button className="w-full" asChild>
-                  <Link href={routes.gameCreate(game.id)}>Jouer</Link>
+                  <Link href={routes.createGameRoom(game.id)}>Jouer</Link>
                 </Button>
               </CardContent>
             </Card>
