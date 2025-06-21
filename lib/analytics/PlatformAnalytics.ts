@@ -123,15 +123,14 @@ export class PlatformAnalyticsService {
           lte: dateRange.end
         }
       },
-      select: { amount: true, metadata: true }
+      select: { amount: true }
     });
 
     let depositFees = 0;
     for (const deposit of depositFeesQuery) {
-      // Calculer les frais selon le mode de paiement
-      const metadata = deposit.metadata as any;
-      if (metadata?.paymentMethod === 'BANK_CARD') {
-        depositFees += Math.round(deposit.amount * 0.025); // 2.5% pour les cartes
+      // Calculer les frais selon le mode de paiement (2.5% par défaut)
+      if (deposit.amount) {
+        depositFees += Math.round(deposit.amount * 0.025);
       }
     }
 
@@ -149,7 +148,10 @@ export class PlatformAnalyticsService {
     });
 
     const withdrawalFees = withdrawalFeesQuery.reduce((sum, w) => {
-      return sum + Math.min(Math.abs(w.amount) * 0.01, 1000); // 1% max 1000 Koras
+      if (w.amount) {
+        return sum + Math.min(Math.abs(w.amount) * 0.01, 1000); // 1% max 1000 Koras
+      }
+      return sum;
     }, 0);
 
     const totalCommission = gameCommissions._sum.amount || 0;
@@ -241,7 +243,7 @@ export class PlatformAnalyticsService {
     const totalGamesQuery = await prisma.transaction.groupBy({
       by: ['gameId'],
       where: {
-        type: TransactionType.BET,
+        type: TransactionType.GAME_STAKE,
         gameId: { not: null },
         createdAt: {
           gte: dateRange.start,
@@ -255,7 +257,7 @@ export class PlatformAnalyticsService {
     // Mise moyenne et volume total
     const betStats = await prisma.transaction.aggregate({
       where: {
-        type: TransactionType.BET,
+        type: TransactionType.GAME_STAKE,
         status: TransactionStatus.COMPLETED,
         createdAt: {
           gte: dateRange.start,
@@ -269,43 +271,40 @@ export class PlatformAnalyticsService {
     const averageBet = Math.abs(betStats._avg.amount || 0);
     const totalVolume = Math.abs(betStats._sum.amount || 0);
 
-    // Jeux populaires par type
+    // Jeux populaires par type (utilise gameId comme proxy)
     const gameTypeStats = await prisma.transaction.groupBy({
-      by: ['metadata'],
+      by: ['gameId'],
       where: {
-        type: TransactionType.BET,
+        type: TransactionType.GAME_STAKE,
         gameId: { not: null },
         createdAt: {
           gte: dateRange.start,
           lte: dateRange.end
         }
       },
-      _count: true,
+      _count: { _all: true },
       _sum: { amount: true }
     });
 
     const popularGameTypes = gameTypeStats
-      .map(stat => {
-        const metadata = stat.metadata as any;
-        return {
-          gameType: metadata?.gameType || 'unknown',
-          count: stat._count,
-          volume: Math.abs(stat._sum.amount || 0)
-        };
-      })
+      .map(stat => ({
+        gameType: stat.gameId || 'unknown',
+        count: stat._count._all || 0,
+        volume: Math.abs(stat._sum.amount || 0)
+      }))
       .filter(game => game.gameType !== 'unknown')
       .sort((a, b) => b.count - a.count);
 
-    // Statistiques des victoires Kora
+    // Statistiques des victoires Kora (simulé pour l'instant)
     const koraWins = await prisma.transaction.findMany({
       where: {
-        type: TransactionType.WIN,
+        type: TransactionType.GAME_WIN,
         createdAt: {
           gte: dateRange.start,
           lte: dateRange.end
         }
       },
-      select: { metadata: true }
+      select: { description: true }
     });
 
     const koraStats = {
@@ -316,22 +315,16 @@ export class PlatformAnalyticsService {
     };
 
     koraWins.forEach(win => {
-      const metadata = win.metadata as any;
-      const victoryType = metadata?.victoryType;
+      const description = win.description || '';
       
-      switch (victoryType) {
-        case 'KORA_SIMPLE':
-          koraStats.simple++;
-          break;
-        case 'KORA_DOUBLE':
-          koraStats.double++;
-          break;
-        case 'KORA_TRIPLE':
-          koraStats.triple++;
-          break;
-        case 'GRAND_SLAM':
-          koraStats.grandSlam++;
-          break;
+      if (description.includes('KORA_SIMPLE')) {
+        koraStats.simple++;
+      } else if (description.includes('KORA_DOUBLE')) {
+        koraStats.double++;
+      } else if (description.includes('KORA_TRIPLE')) {
+        koraStats.triple++;
+      } else if (description.includes('GRAND_SLAM')) {
+        koraStats.grandSlam++;
       }
     });
 
@@ -372,7 +365,7 @@ export class PlatformAnalyticsService {
       // Mises
       prisma.transaction.aggregate({
         where: {
-          type: TransactionType.BET,
+          type: TransactionType.GAME_STAKE,
           status: TransactionStatus.COMPLETED,
           createdAt: { gte: dateRange.start, lte: dateRange.end }
         },
@@ -382,7 +375,7 @@ export class PlatformAnalyticsService {
       // Gains
       prisma.transaction.aggregate({
         where: {
-          type: TransactionType.WIN,
+          type: TransactionType.GAME_WIN,
           status: TransactionStatus.COMPLETED,
           createdAt: { gte: dateRange.start, lte: dateRange.end }
         },
@@ -460,7 +453,7 @@ export class PlatformAnalyticsService {
         prisma.transaction.groupBy({
           by: ['gameId'],
           where: {
-            type: TransactionType.BET,
+            type: TransactionType.GAME_STAKE,
             gameId: { not: null },
             createdAt: { gte: dayStart, lte: dayEnd }
           }
@@ -469,7 +462,7 @@ export class PlatformAnalyticsService {
         // Volume du jour
         prisma.transaction.aggregate({
           where: {
-            type: TransactionType.BET,
+            type: TransactionType.GAME_STAKE,
             status: TransactionStatus.COMPLETED,
             createdAt: { gte: dayStart, lte: dayEnd }
           },
@@ -527,16 +520,16 @@ export class PlatformAnalyticsService {
 
     const topUsers = topUsersQuery.map(user => {
       const bets = user.transactions
-        .filter(t => t.type === TransactionType.BET)
-        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        .filter(t => t.type === TransactionType.GAME_STAKE)
+        .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
       
       const winnings = user.transactions
-        .filter(t => t.type === TransactionType.WIN)
-        .reduce((sum, t) => sum + t.amount, 0);
+        .filter(t => t.type === TransactionType.GAME_WIN)
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
       
       const games = new Set(
         user.transactions
-          .filter(t => t.type === TransactionType.BET && t.gameId)
+          .filter(t => t.type === TransactionType.GAME_STAKE && t.gameId)
           .map(t => t.gameId)
       ).size;
 

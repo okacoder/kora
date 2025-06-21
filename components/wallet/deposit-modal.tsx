@@ -466,7 +466,7 @@ export function DepositModal({ userId, trigger, onSuccess, onError }: DepositMod
 
           <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center gap-3">
-              <selectedMethod.icon className="w-6 h-6 text-primary" />
+              {selectedMethod && <selectedMethod.icon className="w-6 h-6 text-primary" />}
               <div>
                 <p className="font-medium">{selectedMethod?.name}</p>
                 <p className="text-sm text-muted-foreground">

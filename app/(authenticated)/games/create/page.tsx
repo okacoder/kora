@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { GameType } from '@prisma/client';
 import { motion } from 'framer-motion';
+import { trpc } from '@/lib/trpc/client';
 
 import { getConfigGameById } from '@/lib/games';
 import { routes } from '@/lib/routes';
@@ -64,6 +65,8 @@ export default function CreateRoomPage() {
     });
   };
 
+  const createRoomMutation = trpc.room.create.useMutation();
+
   const handleCreateRoom = async () => {
     if (!user) {
       toast.error('Vous devez être connecté');
@@ -79,11 +82,17 @@ export default function CreateRoomPage() {
 
     setLoading(true);
     try {
-      // TODO: Implement actual room creation
-      const roomId = 'room_' + Date.now();
+      const result = await createRoomMutation.mutateAsync({
+        gameType: gameType as GameType,
+        betAmount: settings.betAmount,
+        maxPlayers: settings.maxPlayers,
+        isPrivate: settings.isPrivate,
+        turnDuration: settings.turnDuration,
+        invitedPlayers: settings.invitedPlayers
+      });
       
-      toast.success('Salle créée avec succès !');
-      router.push(routes.gameRoom(roomId));
+      toast.success(`Salle créée avec succès ! Code: ${result.code}`);
+      router.push(routes.gameRoom(result.id));
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la création');
     } finally {
@@ -310,7 +319,7 @@ export default function CreateRoomPage() {
         onClick={handleCreateRoom}
         size="lg"
         className="min-w-[200px] bg-primary hover:bg-primary/90"
-        disabled={loading || settings.betAmount > (user?.koras || 0)}
+        disabled={loading || settings.betAmount > (user?.koras || 0) || createRoomMutation.isPending}
       >
         <IconDeviceGamepad2 className="size-5 mr-2" />
         {loading ? 'Création...' : 'Créer la salle'}

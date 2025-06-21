@@ -102,6 +102,7 @@ enum GameType {
 
 model GameRoom {
   id          String         @id @default(cuid())
+  code        String?        @unique
   gameType    GameType
   stake       Int
   creatorId   String
