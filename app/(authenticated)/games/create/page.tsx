@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { 
   IconCoin, 
@@ -19,11 +19,13 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { GameType } from '@prisma/client';
 
 
 
 export default function CreateRoomPage() {
-  const params = useParams<{ gameType: string }>();
+  const searchParams = useSearchParams();
+  const gameType = searchParams.get('gameType') as GameType;
   const router = useRouter();
   const user = useCurrentUser();
 
@@ -59,7 +61,7 @@ export default function CreateRoomPage() {
 
 
       toast.success('Salle créée avec succès !');
-      router.push(`/games/${params.gameType}/room/${room.id}`);
+      router.push(`/games/${gameType}/room/${room.id}`);
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la création');
     } finally {
@@ -70,7 +72,7 @@ export default function CreateRoomPage() {
   return (
     <div className="container mx-auto p-6 max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Créer une salle de {params.gameType}</h1>
+        <h1 className="text-3xl font-bold">Créer une salle de {gameType}</h1>
         <p className="text-muted-foreground">
           Configurez votre partie selon vos préférences
         </p>
@@ -129,7 +131,7 @@ export default function CreateRoomPage() {
             <Slider
               value={[settings.aiPlayers]}
               onValueChange={([value]: number[]) => setSettings({ ...settings, aiPlayers: value })}
-              max={params.gameType === 'garame' ? 1 : 3}
+              max={gameType === 'garame' ? 1 : 3}
               step={1}
             />
             

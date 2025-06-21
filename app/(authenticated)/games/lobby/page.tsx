@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -21,7 +21,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { GameRoom, GameRoomStatus, RoomPlayer } from '@prisma/client';
+import { GameRoom, GameRoomStatus, GameType, RoomPlayer } from '@prisma/client';
+import { routes } from '@/lib/routes';
 
 // Extended GameRoom type to include players
 interface GameRoomWithPlayers extends GameRoom {
@@ -29,7 +30,7 @@ interface GameRoomWithPlayers extends GameRoom {
 }
 
 export default function LobbyPage() {
-  const params = useParams<{ gameType: string }>();
+  const gameType = useSearchParams().get('gameType') as GameType;
   const router = useRouter();
   const user = useCurrentUser();
 
@@ -50,7 +51,7 @@ export default function LobbyPage() {
     return () => {
       clearInterval(interval);
     };
-  }, [params.gameType, filter]);
+  }, [gameType, filter]);
 
   const loadRooms = async () => {
     try {
@@ -80,7 +81,7 @@ export default function LobbyPage() {
 
     try {
       // await joinGameRoom(roomId, user.id);
-      router.push(`/games/${params.gameType}/room/${roomId}`);
+      router.push(routes.gameRoom(roomId));
     } catch (error: any) {
       toast.error(error.message || 'Impossible de rejoindre la salle');
     }
@@ -129,13 +130,13 @@ export default function LobbyPage() {
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold capitalize">
-            Salles de {params.gameType}
+            Salles de {gameType}
           </h1>
           <p className="text-muted-foreground">
             Rejoignez une partie ou créez votre propre salle
           </p>
         </div>
-        <Link href={`/games/${params.gameType}/create`}>
+        <Link href={routes.createGameRoom(gameType)}>
           <Button>
             <IconPlus className="mr-2 h-4 w-4" />
             Créer une salle
@@ -188,7 +189,7 @@ export default function LobbyPage() {
             <p className="text-muted-foreground mb-4">
               Aucune salle disponible pour le moment
             </p>
-            <Link href={`/games/${params.gameType}/create`}>
+            <Link href={routes.createGameRoom(gameType)}>
               <Button>Créer la première salle</Button>
             </Link>
           </CardContent>

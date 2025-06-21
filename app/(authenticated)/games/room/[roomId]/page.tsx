@@ -121,11 +121,10 @@ export default function RoomPage() {
 
       // Si la partie a démarré, rediriger vers la page de jeu
       if (typedRoom.id) {
-        router.push(routes.gamePlay(params.gameType, typedRoom.id));
+        router.push(routes.gamePlay(typedRoom.id));
       }
     } catch (error) {
       toast.error('Erreur lors du chargement de la salle');
-      router.push(routes.gameLobby(params.gameType));
     } finally {
       setLoading(false);
     }
@@ -151,7 +150,7 @@ export default function RoomPage() {
       setTimeout(async () => {
         try {
           const gameStateId = '1';
-          router.push(routes.gamePlay(params.gameType, gameStateId));
+          router.push(routes.gamePlay(gameStateId));
         } catch (error: any) {
           toast.error(error.message || 'Impossible de démarrer la partie');
           setCountdown(null);
@@ -164,7 +163,8 @@ export default function RoomPage() {
   };
 
   const handleLeaveRoom = () => {
-    router.push(routes.gameLobby(params.gameType));
+    if (!room) return;
+    router.push(routes.gameLobby(room.gameType));
   };
 
   const getRoomSettings = (room: GameRoomWithPlayers): RoomSettings => {
