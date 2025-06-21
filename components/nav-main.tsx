@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
+import { IconCards, IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -77,7 +77,7 @@ function QuickGameButton() {
           {games.map((game) => (
             <Button variant="ghost" key={game.id} asChild>
               <Link href={routes.createGameRoom(game.id)}>
-                <game.icon className="size-5" />
+                <IconCards className="size-5" />
                 <span>{game.name}</span>
               </Link>
             </Button>
