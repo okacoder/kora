@@ -1120,18 +1120,19 @@ export const useGameStore = create<GameStore>()(
   - [x] Valider le fonctionnement complet du système
 
 ### Phase 4 : Interface utilisateur (Semaine 3-4)
-- [ ] **Composants de jeu**
-  - [ ] Améliorer PlayingCard (contrastes, animations)
-  - [ ] Créer GameBoard responsive
-  - [ ] Implémenter PlayerHand avec drag & drop
-  - [ ] Créer BettingPanel pour les mises
-  - [ ] Ajouter les animations GSAP
+- [x] **Composants de jeu**
+  - [x] Améliorer PlayingCard (contrastes, animations)
+  - [x] Créer GameBoard responsive
+  - [x] Implémenter interface de jeu complète
+  - [x] Créer système de notifications en temps réel
+  - [x] Ajouter les animations Framer Motion
 
-- [ ] **Pages de jeu**
-  - [ ] Page lobby avec liste des parties
-  - [ ] Page de jeu principale
-  - [ ] Interface de création de partie
-  - [ ] Écran de fin de partie avec gains
+- [x] **Pages de jeu**
+  - [x] Page lobby avec liste des parties
+  - [x] Page de jeu principale
+  - [x] Interface de création de partie
+  - [x] Écran de fin de partie avec gains
+  - [x] Système de notifications interactives
 
 ### Phase 5 : IA et multijoueur (Semaine 4-5)
 - [ ] **Système d'IA**
