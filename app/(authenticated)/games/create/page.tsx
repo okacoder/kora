@@ -20,6 +20,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { GameType } from '@prisma/client';
+import { routes } from '@/lib/routes';
 
 
 
@@ -61,7 +62,7 @@ export default function CreateRoomPage() {
 
 
       toast.success('Salle créée avec succès !');
-      router.push(`/games/${gameType}/room/${room.id}`);
+      router.push(routes.gameRoom(room.id));
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la création');
     } finally {
