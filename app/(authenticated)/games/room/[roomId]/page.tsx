@@ -87,10 +87,6 @@ export default function RoomPage() {
   }, [params.roomId]);
 
   const loadRoom = async () => {
-    if (!user) {
-      router.push(routes.login);
-      return;
-    }
 
     try {
       setLoading(true);
@@ -116,7 +112,7 @@ export default function RoomPage() {
       const typedRoom = roomData as GameRoomWithPlayers;
       setRoom(typedRoom);
       
-      const currentPlayer = typedRoom.players.find(p => p.userId === user.id);
+      const currentPlayer = typedRoom.players.find(p => p.userId === user?.id);
       setIsReady(currentPlayer?.isReady || false);
 
       // Si la partie a démarré, rediriger vers la page de jeu

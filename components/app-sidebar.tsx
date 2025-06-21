@@ -38,24 +38,24 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Mes Koras",
-      url: routes.koras,
-      icon: IconCoin,
-    },
-    {
       title: "Mes jeux",
       url: routes.games,
       icon: IconCards,
     },
     {
-      title: "Transactions",
-      url: routes.transactions,
-      icon: IconArrowsExchange,
+      title: "Mes Koras",
+      url: routes.koras,
+      icon: IconCoin,
     },
     {
       title: "Historique",
       url: routes.gamesHistory,
       icon: IconHistory,
+    },
+    {
+      title: "Transactions",
+      url: routes.transactions,
+      icon: IconArrowsExchange,
     },
   ],
   navSecondary: [
