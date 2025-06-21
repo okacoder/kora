@@ -1100,17 +1100,24 @@ export const useGameStore = create<GameStore>()(
   - [x] Seeder pour les données de test
 
 ### Phase 3 : Moteur de jeu (Semaine 2-3)
-- [ ] **Architecture modulaire**
-  - [ ] Créer les interfaces de base (GameRules, GameState)
-  - [ ] Implémenter le GameEngine principal
-  - [ ] Créer la structure pour supporter plusieurs jeux
+- [x] **Architecture modulaire**
+  - [x] Créer les interfaces de base (GameRules, GameState)
+  - [x] Implémenter le GameEngine principal
+  - [x] Créer la structure pour supporter plusieurs jeux
 
-- [ ] **Implémentation Garame**
-  - [ ] Créer GarameState et GarameCard
-  - [ ] Implémenter GarameRules avec toutes les règles
-  - [ ] Créer la logique de distribution des cartes
-  - [ ] Implémenter la détection des Koras
-  - [ ] Tester toutes les conditions de victoire
+- [x] **Implémentation Garame**
+  - [x] Créer GarameState et GarameCard
+  - [x] Implémenter GarameRules avec toutes les règles
+  - [x] Créer la logique de distribution des cartes
+  - [x] Implémenter la détection des Koras
+  - [x] Tester toutes les conditions de victoire
+
+- [x] **Intégration tRPC**
+  - [x] Créer les procédures tRPC pour les jeux (create, join, playCard, fold)
+  - [x] Intégrer le moteur de jeu avec les routers tRPC
+  - [x] Gérer les transactions et les gains automatiquement
+  - [x] Créer un composant de test pour l'intégration
+  - [x] Valider le fonctionnement complet du système
 
 ### Phase 4 : Interface utilisateur (Semaine 3-4)
 - [ ] **Composants de jeu**
@@ -1164,7 +1171,7 @@ export const useGameStore = create<GameStore>()(
 
 ### Phase 8 : Tests et déploiement (Semaine 6-7)
 - [ ] **Tests**
-  - [ ] Tests unitaires (Jest) pour le moteur de jeu
+  - [ ] Tests unitaires (Vitest) pour le moteur de jeu
   - [ ] Tests d'intégration pour l'API tRPC
   - [ ] Tests E2E (Cypress) pour les flux utilisateur
   - [ ] Tests de charge pour le WebSocket

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { routes } from '@/lib/routes';
 import { IconCards, IconJoker, IconDice } from '@tabler/icons-react';
 import { GameType } from '@prisma/client';
+import { TestGameEngine } from '@/components/test-game-engine';
 
 interface Game {
   id: GameType;
@@ -109,6 +110,12 @@ export default function GamesPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Test du moteur de jeu */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold mb-4">Test du Moteur de Jeu</h2>
+        <TestGameEngine />
       </div>
     </div>
   );
