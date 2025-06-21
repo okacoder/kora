@@ -1,7 +1,6 @@
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@prisma/client";
 import { betterAuth, type BetterAuthOptions } from 'better-auth';
-import { nextCookies } from 'better-auth/next-js';
 import { username } from "better-auth/plugins"
 
 const prisma = new PrismaClient();
@@ -51,7 +50,6 @@ const options = {
       minUsernameLength: 3,
       maxUsernameLength: 20,
      }),
-     nextCookies(), 
   ],
 } satisfies BetterAuthOptions;
 
