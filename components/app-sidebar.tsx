@@ -11,6 +11,7 @@ import {
   IconUserCircle,
   IconHistory,
   IconArrowsExchange,
+  IconTrophy,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -41,6 +42,11 @@ const data = {
       title: "Mes jeux",
       url: routes.games,
       icon: IconCards,
+    },
+    {
+      title: "Classement",
+      url: "/ranking",
+      icon: IconTrophy,
     },
     {
       title: "Mes Koras",

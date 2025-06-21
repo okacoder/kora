@@ -8,6 +8,8 @@ import { IconCards, IconJoker, IconDice, IconRobot, IconUsers, IconTrophy } from
 import { TestGameEngine } from '@/components/test-game-engine';
 import { motion } from 'framer-motion';
 import { EnhancedPlayingCard } from '@/components/game/enhanced-playing-card';
+import { CompactLeaderboard } from '@/components/ranking/leaderboard';
+import { calculateEloRating } from '@/lib/elo/elo-system';
 import { games } from '@/lib/games';
 
 const COMING_SOON_GAMES = [
@@ -33,6 +35,50 @@ const COMING_SOON_GAMES = [
 
 export default function GamesPage() {
   const router = useRouter();
+  
+  // Mock leaderboard data - Phase 3 implementation
+  const mockLeaderboardPlayers = [
+    {
+      id: "1",
+      name: "Champion",
+      avatar: undefined,
+      eloRating: calculateEloRating(2450, 156, 121, 35),
+      position: 1,
+      isCurrentUser: false
+    },
+    {
+      id: "2", 
+      name: "Expert",
+      avatar: undefined,
+      eloRating: calculateEloRating(2210, 89, 67, 22),
+      position: 2,
+      isCurrentUser: false
+    },
+    {
+      id: "3",
+      name: "Maître", 
+      avatar: undefined,
+      eloRating: calculateEloRating(1980, 134, 89, 45),
+      position: 3,
+      isCurrentUser: false
+    },
+    {
+      id: "4",
+      name: "Challenger",
+      avatar: undefined,
+      eloRating: calculateEloRating(1755, 67, 41, 26),
+      position: 4,
+      isCurrentUser: false
+    },
+    {
+      id: "5",
+      name: "Rising Star",
+      avatar: undefined,
+      eloRating: calculateEloRating(1689, 43, 29, 14),
+      position: 5,
+      isCurrentUser: false
+    }
+  ];
 
   return (
     <div className="container mx-auto">
@@ -144,43 +190,18 @@ export default function GamesPage() {
               <CardDescription>Les meilleurs joueurs de la communauté</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {/* Placeholder for leaderboard - will be implemented in Phase 3 */}
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge className="bg-chart-5 text-white">#1</Badge>
-                    <span className="font-medium">Champion</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-chart-5">2450 ELO</div>
-                    <div className="text-xs text-muted-foreground">Grand Maître</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary">#2</Badge>
-                    <span className="font-medium">Expert</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold">2210 ELO</div>
-                    <div className="text-xs text-muted-foreground">Diamant I</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary">#3</Badge>
-                    <span className="font-medium">Maître</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold">1980 ELO</div>
-                    <div className="text-xs text-muted-foreground">Platine I</div>
-                  </div>
-                </div>
-                <div className="text-center pt-2">
-                  <Button variant="outline" size="sm">
-                    Voir le classement complet
-                  </Button>
-                </div>
+              <CompactLeaderboard 
+                players={mockLeaderboardPlayers}
+                maxItems={5}
+              />
+              <div className="text-center pt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => router.push('/ranking')}
+                >
+                  Voir le classement complet
+                </Button>
               </div>
             </CardContent>
           </Card>
