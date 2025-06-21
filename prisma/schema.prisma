@@ -60,7 +60,7 @@ model user {
   updatedAt           DateTime
   account             account[]
   session             session[]
-  transactions        transaction[]
+  transactions        Transaction[]
   GameRoom            GameRoom[]
   RoomPlayer          RoomPlayer[]
 
@@ -94,9 +94,13 @@ enum AIDifficulty {
   HARD
 }
 
+enum GameType {
+  garame
+}
+
 model GameRoom {
   id          String         @id @default(cuid())
-  gameType    String // 'garame', 'poker', etc.
+  gameType    GameType
   stake       Int
   creatorId   String
   creatorName String
@@ -147,7 +151,7 @@ enum GameStateStatus {
 
 model GameState {
   id              String          @id @default(cuid())
-  gameType        String
+  gameType        GameType
   currentPlayerId String
   players         Json // Map<string, BasePlayerState>
   pot             Int
@@ -165,7 +169,7 @@ model GameState {
 
 // Modèles spécifiques à LaMap241
 
-model transaction {
+model Transaction {
   id          String            @id @default(cuid())
   userId      String
   type        TransactionType

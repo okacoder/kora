@@ -1,6 +1,12 @@
+import { GameType } from "@prisma/client";
 import { IconCards } from "@tabler/icons-react";
 
-export const games = [
+export const games: {
+  id: GameType;
+  name: string;
+  description: string;
+  icon: React.ElementType;
+}[] = [
   {
     id: "garame",
     name: "Garame",
