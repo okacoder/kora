@@ -1,16 +1,10 @@
 "use client";
 
 import { GameBoard } from '@/components/game/game-board';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 
-interface GamePageProps {
-  params: {
-    gameId: string;
-  };
-}
-
-export default function GamePage({ params }: GamePageProps) {
-  const { gameId } = params;
+export default function GamePage() {
+  const { gameId } = useParams<{ gameId: string | undefined }>();
 
   if (!gameId) {
     notFound();
